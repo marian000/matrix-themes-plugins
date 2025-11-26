@@ -1,0 +1,16 @@
+# Ignore everything except what we want
+/*
+!/.gitignore
+!/CLAUDE.md
+!/wp-content
+
+/wp-content/*
+!/wp-content/.gitignore
+!/wp-content/themes
+!/wp-content/plugins
+
+/wp-content/themes/*
+!/wp-content/themes/storefront-child
+
+/wp-content/plugins/*
+!/wp-content/plugins/shutter-module

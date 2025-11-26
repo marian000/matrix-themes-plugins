@@ -1,0 +1,30 @@
+/*teo*/
+/*
+ Customise the Edit ticket page not to show ticket number
+*/
+
+.multicart-page main li.cart-items, body.prod1 .entry-header .entry-title, body.prod3 .entry-header .entry-title, body.prod-individual .entry-header .entry-title {
+    display: none;
+}
+
+.stgh-div-block-in-row {
+    /*border: 1px solid;*/
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #fff;
+}
+
+.stg-single-ticket hr {
+    background-color: #333;
+}
+
+body.post-type-stgh_ticket .wrap h1.wp-heading-inline {
+	display: none;
+}
+
+.stgh-div-block-in-row, .ava_block {margin: 5px auto;}
+
+/*teo No ticket reply input from admin */
+#stgh-comments-form-in {
+    display: none !important;
+}

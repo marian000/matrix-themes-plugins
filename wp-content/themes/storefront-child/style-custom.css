@@ -1,0 +1,199 @@
+/*** marian woocommerce**/
+/** Custom style interface*/
+form .input-text, input[type=email], form input[type=password], form input[type=search], form input[type=text], form input[type=url], form input[type=submit], form textarea {
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn {
+    font-size: 1em;
+}
+
+button.btn-danger, a.btn-danger {
+    background-color: #D63230;
+    border-color: #D63230;
+}
+
+button.btn-primary, a.btn-primary {
+    background-color: #1A6DB2;
+    border-color: #1A6DB2;
+}
+
+table, .highcharts-container, .page-content, .order-summary-table, div#order_review, .specifications .entry-content .panel {
+    box-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03), 0 0.9375rem 1.40625rem rgba(4, 9, 20, 0.03), 0 0.25rem 0.53125rem rgba(4, 9, 20, 0.05), 0 0.125rem 0.1875rem rgba(4, 9, 20, 0.03);
+    margin-bottom: 20px;
+    border: 1px solid rgba(26, 54, 126, 0.1);
+    border-radius: 5px;
+    margin: 0;
+}
+
+table.table {
+    margin-bottom: 0 !important;
+}
+
+nav .container-fluid.row {
+    box-shadow: 0 0.46875rem 2.1875rem rgb(4 9 20 / 10%), 0 0.9375rem 1.40625rem rgb(4 9 20 / 10%), 0 0.25rem 0.53125rem rgb(4 9 20 / 10%), 0 0.125rem 0.1875rem rgb(4 9 20 / 10%);
+}
+
+.storefront-full-width-content.woocommerce-checkout .entry-header {
+    padding: 0 0 35px !important;
+}
+
+main {
+    background-color: transparent;
+}
+
+body #content .col-full {
+    background-color: #f1f4f6;
+}
+
+/*sidebar menu and search*/
+body #masthead {
+    background-color: #12447E;
+    box-shadow: 7px 0 60px rgba(0, 0, 0, 0.1);
+}
+
+body .primary-navigation .current-menu-item {
+    background-color: #1762A0;
+}
+
+body .navbar-top-blue-bkg {
+    background-color: #013E75;
+    border-color: #013E75;
+}
+
+@media (min-width: 768px) {
+    .storefront-primary-navigation .main-navigation ul.menu > li > a, .storefront-primary-navigation .main-navigation ul.nav-menu > li > a {
+        padding: 1.1em 0.5em;
+    }
+}
+
+/** Single product style page*/
+div.product.type-product {
+    background-color: #fff;
+    padding: 10px;
+    border: 1px solid;
+    border-radius: 7px;
+    overflow: auto;
+}
+
+div.product.type-product ol.flex-control-nav.flex-control-thumbs {
+    padding: 0;
+    margin: 15px 0;
+    position: relative;
+    max-width: 700px;
+    width: 100%;
+    min-width: 35vw;
+}
+
+div.product.type-product .flex-viewport {
+    max-width: 700px;
+    width: 100%;
+    min-width: 35vw;
+}
+
+div.product.type-product li {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+div.product.type-product button.single_add_to_cart_button.button.alt {
+    margin: 10px 0;
+}
+
+.woocommerce-tabs ul.tabs li::after {
+    content: "\f105";
+    display: none;
+}
+
+div.product.type-product div#tab-description {
+    border: 1px solid;
+    padding: 10px;
+    float: none;
+}
+
+div.product.type-product ul.tabs.wc-tabs {
+    display: none;
+}
+
+div.product.type-product .summary.entry-summary {
+    padding-top: 11px;
+}
+
+#payment .place-order {
+    margin-top: 0 !important;
+}
+
+.addUserSalesman {
+    max-width: 500px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.addUserSalesman input, .addUserSalesman option {
+    max-width: 500px;
+    text-align: center;
+}
+
+/*card buttons next step, edit*/
+.panel.inactive ~ .panel.inactive .next-step, .panel.inactive ~ .panel.inactive .edit, .panel.done .next-step, .panel ~ .panel .next-step, .panel ~ .panel .edit, .panel.done .next-step {
+    display: none;
+}
+
+.panel.inactive .next-step, .panel.done .edit {
+    display: inline-block;
+    float: right;
+}
+
+.panel .panel-header.active .edit, .panel .panel-header.active .next-step, .panel.inactive .edit {
+    display: none;
+    float: right;
+}
+
+.panel.done .edit {
+    display: block;
+}
+
+.product .summary.entry-summary table td, .product .summary.entry-summary table th {
+    padding: 10px;
+    font-size: 100%;
+    line-height: initial;
+}
+
+.product .summary.entry-summary td.label {
+    display: block;
+}
+
+.product .summary.entry-summary p, .product .summary.entry-summary table.variations {
+    font-size: 18px;
+}
+
+a.btn.btn-primary.blue {
+    margin-right: 2px;
+}
+
+.order-components-fob p, .order-components p {
+    font-size: 17px;
+}
+
+.order-components-fob p.price, .order-components p.price {
+    font-size: 21px;
+    font-weight: bold;
+    color: #000;
+}
+
+.woocommerce-checkout .woocommerce-message {
+    display: none;
+}
+
+.products-list-simple .thumbnail:hover {
+    /* border: 4px solid #438EB9; */
+    /* padding: 0; */
+    -webkit-transition: border .0s ease-in-out;
+    transition: border .0s ease-in-out;
+    box-shadow: inset 0px 0px 0px 4px #438eb9;
+}
+
+.products-list-simple .thumbnail {
+    -webkit-transition: border .0s ease-in-out;
+    transition: border .0s ease-in-out;
+}

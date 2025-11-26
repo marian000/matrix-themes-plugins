@@ -1,0 +1,12 @@
+@font-face {
+  font-family: 'MATRIX';
+  src: url('MATRIX.eot');
+  src: url('MATRIX.woff2') format('woff2'),
+       url('MATRIX.woff') format('woff'),
+       url('MATRIX.ttf') format('truetype'),
+       url('MATRIX.svg#MATRIX') format('svg'),
+       url('MATRIX.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+

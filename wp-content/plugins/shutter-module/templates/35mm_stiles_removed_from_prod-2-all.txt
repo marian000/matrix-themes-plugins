@@ -1,0 +1,113 @@
+                                                            <label>
+
+                                                                <br/> 35mm 1001A<br/>(plain butt)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="FS 38.1"
+                                                                       data-title="35mm 1001A(plain butt)"
+                                                                       value="361" <?php if ($property_stile == '361' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-7"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1001A.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 35mm 1005A<br/>(plain D-mould)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="DFS 38.1"
+                                                                       data-title="35mm 1005A(plain D-mould)"
+                                                                       value="362" <?php if ($property_stile == '362' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-8"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1005A.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 35mm 1003A<br/>(plain rebate)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 38.1"
+                                                                       data-title="35mm 1003A(plain rebate)"
+                                                                       value="366" <?php if ($property_stile == '366' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-9"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1003A.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 35mm 1002A<br/>(beaded butt)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="BS 38.1"
+                                                                       data-title="35mm 1002A(beaded butt)"
+                                                                       value="363" <?php if ($property_stile == '363' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-10"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1002A.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 35mm 1006A<br/>(beaded D-mould)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="DBS 38.1"
+                                                                       data-title="35mm 1006A(beaded D-mould)"
+                                                                       value="364" <?php if ($property_stile == '364' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-11"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1006A.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 35mm 1004A<br/>(beaded rebate)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RBS 38.1"
+                                                                       data-title="35mm 1004A(beaded rebate)"
+                                                                       value="365" <?php if ($property_stile == '365' && $material == 139
+
+																) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-12"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1004A.png"/>
+
+                                                            </label>

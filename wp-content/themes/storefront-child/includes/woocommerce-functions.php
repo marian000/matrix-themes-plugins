@@ -494,7 +494,8 @@ function set_custom_cart_item_price_components($cart_object)
 			$cart_item['data']->set_price($FinalPrice);
 		}
 
-		if (empty($product_cat) && ($product_cat != 'components-fob' || $product_cat != 'pos')) {
+		// Fix: changed || to && (logical error - condition was always true)
+		if (empty($product_cat) && ($product_cat != 'components-fob' && $product_cat != 'pos')) {
 			$sqm = get_post_meta($cart_item['product_id'], 'property_total', true);
 			$quantity = get_post_meta($cart_item['product_id'], 'quantity', true);
 			if ($sqm > 0) {
@@ -506,13 +507,10 @@ function set_custom_cart_item_price_components($cart_object)
 				update_post_meta($cart_item['product_id'], 'price_item_train', $train_price);
 				$new_price = (float)($sqm) * (float)$train_price;
 				update_post_meta($cart_item['product_id'], 'train_delivery', $new_price);
-			} else {
-				$new_price = 0;
 			}
+			// Fix: Don't add train_delivery to item price - it's shown separately as "Sea freight"
 			$price = get_post_meta($cart_item['product_id'], '_price', true);
-			$FinalPrice = $price + $new_price;
-			// set new price item
-			$cart_item['data']->set_price($FinalPrice);
+			$cart_item['data']->set_price(floatval($price));
 		}
 
 		if ($product_cat == 'awning') {

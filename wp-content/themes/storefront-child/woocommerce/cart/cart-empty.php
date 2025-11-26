@@ -45,7 +45,7 @@ if (wc_get_page_id('shop') > 0) : ?>
 $mystring = get_the_title();
 $findmePos = '-pos';
 $findmeCompoenent = 'component';
-$pos = strpos($mystring, $findme);
+// Removed: $pos = strpos($mystring, $findme); - $findme was undefined and $pos was unused
 
 if (strpos($mystring, $findmePos) !== false) { ?>
 <a href="/order-pos/" class="btn btn-primary blue"> Order POS</a>
@@ -140,63 +140,50 @@ if (strpos($mystring, $findmePos) !== false) { ?>
 	        <?php
         }
         else {
+        // AppCart logic - only runs for admin AND when cart title contains 'App-'
+        $page_title = get_the_title();
+        $is_appcart = (strpos($page_title, 'App-') !== false);
 
-        if (get_current_user_id() === 1) {
-	        // Retrieve the current post title
-	        $title = get_the_title();
+        if (get_current_user_id() === 1 && $is_appcart) {
+	        // Remove the prefix 'Order - App-' from the title
+	        $title = str_replace('Order - App-', '', $page_title);
 
-// Remove the prefix 'Order - App-' from the title
-	        $title = str_replace('Order - App-', '', $title);
-	        print_r($title); // For debugging purposes
-
-// Retrieve the custom post of type 'appcart' by title
+	        // Retrieve the custom post of type 'appcart' by title
 	        $appcart = get_page_by_title($title, OBJECT, 'appcart');
 
-// Check if the appcart post exists
-	        if ( ! $appcart ) {
-		        echo 'No appcart found with the title: ' . esc_html($title);
-		        return;
-	        }
+	        // Check if the appcart post exists and process it
+	        if ($appcart) {
+		        // Get the meta field 'attached_product_ids' from the appcart post
+		        $product_ids_meta = get_post_meta($appcart->ID, 'attached_product_ids', true);
 
-// Get the meta field 'attached_product_ids' from the appcart post
-	        $product_ids_meta = get_post_meta($appcart->ID, 'attached_product_ids', true);
+		        if (!empty($product_ids_meta)) {
+			        // If the meta value is not already an array, treat it as a comma-separated string
+			        if (!is_array($product_ids_meta)) {
+				        if (strpos($product_ids_meta, ',') === false) {
+					        $product_ids = array(intval($product_ids_meta));
+				        } else {
+					        $product_ids = array_map('intval', explode(',', $product_ids_meta));
+				        }
+			        } else {
+				        $product_ids = array_map('intval', $product_ids_meta);
+			        }
 
-// Check if the meta field is not empty
-	        if ( empty( $product_ids_meta ) ) {
-		        return;
-	        }
+			        // Loop through each product ID and add it to the WooCommerce cart
+			        foreach ($product_ids as $product_id) {
+				        $added = WC()->cart->add_to_cart($product_id, 1);
+				        if (!$added) {
+					        error_log("Product ID {$product_id} could not be added to the cart.");
+				        }
+			        }
 
-// If the meta value is not already an array, treat it as a comma-separated string
-	        if ( ! is_array( $product_ids_meta ) ) {
-		        // Check if the string contains a comma
-		        if ( strpos( $product_ids_meta, ',' ) === false ) {
-			        // Single ID, convert to integer and put into array
-			        $product_ids = array( intval( $product_ids_meta ) );
-		        } else {
-			        // Comma-separated IDs: explode into an array and convert each to an integer
-			        $product_ids = array_map( 'intval', explode( ',', $product_ids_meta ) );
-		        }
-	        } else {
-		        // Already an array; make sure each element is an integer
-		        $product_ids = array_map( 'intval', $product_ids_meta );
-	        }
+			        // Recalculate cart totals and refresh the customer session cookie
+			        WC()->cart->calculate_totals();
+			        WC()->session->set_customer_session_cookie(true);
 
-// Set default quantity for each product
-	        $quantity = 1;
-
-// Loop through each product ID and add it to the WooCommerce cart
-	        foreach ( $product_ids as $product_id ) {
-		        $added = WC()->cart->add_to_cart( $product_id, $quantity );
-		        if ( ! $added ) {
-			        error_log( "Product ID {$product_id} could not be added to the cart." );
+			        wp_redirect(home_url('/checkout'));
+			        exit;
 		        }
 	        }
-
-// Optional: Recalculate cart totals and refresh the customer session cookie
-	        WC()->cart->calculate_totals();
-	        WC()->session->set_customer_session_cookie(true);
-
-	        wp_redirect( home_url('/checkout') );
         }
             ?>
 

@@ -19,6 +19,7 @@ $term_slug = "";
 $i = 0;
 $total_prods_delivery = 0;
 $total_sqm = 0;
+$calculated_subtotal = 0;
 $atributes = get_post_meta(1, 'attributes_array', true);
 $edit_placed_order_param = '';
 $edit_placed_order = '';
@@ -328,6 +329,7 @@ echo $table_class; ?>">
 					echo $fob_components ? '$' : '£'; ?>
 					<?php
 					$total = $price * $quantity;  // Perform multiplication first
+					$calculated_subtotal += $total;
 
 					$formatted_total = number_format($total, 2);  // Then format the result
 					echo $formatted_total;
@@ -463,6 +465,7 @@ echo $table_class; ?>">
 					<?php
 					if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
 						$total = $price * $quantity;  // Perform multiplication first
+						$calculated_subtotal += $total;
 
 						$formatted_total = number_format($total, 2);  // Then format the result
 						echo '£ ' . $formatted_total;
@@ -966,8 +969,9 @@ echo $table_class; ?>">
 							//                            echo ' -- ';
 
 							if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
-								$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+								$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 								$price_for_update = get_post_meta($order_id, 'price_for_update', true);
+								$material_price = '';
 								foreach ($materials as $key => $material) {
 									if ($property_material == $key) {
 										$price_for_update = get_post_meta($order_id, 'price_for_update', true);
@@ -980,7 +984,6 @@ echo $table_class; ?>">
 												$material_price = get_post_meta(1, $material, true);
 											}
 										}
-										$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 									}
 //                                else {
 //                                    if (!empty(get_user_meta($user_id, $atributes[$property_material], true)) || (get_user_meta($user_id, $atributes[$property_material], true) > 0)) {
@@ -1616,8 +1619,9 @@ echo $table_class; ?>">
                     <td>
 						<?php
 						if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
-							$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+							$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 							$price_for_update = get_post_meta($order_id, 'price_for_update', true);
+							$material_price = '';
 							foreach ($materials as $key => $material) {
 								if ($property_material == $key) {
 									$price_for_update = get_post_meta($order_id, 'price_for_update', true);
@@ -1630,7 +1634,6 @@ echo $table_class; ?>">
 											$material_price = get_post_meta(1, $material, true);
 										}
 									}
-									$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 								}
 //                                else {
 //                                    if (!empty(get_user_meta($user_id, $atributes[$property_material], true)) || (get_user_meta($user_id, $atributes[$property_material], true) > 0)) {
@@ -1687,6 +1690,7 @@ echo $table_class; ?>">
 
 // Now perform the multiplication
 							$total = $price * $quantity;
+							$calculated_subtotal += $total;
 
 							$formatted_total = number_format($total, 2);  // Then format the result
 							echo '£' . $formatted_total;
@@ -1862,7 +1866,7 @@ echo $table_class; ?>">
                 <td class="quantity"></td>
                 <td id="total_box" class="amount">
 					<?php
-					echo $fob_components ? '$' . number_format((double)$order->get_subtotal(), 2) : '£' . number_format((double)$order->get_subtotal(), 2);
+					echo $fob_components ? '$' . number_format((double)$calculated_subtotal, 2) : '£' . number_format((double)$calculated_subtotal, 2);
 					?>
                 </td>
 				<?php
@@ -1964,7 +1968,7 @@ echo $table_class; ?>">
 <?php
 //function priceItemMaterialCustom($property_material, $user_id, $post_id)
 //{
-//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 //
 //    foreach ($materials as $key => $material) {
 //        if ($property_material == $key) {

@@ -946,8 +946,9 @@ echo $table_class; ?>">
 							//                            echo ' -- ';
 
 							if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
-								$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+								$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 								$price_for_update = get_post_meta($order_id, 'price_for_update', true);
+								$material_price = '';
 								foreach ($materials as $key => $material) {
 									if ($property_material == $key) {
 										$price_for_update = get_post_meta($order_id, 'price_for_update', true);
@@ -960,7 +961,6 @@ echo $table_class; ?>">
 												$material_price = get_post_meta(1, $material, true);
 											}
 										}
-										$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 									}
 //                                else {
 //                                    if (!empty(get_user_meta($user_id, $atributes[$property_material], true)) || (get_user_meta($user_id, $atributes[$property_material], true) > 0)) {
@@ -1594,8 +1594,9 @@ echo $table_class; ?>">
                     <td>
 						<?php
 						if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
-							$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+							$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 							$price_for_update = get_post_meta($order_id, 'price_for_update', true);
+							$material_price = '';
 							foreach ($materials as $key => $material) {
 								if ($property_material == $key) {
 									$price_for_update = get_post_meta($order_id, 'price_for_update', true);
@@ -1608,7 +1609,6 @@ echo $table_class; ?>">
 											$material_price = get_post_meta(1, $material, true);
 										}
 									}
-									$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 								}
 //                                else {
 //                                    if (!empty(get_user_meta($user_id, $atributes[$property_material], true)) || (get_user_meta($user_id, $atributes[$property_material], true) > 0)) {
@@ -1927,7 +1927,7 @@ echo $table_class; ?>">
 <?php
 //function priceItemMaterialCustom($property_material, $user_id, $post_id)
 //{
-//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 //
 //    foreach ($materials as $key => $material) {
 //        if ($property_material == $key) {

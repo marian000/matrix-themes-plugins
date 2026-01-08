@@ -1032,6 +1032,7 @@ echo $table_class; ?>">
 							<?php
 							if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
 								$sum = number_format($sections_price[$sec], 2);
+								$calculated_subtotal += floatval($sections_price[$sec]);
 								echo '£' . number_format($sum, 2);
 								// echo '<br>' . $product->get_price();
 							}

@@ -157,12 +157,12 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                                 <td><?php $sqm_total = 0;
                                     foreach ($items as $item_id => $item_data) {
                                         $product_id = $item_data['product_id'];
-                                        $property_total = get_post_meta($product_id, 'property_total', true);
+                                        $property_total = floatval(get_post_meta($product_id, 'property_total', true));
                                         $sqm_total = $sqm_total + $property_total * $item_data['quantity'];
                                     }
                                     echo number_format($sqm_total, 2);
 
-                                    $diff_sqm = number_format($sqm_total, 2) - $csv_orders_array[$order->get_id()];
+                                    $diff_sqm = floatval($sqm_total) - floatval($csv_orders_array[$order->get_id()]);
 
                                     $diff_class = '';
                                     if ($diff_sqm < 0) {
@@ -186,7 +186,7 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                                     foreach ($items as $item_id => $item_data) {
                                         $product_id = $item_data['product_id'];
                                         $qty = $item_data['quantity'];
-                                        $dolar_price = get_post_meta($product_id, 'dolar_price', true);
+                                        $dolar_price = floatval(get_post_meta($product_id, 'dolar_price', true));
 
                                         $sum_total = $sum_total + $dolar_price * $qty;
                                     }
@@ -281,12 +281,12 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                             <td><?php $sqm_total = 0;
                                 foreach ($items as $item_id => $item_data) {
                                     $product_id = $item_data['product_id'];
-                                    $property_total = get_post_meta($product_id, 'property_total', true);
+                                    $property_total = floatval(get_post_meta($product_id, 'property_total', true));
                                     $sqm_total = $sqm_total + $property_total * $item_data['quantity'];
                                 }
                                 echo number_format($sqm_total, 2);
 
-                                $diff_sqm = number_format($sqm_total, 2) - $csv_orders_array_repair[$order->get_id()];
+                                $diff_sqm = floatval($sqm_total) - floatval($csv_orders_array_repair[$order->get_id()]);
 
                                 $diff_class = '';
                                 if ($diff_sqm < 0) {
@@ -310,7 +310,7 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                                 foreach ($items as $item_id => $item_data) {
                                     $product_id = $item_data['product_id'];
                                     $qty = $item_data['quantity'];
-                                    $dolar_price = get_post_meta($product_id, 'dolar_price', true);
+                                    $dolar_price = floatval(get_post_meta($product_id, 'dolar_price', true));
 
                                     $sum_total = $sum_total + $dolar_price * $qty;
                                 }
@@ -453,12 +453,12 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                         <td><?php $sqm_total = 0;
                             foreach ($items as $item_id => $item_data) {
                                 $product_id = $item_data['product_id'];
-                                $property_total = get_post_meta($product_id, 'property_total', true);
+                                $property_total = floatval(get_post_meta($product_id, 'property_total', true));
                                 $sqm_total = $sqm_total + $property_total * $item_data['quantity'];
                             }
                             echo number_format($sqm_total, 2);
 
-                            $diff_sqm = number_format($sqm_total, 2) - $csv_orders_array[$order->get_id()];
+                            $diff_sqm = floatval($sqm_total) - floatval($csv_orders_array[$order->get_id()]);
 
                             $diff_class = '';
                             if ($diff_sqm < 0) {
@@ -480,7 +480,7 @@ $csv_orders_array_panels_repair = get_post_meta(get_the_id(), 'csv_orders_array_
                             foreach ($items as $item_id => $item_data) {
                                 $product_id = $item_data['product_id'];
                                 $qty = $item_data['quantity'];
-                                $dolar_price = get_post_meta($product_id, 'dolar_price', true);
+                                $dolar_price = floatval(get_post_meta($product_id, 'dolar_price', true));
 
                                 $sum_total = $sum_total + $dolar_price * $qty;
                             }

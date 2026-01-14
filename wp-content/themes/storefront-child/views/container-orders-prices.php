@@ -196,10 +196,10 @@ if ($container_orders) {
           $price_earth = get_post_meta(1, 'Earth', true);
           $price_green = get_post_meta(1, 'Green', true);
           $price_biowood = get_post_meta(1, 'Biowood', true);
-          $price_supreme = get_post_meta(1, 'Supreme', true);
+          $price_basswood = get_post_meta(1, 'Basswood', true);
           $dolar_price = get_post_meta($product_id, 'dolar_price', true);
 
-          $materials = array('Earth' => $price_earth, 'Green' => $price_green, 'Biowood' => $price_biowood, 'Supreme' => $price_supreme);
+          $materials = array('Earth' => $price_earth, 'Green' => $price_green, 'Biowood' => $price_biowood, 'Basswood' => $price_basswood);
 
           $term_list = wp_get_post_terms($product_id, 'product_cat', array("fields" => "all"));
           // echo '<pre>';
@@ -227,20 +227,20 @@ if ($container_orders) {
               }
             } else {
               if (empty($dolar_price)) {
-                $battenCustomDolar = get_post_meta(1, 'BattenCustom-dolar', true);
-                $dolar_price = number_format($property_total, 2, ',', '') * $battenCustomDolar;
+                $battenCustomDolar = floatval(get_post_meta(1, 'BattenCustom-dolar', true));
+                $dolar_price = floatval($property_total) * $battenCustomDolar;
               }
 
-              $total_order = number_format($total_order, 2, ',', '') + number_format($dolar_price, 2, ',', '') * $item_data['quantity'];
+              $total_order = floatval($total_order) + floatval($dolar_price) * $item_data['quantity'];
               $order_sum = $total_order;
 
               $total_order_csv = 0;
               foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
-                $total_order_csv = number_format($csv_item, 2, ',', '') + number_format($total_order_csv, 2, ',', '');
+                $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
               }
             }
 
-            $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+            $diff_sum = floatval($order_sum) - floatval($total_order_csv);
 
             if ($diff_sum < 0) {
               $diff_class_sum = 'negative';
@@ -285,7 +285,7 @@ if ($container_orders) {
                             <td>' . $item_quantity . '</td>
                             <td>m2</td>
                             <td>' . round($property_total, 3) * $item_quantity . '</td>
-                            <td>$' . get_post_meta(1, $atributes[$property_material] . '-dolar', true) . '</td>';
+                            <td>$' . dolarSum(str_replace(' ', '', $atributes[$property_material]) . '-dolar', $user_id) . '</td>';
 
             if (get_post_type($container_order) == 'order_repair') {
               $email_body .= '<td>$ 0</td>
@@ -352,11 +352,11 @@ if ($container_orders) {
                 }
 
                 $total_order = $total_order + $dolar_price * $item_data['quantity'];
-                $order_sum = number_format($total_order, 2, ',', '');
+                $order_sum = $total_order;
 
                 $total_order_csv = 0;
                 foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
-                  $total_order_csv = number_format($csv_item, 2, ',', '') + number_format($total_order_csv, 2, ',', '');
+                  $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
                 }
               }
 
@@ -371,11 +371,8 @@ if ($container_orders) {
                 //$discount_custom = get_user_meta($user_id, 'discount_custom',true);
                 $frames = array();
 
-                $sum = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-                $basic = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-
-                $sum = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-                $basic = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
+                $sum = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
+                $basic = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
 
                 $frames[] = $atributes[$property_frametype];
 
@@ -464,19 +461,19 @@ if ($container_orders) {
                   $sum = $sum + ($dolar_sum * $basic) / 100;
                   $frames[] = $atributes[$property_shuttercolour];
                 }
-                if (!empty($property_ringpull && $property_ringpull == 'Yes')) {
+                if (!empty($property_ringpull) && $property_ringpull == 'Yes') {
                   $dolar_sum = dolarSum('Ringpull-dolar', $user_id);
 
                   $sum = $sum + ($dolar_sum * $property_ringpull_volume);
                   $frames[] = 'Ringpull';
                 }
-                if (!empty($property_locks && $property_locks == 'Yes')) {
+                if (!empty($property_locks) && $property_locks == 'Yes') {
                   $dolar_sum = dolarSum('Lock-dolar', $user_id);
 
                   $sum = $sum + ($dolar_sum * $property_locks_volume);
                   $frames[] = 'Lock';
                 }
-                if (!empty($property_sparelouvres && $property_sparelouvres == 'Yes')) {
+                if (!empty($property_sparelouvres) && $property_sparelouvres == 'Yes') {
                   $dolar_sum = dolarSum('Spare_Louvres-dolar', $user_id);
 
                   $sum = $sum + $dolar_sum;
@@ -489,7 +486,7 @@ if ($container_orders) {
 
                 $indiv_amount_csv = $indiv_amount_csv + $csv_orders_array[$order->get_id()][$k];
 
-                $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+                $diff_sum = floatval($order_sum) - floatval($total_order_csv);
                 if ($diff_sum < 0) {
                   $diff_class_sum = 'negative';
                 } elseif ($diff_sum > 0) {
@@ -499,7 +496,7 @@ if ($container_orders) {
                   $diff_class_sum = 'neutral';
                 }
                 if ($property_nr_sections == $sec) {
-                  $diff_amount = (number_format($dolar_price, 2, ',', '') * $item_quantity) - number_format($indiv_amount_csv, 2, ',', '');
+                  $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($indiv_amount_csv);
                   $diff_class = '';
                   if ($diff_amount < 0) {
                     $diff_class = 'negative';
@@ -539,7 +536,7 @@ if ($container_orders) {
                   $property_total = get_post_meta($product_id, 'property_total_section' . $sec, true);
                   $email_body .= '<td>' . round($property_total, 3) * $item_quantity . '</td>';
                 }
-                $email_body .= '<td>$' . get_post_meta(1, $atributes[$property_material] . '-dolar', true) . '</td>';
+                $email_body .= '<td>$' . dolarSum(str_replace(' ', '', $atributes[$property_material]) . '-dolar', $user_id) . '</td>';
 
                 if (get_post_type($container_order) == 'order_repair') {
                   if ($warranty[$prod] == 'No') {
@@ -797,7 +794,7 @@ if ($container_orders) {
                 //echo 'BASIC 11: '.$basic.'<br>';
                 $frames[] = $atributes[$property_shuttercolour];
               }
-              if (!empty($property_ringpull && $property_ringpull == 'Yes')) {
+              if (!empty($property_ringpull) && $property_ringpull == 'Yes') {
                 $dolar_sum = dolarSum('Ringpull-dolar', $user_id);
 
                 $sum = $sum + ($dolar_sum * $property_ringpull_volume);
@@ -805,7 +802,7 @@ if ($container_orders) {
                 //echo 'BASIC 8: '.$basic.'<br>';
                 $frames[] = 'Ringpull';
               }
-              if (!empty($property_locks && $property_locks == 'Yes')) {
+              if (!empty($property_locks) && $property_locks == 'Yes') {
                 $dolar_sum = dolarSum('Lock-dolar', $user_id);
 
                 $sum = $sum + ($dolar_sum * $property_locks_volume);
@@ -813,7 +810,7 @@ if ($container_orders) {
                 //echo 'BASIC 8: '.$basic.'<br>';
                 $frames[] = 'Lock';
               }
-              if (!empty($property_sparelouvres && $property_sparelouvres == 'Yes')) {
+              if (!empty($property_sparelouvres) && $property_sparelouvres == 'Yes') {
                 $dolar_sum = dolarSum('Spare_Louvres-dolar', $user_id);
 
                 $sum = $sum + $dolar_sum;
@@ -855,15 +852,15 @@ if ($container_orders) {
                 }
 
                 $total_order = $total_order + $dolar_price * $item_data['quantity'];
-                $order_sum = number_format($total_order, 2, ',', '');
+                $order_sum = $total_order;
 
                 $total_order_csv = 0;
                 foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
-                  $total_order_csv = number_format($csv_item, 2, ',', '') + number_format($total_order_csv, 2, ',', '');
+                  $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
                 }
               }
 
-              $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+              $diff_sum = floatval($order_sum) - floatval($total_order_csv);
               if ($diff_sum < 0) {
                 $diff_class_sum = 'negative';
               } elseif ($diff_sum > 0) {
@@ -873,7 +870,7 @@ if ($container_orders) {
                 $diff_class_sum = 'neutral';
               }
 
-              $diff_amount = (number_format($dolar_price, 2, ',', '') * $item_quantity) - number_format($csv_orders_array[$order->get_id()][$k], 2, ',', '');
+              $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k]);
               $diff_class = '';
               if ($diff_amount < 0) {
                 $diff_class = 'negative';
@@ -908,7 +905,7 @@ if ($container_orders) {
               } else {
                 $email_body .= '<td>' . round($property_total, 3) * $item_quantity . '</td>';
               }
-              $email_body .= '<td>$' . get_post_meta(1, $atributes[$property_material] . '-dolar', true) . '</td>';
+              $email_body .= '<td>$' . dolarSum(str_replace(' ', '', $atributes[$property_material]) . '-dolar', $user_id) . '</td>';
 
               if (get_post_type($container_order) == 'order_repair') {
                 if ($warranty[$prod] == 'No') {
@@ -1128,10 +1125,10 @@ if ($container_orders) {
       $price_earth = get_post_meta(1, 'Earth', true);
       $price_green = get_post_meta(1, 'Green', true);
       $price_biowood = get_post_meta(1, 'Biowood', true);
-      $price_supreme = get_post_meta(1, 'Supreme', true);
+      $price_basswood = get_post_meta(1, 'Basswood', true);
       $dolar_price = get_post_meta($product_id, 'dolar_price', true);
 
-      $materials = array('Earth' => $price_earth, 'Green' => $price_green, 'Biowood' => $price_biowood, 'Supreme' => $price_supreme);
+      $materials = array('Earth' => $price_earth, 'Green' => $price_green, 'Biowood' => $price_biowood, 'Basswood' => $price_basswood);
 
       $term_list = wp_get_post_terms($product_id, 'product_cat', array("fields" => "all"));
       // echo '<pre>';
@@ -1163,19 +1160,19 @@ if ($container_orders) {
           $diff_sum = 0;
         } else {
           if (empty($dolar_price)) {
-            $battenCustomDolar = get_post_meta(1, 'BattenCustom-dolar', true);
-            $dolar_price = number_format($property_total, 2, ',', '') * $battenCustomDolar;
+            $battenCustomDolar = floatval(get_post_meta(1, 'BattenCustom-dolar', true));
+            $dolar_price = floatval($property_total) * $battenCustomDolar;
           }
 
           $total_order = $total_order + 0 * $item_data['quantity'];
-          $order_sum = number_format($total_order, 2, ',', '');
+          $order_sum = $total_order;
 
           $total_order_csv = 0;
           foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
-            $total_order_csv = number_format($csv_item, 2, ',', '') + number_format($total_order_csv, 2, ',', '');
+            $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
           }
 
-          $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+          $diff_sum = floatval($order_sum) - floatval($total_order_csv);
         }
 
         if ($diff_sum < 0) {
@@ -1218,7 +1215,7 @@ if ($container_orders) {
                             <td>' . $item_quantity . '</td>
                             <td>m2</td>
                             <td>' . round($property_total, 3) * $item_quantity . '</td>
-                            <td>$' . get_post_meta(1, $atributes[$property_material] . '-dolar', true) . '</td>';
+                            <td>$' . dolarSum(str_replace(' ', '', $atributes[$property_material]) . '-dolar', $user_id) . '</td>';
         if (!empty($results)) {
           $email_body .= '<td>$ 0</td>
                             <td class="csv-amount">$ 0</td>
@@ -1280,13 +1277,8 @@ if ($container_orders) {
         //$discount_custom = get_user_meta($user_id, 'discount_custom',true);
         $frames = array();
 
-        $sum = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-        $basic = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-
-        $sum = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-        $basic = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-        //echo 'SUM 1: '.$sum.'<br>';
-        //echo 'BASIC 1: '.$basic.'<br>';
+        $sum = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
+        $basic = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
 
         // $sum = $property_total*100;
         // echo 'SUM 1: '.$sum.'<br>';
@@ -1460,7 +1452,7 @@ if ($container_orders) {
           //echo 'BASIC 11: '.$basic.'<br>';
           $frames[] = $atributes[$property_shuttercolour];
         }
-        if (!empty($property_ringpull && $property_ringpull == 'Yes')) {
+        if (!empty($property_ringpull) && $property_ringpull == 'Yes') {
           $dolar_sum = dolarSum('Ringpull-dolar', $user_id);
 
           $sum = $sum + ($dolar_sum * $property_ringpull_volume);
@@ -1468,7 +1460,7 @@ if ($container_orders) {
           //echo 'BASIC 8: '.$basic.'<br>';
           $frames[] = 'Ringpull';
         }
-        if (!empty($property_locks && $property_locks == 'Yes')) {
+        if (!empty($property_locks) && $property_locks == 'Yes') {
           $dolar_sum = dolarSum('Lock-dolar', $user_id);
 
           $sum = $sum + ($dolar_sum * $property_locks_volume);
@@ -1476,7 +1468,7 @@ if ($container_orders) {
           //echo 'BASIC 8: '.$basic.'<br>';
           $frames[] = 'Lock';
         }
-        if (!empty($property_sparelouvres && $property_sparelouvres == 'Yes')) {
+        if (!empty($property_sparelouvres) && $property_sparelouvres == 'Yes') {
           $dolar_sum = dolarSum('Spare_Louvres-dolar', $user_id);
 
           $sum = $sum + $dolar_sum;
@@ -1504,22 +1496,21 @@ if ($container_orders) {
             $total_order_csv = 0 + $total_order_csv;
           }
 
-          $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+          $diff_sum = floatval($order_sum) - floatval($total_order_csv);
         } else {
           if (empty($dolar_price)) {
             $dolar_price = $sum;
           }
 
           $total_order = $total_order + 0 * $item_data['quantity'];
-          $order_sum = number_format($total_order, 2, ',', '');
+          $order_sum = $total_order;
 
           $total_order_csv = 0;
           foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
-            $total_order_csv = number_format($csv_item, 2, ',', '') + number_format($total_order_csv, 2, ',', '');
+            $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
           }
 
-          //$diff_sum = $order_sum - $total_order_csv;
-          $diff_sum = number_format($order_sum, 2, ',', '') - number_format($total_order_csv, 2, ',', '');
+          $diff_sum = floatval($order_sum) - floatval($total_order_csv);
         }
 
         if ($diff_sum < 0) {
@@ -1531,7 +1522,7 @@ if ($container_orders) {
           $diff_class_sum = 'neutral';
         }
 
-        $diff_amount = (number_format($dolar_price, 2, ',', '') * $item_quantity) - number_format($csv_orders_array[$order->get_id()][$k], 2, ',', '');
+        $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k]);
 
         $diff_class = '';
         if ($diff_amount < 0) {
@@ -1563,7 +1554,7 @@ if ($container_orders) {
                             <td>' . $item_quantity . '</td>
                             <td>m2</td>
                             <td>' . round($property_total, 3) * $item_quantity . '</td>
-                            <td>$' . get_post_meta(1, $atributes[$property_material] . '-dolar', true) . '</td>';
+                            <td>$' . dolarSum(str_replace(' ', '', $atributes[$property_material]) . '-dolar', $user_id) . '</td>';
         if (!empty($results)) {
           $email_body .= '<td>$ 0</td>
                             <td class="csv-amount">$ 0</td>

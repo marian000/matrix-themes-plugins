@@ -42,21 +42,23 @@ if ($container_orders) {
     $container_order = $order;
     $company = get_post_meta($order, '_billing_company', true);
 
+    $order_id = $order; // Save order ID before converting to object
     if (get_post_type($order) == 'order_repair') {
       $order_original = get_post_meta($order, 'order-id-original', true);
+      $order_id = $order_original; // Use original order ID for array key
       $order = wc_get_order($order_original);
       $order_data = $order->get_data();
 
-      if (!empty($csv_orders_array) && !array_key_exists($order, $csv_orders_array)) {
-        $csv_matrix_orders[$order] = '0';
+      if (!empty($csv_orders_array) && !array_key_exists($order_id, $csv_orders_array)) {
+        $csv_matrix_orders[$order_id] = '0';
       }
     } else {
       $order = wc_get_order($order);
       if ($order) {
         $order_data = $order->get_data();
 
-        if (!empty($csv_orders_array) && !array_key_exists($order, $csv_orders_array)) {
-          $csv_matrix_orders[$order] = '0';
+        if (!empty($csv_orders_array) && !array_key_exists($order_id, $csv_orders_array)) {
+          $csv_matrix_orders[$order_id] = '0';
         }
       }
     }
@@ -597,11 +599,11 @@ if ($container_orders) {
               //$discount_custom = get_user_meta($user_id, 'discount_custom',true);
               $frames = array();
 
-              $sum = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-              $basic = get_post_meta(1, $atributes[$property_material] . '-dolar', true);
+              $sum = floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
+              $basic = floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
 
-              $sum = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
-              $basic = $property_total * get_post_meta(1, $atributes[$property_material] . '-dolar', true);
+              $sum = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
+              $basic = floatval($property_total) * floatval(get_post_meta(1, $atributes[$property_material] . '-dolar', true));
               //echo 'SUM 1: '.$sum.'<br>';
               //echo 'BASIC 1: '.$basic.'<br>';
 
@@ -678,14 +680,14 @@ if ($container_orders) {
               }
               if ($property_frametype == 171) {
 
-                $sum = $sum + (get_post_meta(1, 'P4028X-dolar', true) * $basic) / 100;
-                if (!empty(get_post_meta(1, 'blackoutblind-dolar', true)) || (get_post_meta(1, 'blackoutblind-dolar', true) > 0)) {
-                  $sum = $sum + get_post_meta(1, 'blackoutblind-dolar', true) * round($property_total, 2);
+                $sum = $sum + (floatval(get_post_meta(1, 'P4028X-dolar', true)) * $basic) / 100;
+                if (!empty(get_post_meta(1, 'blackoutblind-dolar', true)) || (floatval(get_post_meta(1, 'blackoutblind-dolar', true)) > 0)) {
+                  $sum = $sum + floatval(get_post_meta(1, 'blackoutblind-dolar', true)) * round($property_total, 2);
                 }
 
                 if (!empty($property_tposttype)) {
-                  if (!empty(get_post_meta(1, 'tposttype_blackout-dolar', true)) || (get_post_meta(1, 'tposttype_blackout-dolar', true) > 0)) {
-                    $sum = $sum + (get_post_meta(1, 'tposttype_blackout-dolar', true) * $basic) / 100;
+                  if (!empty(get_post_meta(1, 'tposttype_blackout-dolar', true)) || (floatval(get_post_meta(1, 'tposttype_blackout-dolar', true)) > 0)) {
+                    $sum = $sum + (floatval(get_post_meta(1, 'tposttype_blackout-dolar', true)) * $basic) / 100;
                   }
                 }
               }

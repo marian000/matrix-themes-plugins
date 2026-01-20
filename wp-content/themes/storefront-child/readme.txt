@@ -11,6 +11,11 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.2.6 - 2026-01-20 =
+* Feature: Added Total SQM metric to WooCommerce Reports page
+* Shows total square meters from wp_custom_orders for selected date range
+* Supports all WooCommerce Reports time periods (Year, Last month, This month, 7 days, Custom)
+
 = 1.2.5 - 2026-01-15 =
 * Fix: Unit Price column not displaying values for Plus materials (BiowoodPlus, BasswoodPlus, EcowoodPlus)
 * Fix: number_format() with comma separator breaking arithmetic calculations

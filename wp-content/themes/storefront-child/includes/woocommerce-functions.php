@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @snippet       Always Show Variation Price @ WooCommerce Single Product
  * @how-to        Get CustomizeWoo.com FREE
@@ -12,12 +13,12 @@
  */
 function component_add_text_field()
 {
-	?>
-  <div class="comp-note-wrap">
-    <label for="comp-note">Add note: </label>
-    <textarea name="comp-note" id="comp-note" cols="5" rows="5"></textarea>
-  </div>
-  <br>
+?>
+	<div class="comp-note-wrap">
+		<label for="comp-note">Add note: </label>
+		<textarea name="comp-note" id="comp-note" cols="5" rows="5"></textarea>
+	</div>
+	<br>
 <?php }
 
 
@@ -86,8 +87,8 @@ function my_custom_checkout_field($checkout)
 	$user_id = get_current_user_id();
 	$addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
 	$userialize_data = unserialize($addresses[0]->meta_value);
-//print_r($userialize_data);
-//echo '<br>'.$userialize_data['customer_id'];
+	//print_r($userialize_data);
+	//echo '<br>'.$userialize_data['customer_id'];
 	$id_cart = $userialize_data['customer_id'];
 	foreach ($userialize_data['carts'] as $key => $carts) {
 
@@ -122,23 +123,23 @@ function my_custom_checkout_field($checkout)
 	/**
 	 * Optional Javascript to limit the field to a country. This one shows for italy only.
 	 **/
-	?>
-  <script type="text/javascript">
-      jQuery('select#billing_country').on('change', function () {
+?>
+	<script type="text/javascript">
+		jQuery('select#billing_country').on('change', function() {
 
-          var country = jQuery('select#billing_country').val();
+			var country = jQuery('select#billing_country').val();
 
-          var check_countries = new Array(<?php echo '"IT"'; ?>);
-          if (country && jQuery.inArray(country, check_countries) >= 0) {
-              jQuery('#my_custom_checkout_field').fadeIn();
-          } else {
-              jQuery('#my_custom_checkout_field').fadeOut();
-              jQuery('#my_custom_checkout_field input').val('');
-          }
+			var check_countries = new Array(<?php echo '"IT"'; ?>);
+			if (country && jQuery.inArray(country, check_countries) >= 0) {
+				jQuery('#my_custom_checkout_field').fadeIn();
+			} else {
+				jQuery('#my_custom_checkout_field').fadeOut();
+				jQuery('#my_custom_checkout_field input').val('');
+			}
 
-      });
-  </script>
-	<?php
+		});
+	</script>
+<?php
 }
 
 
@@ -198,7 +199,9 @@ function status_changed_processsing($order_id, $checkout = null)
 	if ($order->status == 'cancelled') {
 		$single_email = 'marian93nes@gmail.com';
 		$multiple_recipients = array(
-			'caroline@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com',
+			'caroline@anyhooshutter.com',
+			'july@anyhooshutter.com',
+			'tudor@lifetimeshutters.com',
 		);
 		$name = get_post_meta($order_id, 'cart_name', true);
 		$subject = 'CANCELLED: Order LF0' . $order->get_order_number() . ' - ' . $name . '';
@@ -240,9 +243,11 @@ function rfvc_update_order_status($order_status, $order_id)
 add_filter('woocommerce_cheque_process_payment_order_status', 'matrix_change_order_to_agent_processing', 10, 1);
 function matrix_change_order_to_agent_processing($status)
 {
-	if (get_current_user_id() == 18 || get_current_user_id() == 211 ||
+	if (
+		get_current_user_id() == 18 || get_current_user_id() == 211 ||
 		get_current_user_id() == 1 || get_current_user_id() == 192 ||
-		get_current_user_id() == 183 || get_current_user_id() == 184) {
+		get_current_user_id() == 183 || get_current_user_id() == 184
+	) {
 		return 'wc-inproduction';
 	} else {
 		return 'wc-pending';
@@ -374,11 +379,9 @@ function change_details_after_place_order($order_id)
 			} elseif (has_term('components', 'product_cat', $item_data['product_id'])) {
 				$components_type = 'UK';
 			}
-		}
-        elseif (has_term('awning', 'product_cat', $item_data['product_id'])) {
+		} elseif (has_term('awning', 'product_cat', $item_data['product_id'])) {
 			return;
-		}
-        elseif (has_term(20, 'product_cat', $item_data['product_id']) || has_term(34, 'product_cat', $item_data['product_id']) || has_term(26, 'product_cat', $item_data['product_id'])) {
+		} elseif (has_term(20, 'product_cat', $item_data['product_id']) || has_term(34, 'product_cat', $item_data['product_id']) || has_term(26, 'product_cat', $item_data['product_id'])) {
 			$pos = true;
 			// do something if product with ID = 971 has tag with ID = 5
 		} else {
@@ -403,16 +406,13 @@ function change_details_after_place_order($order_id)
 			$total = $total + $new_price;
 			$tax = ($tax_rate * $total) / 100;
 
-			$line_tax_data = array
-			(
-			  'total' => array
-			  (
-				1 => $tax,
-			  ),
-			  'subtotal' => array
-			  (
-				1 => $tax,
-			  ),
+			$line_tax_data = array(
+				'total' => array(
+					1 => $tax,
+				),
+				'subtotal' => array(
+					1 => $tax,
+				),
 			);
 			/*
 			 * Doc to change order item meta: https://www.ibenic.com/manage-order-item-meta-woocommerce/
@@ -566,21 +566,92 @@ function wpa83368_price_html($price, $product)
 
 	// return $product->price;
 	if ($product_cat == 'components') {
-//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
-//            return '';
-//        }
+		//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
+		//            return '';
+		//        }
 		return '£<span>' . $product->get_price() . ' <small>per BOX +VAT</small></span>';
 	} elseif ($product_cat == 'components-fob') {
-//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
-//            return '';
-//        }
+		//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
+		//            return '';
+		//        }
 		return '$<span>' . $product->get_price() . ' <small>per BOX</small></span>';
 	} elseif ($product_cat == 'pos') {
-//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
-//            return '';
-//        }
+		//        if ( in_array ( $product->product_type, $product_types ) && !(is_shop()) ) {
+		//            return '';
+		//        }
 		return '$<span>' . $product->get_price() . ' <small>+VAT</small></span>';
 	} else {
 		return '£<span>' . $product->get_price() . '' . $product->get_price_suffix() . '</span>';
 	}
+}
+
+
+// Add Total SQM to WooCommerce Reports page
+add_action('admin_footer', 'matrix_add_sqm_to_wc_reports');
+function matrix_add_sqm_to_wc_reports() {
+    $screen = get_current_screen();
+    if (!$screen || $screen->id !== 'woocommerce_page_wc-reports') {
+        return;
+    }
+
+    global $wpdb;
+
+    // Get date range from URL parameters
+    $range = isset($_GET['range']) ? sanitize_text_field($_GET['range']) : '7day';
+    $start_date = '';
+    $end_date = '';
+
+    switch ($range) {
+        case 'year':
+            $start_date = date('Y-01-01');
+            $end_date = date('Y-m-d');
+            break;
+        case 'last_month':
+            $start_date = date('Y-m-01', strtotime('last month'));
+            $end_date = date('Y-m-t', strtotime('last month'));
+            break;
+        case 'this_month':
+            $start_date = date('Y-m-01');
+            $end_date = date('Y-m-d');
+            break;
+        case 'custom':
+            $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : date('Y-m-d', strtotime('-7 days'));
+            $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : date('Y-m-d');
+            break;
+        default: // 7day
+            $start_date = date('Y-m-d', strtotime('-7 days'));
+            $end_date = date('Y-m-d');
+    }
+
+    // Query total SQM from wp_custom_orders
+    $statuses = array('inproduction', 'completed', 'pending', 'processing', 'paid', 'waiting', 'revised', 'inrevision', 'on-hold');
+    $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+
+    $query = $wpdb->prepare(
+        "SELECT COALESCE(SUM(sqm), 0) as total_sqm
+         FROM {$wpdb->prefix}custom_orders
+         WHERE DATE(createTime) BETWEEN %s AND %s
+         AND status IN ($status_placeholders)",
+        array_merge([$start_date, $end_date], $statuses)
+    );
+
+    $total_sqm = $wpdb->get_var($query);
+    $total_sqm = number_format(floatval($total_sqm), 2);
+
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var sqmHtml = '<li style="border-color: #3498db;">' +
+            '<strong style="font-size: 24px;"><?php echo esc_js($total_sqm); ?> m²</strong>' +
+            '<small>total SQM in this period</small>' +
+            '</li>';
+
+        // Insert after "items purchased" or at the end of the legend
+        var $legend = $('.chart-legend');
+        if ($legend.length) {
+            $legend.append(sqmHtml);
+        }
+    });
+    </script>
+    <?php
 }

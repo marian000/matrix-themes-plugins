@@ -1111,7 +1111,8 @@ if ($products['property_nr_sections']) {
 			$property_g = "property_g" . $i . "_" . $sec;
 			if ($products[$property_t]) {
 				$t++;
-			} elseif ($products[$property_g]) {
+			}
+			if ($products[$property_g]) {
 				$g++;
 			}
 		}

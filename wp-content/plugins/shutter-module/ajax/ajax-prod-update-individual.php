@@ -264,29 +264,29 @@ if ($products['property_nr_sections']) {
 				update_post_meta($post_id, 'price_item_Biowood', get_post_meta(1, 'Biowood', true));
 			}
 		}
-		if ($products['property_material'] == 139) {
-//            if (!empty(get_post_meta($post_id, 'price_item_Supreme', true)) && (empty($price_for_update) || $price_for_update == 'old')) {
-//                $sum = $sqm_value * get_post_meta($post_id, 'price_item_Supreme', true);
-//                echo 'SUM Supreme: ' . $sum . '  .....\n  ';
-//                $basic = $sqm_value * get_post_meta($post_id, 'price_item_Supreme', true);
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
+//            if (!empty(get_post_meta($post_id, 'price_item_Basswood', true)) && (empty($price_for_update) || $price_for_update == 'old')) {
+//                $sum = $sqm_value * get_post_meta($post_id, 'price_item_Basswood', true);
+//                echo 'SUM Basswood: ' . $sum . '  .....\n  ';
+//                $basic = $sqm_value * get_post_meta($post_id, 'price_item_Basswood', true);
 //                // echo 'BASIC 1: ' . $basic . '<br>';
 //            } else {
-			if (!empty(get_user_meta($products['customer_id'], 'Supreme', true)) || (get_user_meta($products['customer_id'], 'Supreme', true) > 0)) {
+			if (!empty(get_user_meta($products['customer_id'], 'Basswood', true)) || (get_user_meta($products['customer_id'], 'Basswood', true) > 0)) {
 				if ($products['customer_id'] == 18) {
-					$sum = ($sqm_value * get_user_meta($products['customer_id'], 'Supreme', true)) + (($sqm_value * get_user_meta($products['customer_id'], 'Supreme', true)) * get_user_meta($products['customer_id'], 'Supreme_tax', true)) / 100;
-					echo 'SUM Supreme: ' . $sum . '  .....\n  ';
-					$basic = $sqm_value * get_user_meta($products['customer_id'], 'Supreme', true);
+					$sum = ($sqm_value * get_user_meta($products['customer_id'], 'Basswood', true)) + (($sqm_value * get_user_meta($products['customer_id'], 'Basswood', true)) * get_user_meta($products['customer_id'], 'Basswood_tax', true)) / 100;
+					echo 'SUM Basswood: ' . $sum . '  .....\n  ';
+					$basic = $sqm_value * get_user_meta($products['customer_id'], 'Basswood', true);
 					// echo 'BASIC 1: ' . $basic . '<br>';
 				} else {
-					$sum = round($sqm_value * get_user_meta($products['customer_id'], 'Supreme', true), 2);
-					echo 'SUM Supreme: ' . $sum . '  .....\n  ';
-					$basic = $sqm_value * get_user_meta($products['customer_id'], 'Supreme', true);
+					$sum = round($sqm_value * get_user_meta($products['customer_id'], 'Basswood', true), 2);
+					echo 'SUM Basswood: ' . $sum . '  .....\n  ';
+					$basic = $sqm_value * get_user_meta($products['customer_id'], 'Basswood', true);
 //					echo '<br>BASIC 1: ' . $basic . '<br>';
 				}
 			} else {
-				$sum = round($sqm_value * get_post_meta(1, 'Supreme', true), 2);
-				echo 'SUM Supreme: ' . $sum . '  .....\n  ';
-				$basic = $sqm_value * get_post_meta(1, 'Supreme', true);
+				$sum = round($sqm_value * get_post_meta(1, 'Basswood', true), 2);
+				echo 'SUM Basswood: ' . $sum . '  .....\n  ';
+				$basic = $sqm_value * get_post_meta(1, 'Basswood', true);
 //				echo '<br>BASIC 1: ' . $basic . '<br>';
 			}
 			//  }
@@ -538,7 +538,7 @@ if ($products['property_nr_sections']) {
 
 		//$tracked = $sum + $sum/1;
 
-		if ($products['property_material'] == 139) {
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if ($products['property_bladesize'] == 52) {
 				$sum = $sum + (get_post_meta(1, 'Flat_Louver', true) * $basic) / 100;
 				echo 'SUM bladesize: ' . $sum . '  .....\n  ';
@@ -1009,7 +1009,8 @@ if ($products['property_nr_sections']) {
 			$property_g = "property_g" . $i . "_" . $sec;
 			if ($products[$property_t]) {
 				$t++;
-			} elseif ($products[$property_g]) {
+			}
+			if ($products[$property_g]) {
 				$g++;
 			}
 		}
@@ -1098,8 +1099,8 @@ if ($products['property_nr_sections']) {
 			$basic = $sum;
 			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
 		}
-		if ($products['property_material'] == 139) {
-			$sum = $sqm_value * dolarSum('Supreme-dolar', $user_id);
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
+			$sum = $sqm_value * dolarSum('Basswood-dolar', $user_id);
 			echo 'SUM 1 dolar: ' . $sum . ' ..... ';
 			$basic = $sum;
 			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
@@ -1107,7 +1108,7 @@ if ($products['property_nr_sections']) {
 
 //style
 
-		if ($products['property_material'] == 139) {
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if ($products['property_bladesize'] == 52) {
 				$sum = $sum + (dolarSum('Flat_Louver-dolar', $user_id) * $basic) / 100;
 				echo 'SUM bladesize: ' . $sum . '  .....\n  ';
@@ -1338,8 +1339,8 @@ if ($products['property_nr_sections']) {
 			}
 		}
 
-// Stained SUPREME 14.57%
-		if ($products['property_material'] == 139) {
+// Stained BASSWOOD 14.57%
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if (($products['property_shuttercolour'] == 128) || ($products['property_shuttercolour'] == 257) || ($products['property_shuttercolour'] == 127) || ($products['property_shuttercolour'] == 126) || ($products['property_shuttercolour'] == 220) || ($products['property_shuttercolour'] == 130) || ($products['property_shuttercolour'] == 253) || ($products['property_shuttercolour'] == 131) || ($products['property_shuttercolour'] == 129) || ($products['property_shuttercolour'] == 254) || ($products['property_shuttercolour'] == 132) || ($products['property_shuttercolour'] == 255) || ($products['property_shuttercolour'] == 134) || ($products['property_shuttercolour'] == 122) || ($products['property_shuttercolour'] == 123) || ($products['property_shuttercolour'] == 133) || ($products['property_shuttercolour'] == 256) || ($products['property_shuttercolour'] == 166) || ($products['property_shuttercolour'] == 124) || ($products['property_shuttercolour'] == 125)) {
 				$sum = $sum + (14.57 * $basic) / 100;
 				echo 'SUM 11: ' . $sum . '  .....\n  ';

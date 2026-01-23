@@ -289,26 +289,26 @@ if ($products['property_nr_sections']) {
 				update_post_meta($post_id, 'price_item_Biowood', get_post_meta(1, 'Biowood', true));
 			}
 		}
-		if ($products['property_material'] == 139) {
-			if (!empty(get_user_meta($user_id, 'Supreme', true)) || (get_user_meta($user_id, 'Supreme', true) > 0)) {
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
+			if (!empty(get_user_meta($user_id, 'Basswood', true)) || (get_user_meta($user_id, 'Basswood', true) > 0)) {
 				if ($user_id == 18) {
-					$sum = ($sqm_value * get_user_meta($user_id, 'Supreme', true)) + (($sqm_value * get_user_meta($user_id, 'Supreme', true)) * get_user_meta($user_id, 'Supreme_tax', true)) / 100;
-					echo 'SUM Supreme: ' . $sum . ' ..... ';
-					$basic = $sqm_value * get_user_meta($user_id, 'Supreme', true);
+					$sum = ($sqm_value * get_user_meta($user_id, 'Basswood', true)) + (($sqm_value * get_user_meta($user_id, 'Basswood', true)) * get_user_meta($user_id, 'Basswood_tax', true)) / 100;
+					echo 'SUM Basswood: ' . $sum . ' ..... ';
+					$basic = $sqm_value * get_user_meta($user_id, 'Basswood', true);
 					// echo 'BASIC 1: ' . $basic . '<br>';
 				} else {
-					$sum = $sqm_value * get_user_meta($user_id, 'Supreme', true);
-					echo 'SUM Supreme: ' . $sum . ' ..... ';
-					$basic = $sqm_value * get_user_meta($user_id, 'Supreme', true);
+					$sum = $sqm_value * get_user_meta($user_id, 'Basswood', true);
+					echo 'SUM Basswood: ' . $sum . ' ..... ';
+					$basic = $sqm_value * get_user_meta($user_id, 'Basswood', true);
 					// echo 'BASIC 1: ' . $basic . '<br>';
 				}
-				update_post_meta($post_id, 'price_item_Supreme', get_user_meta($user_id, 'Supreme', true));
+				update_post_meta($post_id, 'price_item_Basswood', get_user_meta($user_id, 'Basswood', true));
 			} else {
-				$sum = $sqm_value * get_post_meta(1, 'Supreme', true);
-				echo 'SUM Supreme: ' . $sum . ' ..... ';
-				$basic = $sqm_value * get_post_meta(1, 'Supreme', true);
+				$sum = $sqm_value * get_post_meta(1, 'Basswood', true);
+				echo 'SUM Basswood: ' . $sum . ' ..... ';
+				$basic = $sqm_value * get_post_meta(1, 'Basswood', true);
 				// echo 'BASIC 1: ' . $basic . '<br>';
-				update_post_meta($post_id, 'price_item_Supreme', get_post_meta(1, 'Supreme', true));
+				update_post_meta($post_id, 'price_item_Basswood', get_post_meta(1, 'Basswood', true));
 			}
 		}
 
@@ -517,7 +517,7 @@ if ($products['property_nr_sections']) {
 
 		//$tracked = $sum + $sum/1;
 
-		if ($products['property_material'] == 139) {
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if ($products['property_bladesize'] == 52) {
 				$sum = $sum + (get_post_meta(1, 'Flat_Louver', true) * $basic) / 100;
 				echo 'SUM bladesize: ' . $sum . ' ..... ';
@@ -984,7 +984,8 @@ if ($products['property_nr_sections']) {
 			$property_g = "property_g" . $i . "_" . $sec;
 			if ($products[$property_t]) {
 				$t++;
-			} elseif ($products[$property_g]) {
+			}
+			if ($products[$property_g]) {
 				$g++;
 			}
 		}
@@ -1068,8 +1069,8 @@ if ($products['property_nr_sections']) {
 			$basic = $sum;
 			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
 		}
-		if ($products['property_material'] == 139) {
-			$sum = $sqm_value * dolarSum('Supreme-dolar', $user_id);
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
+			$sum = $sqm_value * dolarSum('Basswood-dolar', $user_id);
 			echo 'SUM 1 dolar: ' . $sum . ' ..... ';
 			$basic = $sum;
 			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
@@ -1077,7 +1078,7 @@ if ($products['property_nr_sections']) {
 
 //style
 
-		if ($products['property_material'] == 139) {
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if ($products['property_bladesize'] == 52) {
 				$sum = $sum + (dolarSum('Flat_Louver-dolar', $user_id) * $basic) / 100;
 				echo 'SUM bladesize: ' . $sum . ' ..... ';
@@ -1308,8 +1309,8 @@ if ($products['property_nr_sections']) {
 			}
 		}
 
-// Stained SUPREME 14.57%
-		if ($products['property_material'] == 139) {
+// Stained BASSWOOD 14.57%
+		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
 			if (($products['property_shuttercolour'] == 128) || ($products['property_shuttercolour'] == 257) || ($products['property_shuttercolour'] == 127) || ($products['property_shuttercolour'] == 126) || ($products['property_shuttercolour'] == 220) || ($products['property_shuttercolour'] == 130) || ($products['property_shuttercolour'] == 253) || ($products['property_shuttercolour'] == 131) || ($products['property_shuttercolour'] == 129) || ($products['property_shuttercolour'] == 254) || ($products['property_shuttercolour'] == 132) || ($products['property_shuttercolour'] == 255) || ($products['property_shuttercolour'] == 134) || ($products['property_shuttercolour'] == 122) || ($products['property_shuttercolour'] == 123) || ($products['property_shuttercolour'] == 133) || ($products['property_shuttercolour'] == 256) || ($products['property_shuttercolour'] == 166) || ($products['property_shuttercolour'] == 124) || ($products['property_shuttercolour'] == 125)) {
 				$sum = $sum + (14.57 * $basic) / 100;
 				echo 'SUM 11: ' . $sum . ' ..... ';
@@ -1609,7 +1610,7 @@ if (!empty($products['order_edit']) && !empty($products['edit_customer'])) {
 
 function saveCurrentPriceItem($prod_id, $user_id)
 {
-	$materials = array("Earth", "Biowood", "EcowoodPlus", "Green", "Ecowood", "Supreme");
+	$materials = array("Earth", "Biowood", "EcowoodPlus", "Green", "Ecowood", "Basswood");
 
 	foreach ($materials as $material) {
 		$global_price = get_post_meta(1, $material, true);

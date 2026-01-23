@@ -610,7 +610,7 @@ function matrix_add_sqm_to_wc_reports() {
             $start_date = date('Y-m-01', strtotime('last month'));
             $end_date = date('Y-m-t', strtotime('last month'));
             break;
-        case 'this_month':
+        case 'month':
             $start_date = date('Y-m-01');
             $end_date = date('Y-m-d');
             break;

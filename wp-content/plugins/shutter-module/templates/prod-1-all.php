@@ -1,157 +1,555 @@
-<?php if (!empty($_GET['cust_id'])) {
-	$user_id = $_GET['cust_id'];
-} else {
-	$user_id = get_current_user_id();
+<?php
+/**
+ * =============================================================================
+ * PROD-1-ALL.PHP - Shutter Product Form Template
+ * =============================================================================
+ *
+ * CONSTANTE ȘI CONFIGURĂRI:
+ * - STYLE_* pentru ID-urile de stiluri
+ * - MATERIAL_* pentru ID-urile de materiale
+ * - Funcții helper pentru acces la meta-uri
+ *
+ * =============================================================================
+ */
+
+// ==== CONSTANTE PENTRU STYLE IDs ====
+define('STYLE_TRACKED_BIFOLD', 35);
+define('STYLE_ARCHED', 36);
+define('STYLE_TRACKED_BYPASS', 37);
+define('STYLE_SOLID_TRACKED_BYPASS', 38);
+define('STYLE_SOLID_TRACKED_BIFOLD', 39);
+define('STYLE_COMBI_TRACKED_BYPASS', 40);
+define('STYLE_COMBI_TRACKED_BIFOLD', 41);
+define('STYLE_SOLID_ARCHED', 42);
+define('STYLE_SOLID_SPECIAL', 43);
+define('STYLE_SPECIAL_SHAPED', 33);
+define('STYLE_FRENCH_DOOR', 34);
+define('STYLE_SOLID_COMBI_BAY', 233);
+
+// Array cu stiluri tracked (fără frame)
+define('STYLES_TRACKED_NO_FRAME', [
+    STYLE_TRACKED_BIFOLD,
+    STYLE_SOLID_TRACKED_BYPASS,
+    STYLE_SOLID_TRACKED_BIFOLD,
+    STYLE_COMBI_TRACKED_BYPASS,
+    STYLE_COMBI_TRACKED_BIFOLD
+]);
+
+// ==== CONSTANTE PENTRU MATERIAL IDs ====
+define('MATERIAL_GREEN', 137);
+define('MATERIAL_BIOWOOD', 6);
+define('MATERIAL_BIOWOOD_PLUS', 138);
+define('MATERIAL_BASSWOOD_PLUS', 139);
+define('MATERIAL_BASSWOOD', 147);
+define('MATERIAL_EARTH', 187);
+define('MATERIAL_ECOWOOD', 188);
+define('MATERIAL_ECOWOOD_PLUS', 5);
+
+// ==== CONFIGURARE STILE OPTIONS ====
+// Fiecare stile are: value, title, code, img, materials (array de ID-uri material compatibile)
+$STILE_OPTIONS_CONFIG = [
+    // ==== 60mm STILES - Earth Only ====
+    ['value' => 350, 'title' => '60mm A1002D (Std.beaded stile)', 'code' => 'FS 50.8', 'img' => 'A1002D.png', 'materials' => [MATERIAL_EARTH]],
+    ['value' => 354, 'title' => '60mm A1006D (beaded D-mould)', 'code' => 'FS 50.8', 'img' => 'A1006D.png', 'materials' => [MATERIAL_EARTH]],
+
+    // ==== 41mm STILES - Plain (100xM) ====
+    // BasswoodPlus, Basswood, Biowood, BiowoodPlus
+    ['value' => 376, 'title' => '41mm 1001M(plain butt)', 'code' => 'FS 50.8', 'img' => '1001M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 377, 'title' => '41mm 1005M(plain D-mould)', 'code' => 'DFS 50.8', 'img' => '1005M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 378, 'title' => '41mm 1003M(plain rebate)', 'code' => 'RFS 50.8', 'img' => '1003M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+
+    // ==== 41mm STILES - Beaded (100xM) - BasswoodPlus, Basswood, BiowoodPlus ====
+    ['value' => 459, 'title' => '41mm 1002M (beaded butt)', 'code' => 'RFS 50.8', 'img' => '1002M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 460, 'title' => '41mm 1004M (beaded rebate)', 'code' => 'RFS 50.8', 'img' => '1004M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 461, 'title' => '41mm 1006M (beaded D-mould)', 'code' => 'RFS 50.8', 'img' => '1006M.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD, MATERIAL_BIOWOOD_PLUS]],
+
+    // ==== 41mm STILES - Beaded (T10xxM) - Biowood Only ====
+    ['value' => 445, 'title' => '41mm T1002M (beaded butt)', 'code' => 'RFS 50.8', 'img' => 'T1002M.png', 'materials' => [MATERIAL_BIOWOOD]],
+    ['value' => 446, 'title' => '41mm T1004M (beaded rebate)', 'code' => 'RFS 50.8', 'img' => 'T1004M.png', 'materials' => [MATERIAL_BIOWOOD]],
+    ['value' => 447, 'title' => '41mm T1006M (beaded D-mould)', 'code' => 'RFS 50.8', 'img' => 'T1006M.png', 'materials' => [MATERIAL_BIOWOOD]],
+
+    // ==== 51mm STILES - BasswoodPlus, Basswood (100xB) ====
+    ['value' => 355, 'title' => '51mm 1001B (plain butt)', 'code' => 'FS 50.8', 'img' => '1001B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+    ['value' => 356, 'title' => '51mm 1005B(plain D-mould)', 'code' => 'DFS 50.8', 'img' => '1005B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+    ['value' => 360, 'title' => '51mm 1003B(plain rebate)', 'code' => 'RFS 50.8', 'img' => '1003B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+    ['value' => 357, 'title' => '51mm 1002B(beaded butt)', 'code' => 'BS 50.8', 'img' => '1002B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+    ['value' => 358, 'title' => '51mm 1006B(beaded D-mould)', 'code' => 'DBS 50.8', 'img' => '1006B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+    ['value' => 359, 'title' => '51mm 1004B(beaded rebate)', 'code' => 'RBS 50.8', 'img' => '1004B.png', 'materials' => [MATERIAL_BASSWOOD_PLUS, MATERIAL_BASSWOOD]],
+
+    // ==== 51mm STILES - Biowood, BiowoodPlus (T10xxK) ====
+    ['value' => 370, 'title' => '51mm T1001K(plain butt)', 'code' => 'FS 50.8', 'img' => 'T1001K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 371, 'title' => '51mm T1005K(plain D-mould)', 'code' => 'DFS 50.8', 'img' => 'T1005K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 375, 'title' => '51mm T1003K(plain rebate)', 'code' => 'RFS 50.8', 'img' => 'T1003K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 372, 'title' => '51mm T1002K (beaded butt)', 'code' => 'BS 50.81', 'img' => 'T1002K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 373, 'title' => '51mm T1006K (beaded D-mould)', 'code' => 'DBS 50.8', 'img' => 'T1006K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+    ['value' => 374, 'title' => '51mm T1004K (beaded rebate)', 'code' => 'RBS 50.8', 'img' => 'T1004K.png', 'materials' => [MATERIAL_BIOWOOD, MATERIAL_BIOWOOD_PLUS]],
+
+    // ==== 51mm PVC STILES - Green, Ecowood, EcowoodPlus (P10xxB) ====
+    ['value' => 380, 'title' => '51mm PVC-P1001B(plain butt)', 'code' => 'FS 50.8', 'img' => 'P1001B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+    ['value' => 381, 'title' => '51mm PVC-P1005B(plain D-mould)', 'code' => 'DFS 50.8', 'img' => 'P1005B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+    ['value' => 385, 'title' => '51mm PVC-P1003E(plain rebate)', 'code' => 'RFS 50.8', 'img' => 'P1003B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+    ['value' => 382, 'title' => '51mm PVC-P1002B(beaded butt)', 'code' => 'BS 50.8', 'img' => 'P1002B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+    ['value' => 383, 'title' => '51mm PVC-P1006B(beaded D-mould)', 'code' => 'DBS 50.8', 'img' => 'P1006B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+    ['value' => 384, 'title' => '51mm PVC-P1004E(beaded rebate)', 'code' => 'RBS 50.8', 'img' => 'P1004B.png', 'materials' => [MATERIAL_GREEN, MATERIAL_ECOWOOD, MATERIAL_ECOWOOD_PLUS]],
+];
+
+// ==== MAPPING DIV NAME -> MATERIAL ID pentru checked verification ====
+// Aceste nume trebuie să corespundă cu ce așteaptă JavaScript-ul în product-script-custom.js
+$STILE_DIV_CONFIG = [
+    'earth' => MATERIAL_EARTH,           // 187
+    'ecowood' => MATERIAL_ECOWOOD,       // 188
+    'basswoodPlus' => MATERIAL_BASSWOOD_PLUS, // 139
+    'basswood' => MATERIAL_BASSWOOD,        // 147
+    'biowood' => MATERIAL_BIOWOOD,        // 6
+    'biowoodPlus' => MATERIAL_BIOWOOD_PLUS, // 138
+    'green' => MATERIAL_GREEN,            // 137 - ADĂUGAT
+    'ecowoodPlus' => MATERIAL_ECOWOOD_PLUS, // 5 - CORECTAT (era 137)
+];
+
+// ==== CONFIGURARE STYLE OPTIONS (property_style) ====
+// Fiecare opțiune: value, title, code, img, hidden (opțional), label_text (opțional - text afișat în label)
+$STYLE_OPTIONS = [
+    // ALU (ascunse)
+    ['value' => 27, 'title' => 'ALU Panel Only', 'code' => 'fullheight', 'img' => 'alu-panel-only.png', 'hidden' => true, 'container' => 'alu'],
+    ['value' => 28, 'title' => 'ALU Fixed Shutter', 'code' => 'fullheight', 'img' => 'alu-fixed-shutter.png', 'hidden' => true, 'container' => 'alu'],
+    // Standard
+    ['value' => 29, 'title' => 'Full Height', 'code' => 'fullheight', 'img' => 'Full-Height.png'],
+    ['value' => 31, 'title' => 'Tier-on-Tier', 'code' => 'tot', 'img' => 'Tier-On-Tier.png', 'hidden' => true],
+    ['value' => 30, 'title' => 'Café Style', 'code' => 'cafe', 'img' => 'Cafe-Style.png', 'hidden' => true],
+    ['value' => 32, 'title' => 'Bay Window', 'code' => 'bay', 'img' => 'Bay-Window.png', 'hidden' => true],
+    ['value' => 146, 'title' => 'Bay Window Tier-on-Tier', 'code' => 'bay-tot', 'img' => 'Bay-Window-Tier-On-Tier.png', 'hidden' => true, 'label_prefix' => 'Bay Window<br/>Tier-on-Tier'],
+    ['value' => 225, 'title' => 'Café Style Bay Window', 'code' => 'cafe-bay', 'img' => 'Bay-Window-Cafe-Style.png', 'hidden' => true, 'label_prefix' => 'Bay Window<br/>Café Style'],
+    // Solid
+    ['value' => 221, 'title' => 'Solid Flat Panel', 'code' => 'solid-flat', 'img' => 'Solid-Flat-Panel.png', 'label_text' => 'Solid Full Height'],
+    ['value' => 227, 'title' => 'Solid Flat Tier-on-Tier', 'code' => 'solid-flat-tot', 'img' => 'Solid-Flat-Panel-Tier-On-Tier.png', 'hidden' => true, 'label_prefix' => 'Solid<br/>Tier-on-Tier'],
+    ['value' => 226, 'title' => 'Solid Raised Café Style', 'code' => 'solid-raised-cafe-style', 'img' => 'Solid-Raised-Panel-Cafe-Style.png', 'hidden' => true, 'label_prefix' => 'Solid<br/>Café Style'],
+    ['value' => 229, 'title' => 'Combi Panel', 'code' => 'solid-combi', 'img' => 'Solid-Combi-Panel.png'],
+    // Solid Bay Window
+    ['value' => 230, 'title' => 'Solid Panel Bay Window Full Height', 'code' => 'solid-flat-bay', 'img' => 'Solid-Bay-Window-Full-Height.png', 'label_prefix' => 'Solid Panel Bay Window Full Height'],
+    ['value' => 231, 'title' => 'Solid Panel Bay Window Tier-on-Tier', 'code' => 'solid-flat-bay-tot', 'img' => 'Solid-Bay-Window-Tier-On-Tier.png', 'label_prefix' => 'Solid Panel Bay Window Tier-on-Tier'],
+    ['value' => 232, 'title' => 'Solid Panel Bay Window Cafe Style', 'code' => 'solid-raised-bay-cafe-style', 'img' => 'Solid-Bay-Window-Cafe-Style.png', 'label_prefix' => 'Solid Panel Bay Window Cafe Style'],
+    ['value' => 233, 'title' => 'Solid Combi Panel Bay Window', 'code' => 'solid-combi-bay', 'img' => 'Combi-Panel-Bay-Window.png', 'label_prefix' => 'Combi Panel Bay Window'],
+    // Shaped
+    ['value' => 36, 'title' => 'Arched Shaped', 'code' => 'shaped', 'img' => 'Arched.png', 'hidden' => true],
+    ['value' => 33, 'title' => 'Special Shaped', 'code' => 'shaped', 'img' => 'Special-Shape.png', 'hidden' => true],
+    ['value' => 42, 'title' => 'Solid Arched Shaped', 'code' => 'shaped', 'img' => 'SolidArched.png', 'hidden' => true],
+    ['value' => 43, 'title' => 'Solid Special Shaped', 'code' => 'shaped', 'img' => 'SolidSpecial-Shape.png', 'hidden' => true],
+    // French/Tracked
+    ['value' => 34, 'title' => 'French Door Cut', 'code' => 'french', 'img' => 'French-Door-Cut.png', 'hidden' => true],
+    ['value' => 37, 'title' => 'Tracked By-Pass', 'code' => 'tracked', 'img' => 'Tracked-By-Pass.png', 'hidden' => true],
+    ['value' => 35, 'title' => 'Tracked By-Fold', 'code' => 'tracked', 'img' => 'Tracked-By-Fold.png', 'hidden' => true],
+    ['value' => 38, 'title' => 'Solid Tracked By-Pass', 'code' => 'tracked', 'img' => 'Solid-Tracked-ByPass.png', 'hidden' => true],
+    ['value' => 39, 'title' => 'Solid Tracked By-Fold', 'code' => 'tracked', 'img' => 'Solid-Tracked-BiFold.png', 'hidden' => true],
+    // Combi Tracked
+    ['value' => 40, 'title' => 'Combi Tracked By-Pass', 'code' => 'tracked', 'img' => 'Combi-Tracked-ByPass.png', 'hidden' => true, 'label_prefix' => 'Combi Tracked By-Pass'],
+    ['value' => 41, 'title' => 'Combi Tracked By-Fold', 'code' => 'tracked', 'img' => 'Combi-Tracked-BiFold.png', 'hidden' => true, 'label_prefix' => 'Combi Tracked By-Fold'],
+];
+
+// ==== CONFIGURARE FRAMETYPE OPTIONS (property_frametype) ====
+// Fiecare opțiune: value, title, code, img, prefix (opțional)
+// Valorile sunt extrase din HTML-ul original pentru compatibilitate
+$FRAMETYPE_OPTIONS = [
+    // U-Channel
+    ['value' => 291, 'title' => 'U-Channel', 'code' => 'F50', 'img' => 'u-channel.png'],
+    // Basswood 4008 series
+    ['value' => 307, 'title' => '4008A', 'code' => 'F50', 'img' => '4008A.png', 'prefix' => 'Basswood'],
+    ['value' => 310, 'title' => '4008B', 'code' => 'F70', 'img' => '4008B.png', 'prefix' => 'Basswood'],
+    ['value' => 313, 'title' => '4008C', 'code' => 'F70', 'img' => '4008C.png', 'prefix' => 'Basswood'],
+    ['value' => 420, 'title' => '4108C', 'code' => 'F70', 'img' => '4108C.png', 'prefix' => 'Basswood'],
+    ['value' => 353, 'title' => '4008T', 'code' => 'F90', 'img' => '4008T.png', 'prefix' => 'Basswood'],
+    ['value' => 333, 'title' => '4028B', 'code' => 'F70', 'img' => '4028B.png', 'prefix' => 'Basswood'],
+    // Basswood 4007 series
+    ['value' => 306, 'title' => '4007A', 'code' => 'L70', 'img' => '4007A.png', 'prefix' => 'Basswood'],
+    ['value' => 309, 'title' => '4007B', 'code' => 'L90', 'img' => '4007B.png', 'prefix' => 'Basswood'],
+    ['value' => 312, 'title' => '4007C', 'code' => 'L90', 'img' => '4007C.png', 'prefix' => 'Basswood'],
+    // Basswood 4001 series
+    ['value' => 305, 'title' => '4001A', 'code' => 'L50', 'img' => '4001A.png', 'prefix' => 'Basswood'],
+    ['value' => 308, 'title' => '4001B', 'code' => 'L70', 'img' => '4001B.png', 'prefix' => 'Basswood'],
+    ['value' => 290, 'title' => '4011B', 'code' => 'Z3CS', 'img' => '4011B.png', 'prefix' => 'Basswood'],
+    ['value' => 311, 'title' => '4001C', 'code' => 'L70', 'img' => '4001C.png', 'prefix' => 'Basswood'],
+    ['value' => 332, 'title' => '4022B', 'code' => 'F70', 'img' => '4022B.png', 'prefix' => 'Basswood'],
+    // Basswood other series
+    ['value' => 142, 'title' => '4009', 'code' => 'D50', 'img' => '4009.png', 'prefix' => 'Basswood'],
+    ['value' => 316, 'title' => '4013', 'code' => 'Z50', 'img' => '4013.png', 'prefix' => 'Basswood'],
+    ['value' => 317, 'title' => '4014', 'code' => 'Z50', 'img' => '4014.png', 'prefix' => 'Basswood'],
+    ['value' => 352, 'title' => '4024', 'code' => 'Z50', 'img' => '4024.png', 'prefix' => 'Basswood'],
+    ['value' => 314, 'title' => '4003', 'code' => 'Z40', 'img' => '4003.png', 'prefix' => 'Basswood'],
+    ['value' => 315, 'title' => '4004', 'code' => 'Z3CS', 'img' => '4004.png', 'prefix' => 'Basswood'],
+    // PVC series
+    ['value' => 351, 'title' => 'P4022B', 'code' => 'Z40', 'img' => 'P4022B.png', 'prefix' => 'PVC'],
+    ['value' => 321, 'title' => 'P4008H', 'code' => 'F50', 'img' => 'P4008H.png', 'prefix' => 'PVC'],
+    ['value' => 318, 'title' => 'P4028B', 'code' => 'F90', 'img' => 'P4028B.png', 'prefix' => 'PVC'],
+    ['value' => 330, 'title' => 'P4008S', 'code' => 'F70', 'img' => 'P4008S.png', 'prefix' => 'PVC'],
+    ['value' => 322, 'title' => 'P4008T', 'code' => 'F90', 'img' => 'P4008T.png', 'prefix' => 'PVC'],
+    ['value' => 319, 'title' => 'P4008W', 'code' => 'F90', 'img' => 'P4008W.png', 'prefix' => 'PVC'],
+    ['value' => 331, 'title' => 'P4007A', 'code' => 'F50', 'img' => 'P4007A.png', 'prefix' => 'PVC'],
+    ['value' => 320, 'title' => 'P4001N', 'code' => 'L50', 'img' => 'P4001N.png', 'prefix' => 'PVC'],
+    // ALU (fără prefix în label)
+    ['value' => 300, 'title' => 'A4001', 'code' => 'L50', 'img' => 'A4001.png'],
+    // PVC continued
+    ['value' => 325, 'title' => 'P4013', 'code' => 'Z40', 'img' => 'P4013.png', 'prefix' => 'PVC'],
+    ['value' => 327, 'title' => 'P4033', 'code' => 'Z50', 'img' => 'P4033.png', 'prefix' => 'PVC'],
+    ['value' => 289, 'title' => 'P4023B', 'code' => 'Z50', 'img' => 'P4023B.png', 'prefix' => 'PVC'],
+    ['value' => 328, 'title' => 'P4043', 'code' => 'Z40', 'img' => 'P4043.png', 'prefix' => 'PVC'],
+    ['value' => 324, 'title' => 'P4073', 'code' => 'Z50', 'img' => 'P4073.png', 'prefix' => 'PVC'],
+    ['value' => 304, 'title' => 'P4083', 'code' => 'Z50', 'img' => 'P4083.png', 'prefix' => 'PVC'],
+    ['value' => 329, 'title' => 'P4014', 'code' => 'Z3CS', 'img' => 'P4014.png', 'prefix' => 'PVC'],
+    ['value' => 303, 'title' => 'P4009', 'code' => 'Z3CS', 'img' => 'P4009.png', 'prefix' => 'PVC'],
+    // ALU continued (fără prefix în label)
+    ['value' => 302, 'title' => 'A4027', 'code' => 'Z50', 'img' => 'A4027.png'],
+    ['value' => 301, 'title' => 'A4002', 'code' => 'Z50', 'img' => 'A4002.png'],
+    // Track systems
+    ['value' => 144, 'title' => 'Bottom M Track', 'code' => 'L50', 'img' => 'Bottom_M_Track.png'],
+    ['value' => 143, 'title' => 'Track in Board', 'code' => 'L50', 'img' => 'Track_in_Board.png'],
+];
+
+// ==== FUNCȚII HELPER ====
+
+/**
+ * Obține valoarea meta dintr-un array pre-încărcat
+ */
+function get_meta_value($meta_array, $key, $default = '') {
+    return isset($meta_array[$key][0]) ? $meta_array[$key][0] : $default;
 }
-$item_id = (isset($_GET['item_id'])) ? $_GET['item_id'] : '';
-$clone_id = !empty($_GET['clone']) ? base64_decode($_GET['clone']) : '';
+
+/**
+ * Generează HTML pentru un singur radio button de stile
+ *
+ * @param array $stile_config Configurarea stile-ului
+ * @param string $current_stile Valoarea curentă selectată
+ * @param int $current_material ID-ul materialului curent (pentru checked)
+ * @param int $stile_index Index-ul pentru clasa stile-X (1-based)
+ * @return string HTML generat
+ */
+function render_stile_option($stile_config, $current_stile, $current_material, $stile_index = 1) {
+    // Verifică dacă stile-ul este compatibil cu materialul curent
+    if (!in_array($current_material, $stile_config['materials'])) {
+        return '';
+    }
+
+    $checked = ($current_stile == $stile_config['value'] && !empty($current_material)) ? 'checked' : '';
+    $img_path = '/wp-content/plugins/shutter-module/imgs/' . $stile_config['img'];
+
+    return sprintf(
+        '<label>
+            <br/> %s
+            <input type="radio" name="property_stile"
+                   data-code="%s"
+                   data-title="%s"
+                   value="%d" %s />
+            <img class="stile-%d"
+                 src="%s"/>
+        </label>',
+        esc_html($stile_config['title']),
+        esc_attr($stile_config['code']),
+        esc_attr($stile_config['title']),
+        intval($stile_config['value']),
+        $checked,
+        $stile_index,
+        esc_url($img_path)
+    );
+}
+
+/**
+ * Generează un bloc complet de stile options pentru un material
+ *
+ * @param string $div_name Numele div-ului (ex: 'earth', 'basswoodPlus')
+ * @param int $material_id ID-ul materialului pentru filtrare și checked
+ * @param string $property_stile Valoarea curentă selectată
+ * @param array $stile_options Array-ul $STILE_OPTIONS_CONFIG
+ * @param mixed $current_material Materialul curent selectat (pentru display)
+ * @return string HTML generat pentru întregul bloc
+ */
+function render_stile_block($div_name, $material_id, $property_stile, $stile_options, $current_material = '') {
+    // Afișează div-ul doar dacă materialul curent corespunde cu material_id al blocului
+    $display = ($current_material == $material_id) ? 'display: block;' : 'display: none;';
+    $output = '<div class="col-sm-12" id="stile-img-' . esc_attr($div_name) . '" style="' . $display . '">';
+    $output .= '<div id="choose-stiletype" class="" style="display: block;">';
+
+    $stile_index = 1;
+    foreach ($stile_options as $stile) {
+        // Verifică dacă stile-ul este pentru acest material
+        if (!in_array($material_id, $stile['materials'], false)) {
+            continue;
+        }
+
+        $checked = ($property_stile == $stile['value']) ? 'checked' : '';
+        $img_path = '/wp-content/plugins/shutter-module/imgs/' . $stile['img'];
+
+        $output .= '<label>';
+        $output .= '<br/> ' . esc_html($stile['title']);
+        $output .= '<input type="radio" name="property_stile"';
+        $output .= ' data-code="' . esc_attr($stile['code']) . '"';
+        $output .= ' data-title="' . esc_attr($stile['title']) . '"';
+        $output .= ' value="' . intval($stile['value']) . '" ' . $checked . ' />';
+        $output .= '<img class="stile-' . $stile_index . '"';
+        $output .= ' src="' . esc_url($img_path) . '"/>';
+        $output .= '</label>';
+
+        $stile_index++;
+    }
+
+    $output .= '</div></div>';
+    return $output;
+}
+
+/**
+ * Generează HTML pentru un radio button generic (property_style, property_frametype, etc.)
+ *
+ * @param string $name Numele input-ului (ex: 'property_style', 'property_frametype')
+ * @param array $option Configurarea opțiunii
+ * @param mixed $current_value Valoarea curentă selectată
+ * @return string HTML generat
+ */
+function render_radio_option($name, $option, $current_value) {
+    $hidden = !empty($option['hidden']) ? 'style="display:none;"' : '';
+    $checked = ($current_value == $option['value']) ? 'checked' : '';
+    $img_path = '/wp-content/plugins/shutter-module/imgs/' . $option['img'];
+
+    // Determină textul afișat în label
+    $label_text = '';
+    if (!empty($option['label_prefix'])) {
+        // Folosește prefix personalizat (ex: "Bay Window<br/>Tier-on-Tier")
+        $label_text = $option['label_prefix'];
+    } elseif (!empty($option['prefix'])) {
+        // Prefix simplu + title (ex: "Basswood<br/>4008A")
+        $label_text = $option['prefix'] . '<br/> ' . $option['title'];
+    } elseif (!empty($option['label_text'])) {
+        // Text personalizat pentru label
+        $label_text = '<br/> ' . $option['label_text'];
+    } else {
+        // Doar title
+        $label_text = '<br/> ' . $option['title'];
+    }
+
+    return sprintf(
+        '<label %s>
+            %s
+            <br/>
+            <input type="radio" name="%s"
+                   data-code="%s"
+                   data-title="%s"
+                   value="%d" %s />
+            <img src="%s">
+        </label>',
+        $hidden,
+        $label_text,
+        esc_attr($name),
+        esc_attr($option['code']),
+        esc_attr($option['title']),
+        intval($option['value']),
+        $checked,
+        esc_url($img_path)
+    );
+}
+
+/**
+ * Sanitizează parametrii GET - fără restricții mari
+ */
+function sanitize_get_int($key, $default = 0) {
+    return isset($_GET[$key]) ? intval($_GET[$key]) : $default;
+}
+
+function sanitize_get_string($key, $default = '') {
+    return isset($_GET[$key]) ? sanitize_text_field($_GET[$key]) : $default;
+}
+
+// ==== PROCESARE PARAMETRI GET (sanitizați) ====
+$user_id = !empty($_GET['cust_id']) ? intval($_GET['cust_id']) : get_current_user_id();
+$item_id = sanitize_get_string('item_id', '');
+$clone_id = !empty($_GET['clone']) ? intval(base64_decode($_GET['clone'])) : '';
+$edit_customer = (sanitize_get_string('order_edit_customer') === 'editable');
+$order_edit = !empty($_GET['order_id']) ? intval($_GET['order_id']) / 1498765 / 33 : '';
+$raw_product_id = sanitize_get_int('id', 0);
 
 $dealer_id = get_user_meta($user_id, 'company_parent', true);
 
-$edit_customer = (isset($_GET['order_edit_customer']) && $_GET['order_edit_customer'] == 'editable') ? true : false;
-$order_edit = (!empty($_GET['order_id'])) ? $_GET['order_id'] / 1498765 / 33 : '';
-
-$meta_key = 'wc_multiple_shipping_addresses';
+// ==== INTEROGĂRI BAZĂ DE DATE (cu prepared statements) ====
 global $wpdb;
-if ($addresses = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s", $user_id, $meta_key))) {
-	$addresses = maybe_unserialize($addresses);
+
+// Query 1: Multiple shipping addresses
+$meta_key = 'wc_multiple_shipping_addresses';
+$addresses = $wpdb->get_var($wpdb->prepare(
+    "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
+    $user_id, $meta_key
+));
+if ($addresses) {
+    $addresses = maybe_unserialize($addresses);
 }
-$addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
-$userialize_data = unserialize($addresses[0]->meta_value);
-$session_key = $userialize_data['customer_id'];
-$session = $wpdb->get_results("SELECT session_value FROM `wp_woocommerce_sessions` WHERE `session_key` LIKE $session_key ");
-$userialize_session = unserialize($session[0]->session_value);
+
+// Query 2: Multisession data (SECURIZAT cu prepared statement)
+$multisession_data = $wpdb->get_var($wpdb->prepare(
+    "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
+    $user_id, '_woocom_multisession'
+));
+$userialize_data = $multisession_data ? maybe_unserialize($multisession_data) : [];
+
+// Query 3: Session data (SECURIZAT cu prepared statement)
+$session_key = isset($userialize_data['customer_id']) ? $userialize_data['customer_id'] : 0;
+$session_value = $wpdb->get_var($wpdb->prepare(
+    "SELECT session_value FROM {$wpdb->prefix}woocommerce_sessions WHERE session_key = %s",
+    $session_key
+));
+$userialize_session = $session_value ? maybe_unserialize($session_value) : [];
+
+// ==== INIȚIALIZARE VARIABILE ====
 $i = 1;
-$carts_sort = $userialize_data['carts'];
-ksort($carts_sort);
+$carts_sort = isset($userialize_data['carts']) ? $userialize_data['carts'] : [];
+if (!empty($carts_sort)) {
+    ksort($carts_sort);
+}
 $total_elements = count($carts_sort) + 1;
+
+// Variabile pentru formular
 $cart_name = '';
 $attachment = '';
+$attachmentDraw = '';
 $product_id = '';
 $property_solidtype = '';
 $property_style = '';
 $property_room_other = '';
 $property_frametype = '';
-$nr_code_prod = array();
-$items_name = array();
-$first_item = null;
-foreach ($carts_sort as $key => $carts) {
-	if ($userialize_data['customer_id'] == $key) {
-		$cart_name = $carts['name'];
-	}
-}
 $property_tposttype = null;
-if (!empty($_GET['id'])) {
-	$product_id = $_GET['id'] / 1498765 / 33;
-	echo "<input type='hidden' id='pod_item_id' val='" . $product_id . "'>";
-	$meta = get_post_meta($_GET['id'] / 1498765 / 33);
-	//echo '  price: ' . number_format(get_post_meta($product_id, '_regular_price', true), 2);
-	// echo '  stile:  ' . get_post_meta($product_id, 'property_stile', true);
-	//echo '  tposty: ' . get_post_meta($product_id, 'property_tposttype', true);
-	$property_style = get_post_meta($product_id, 'property_style', true);
-	$property_order_edit = get_post_meta($product_id, 'order_edit', true);
-	if (empty($order_edit)) {
-		$order_edit = $property_order_edit;
-	}
-	$property_room_other = get_post_meta($product_id, 'property_room_other', true);
-	$attachment = get_post_meta($product_id, 'attachment', true);
-	$attachmentDraw = get_post_meta($product_id, 'attachmentDraw', true);
-	$property_horizontaltpost = get_post_meta($product_id, 'property_horizontaltpost', true);
-	$bay_post_type = get_post_meta($product_id, 'bay-post-type', true);
-	$t_post_type = get_post_meta($product_id, 't-post-type', true);
-	$material = get_post_meta($product_id, 'property_material', true);
-	$property_builtout = get_post_meta($product_id, 'property_builtout', true);
-	$property_solidtype = get_post_meta($product_id, 'property_solidtype', true);
-	$property_trackedtype = get_post_meta($product_id, 'property_trackedtype', true);
-	$property_freefolding = get_post_meta($product_id, 'property_freefolding', true);
-	$property_bypasstype = get_post_meta($product_id, 'property_bypasstype', true);
-	$property_colour_other = get_post_meta($product_id, 'property_shuttercolour_other', true);
-	$property_lightblocks = get_post_meta($product_id, 'property_lightblocks', true);
-	$property_tracksnumber = get_post_meta($product_id, 'property_tracksnumber', true);
-	$property_tposttype = get_post_meta($product_id, 'property_tposttype', true);
-	$comments_customer = get_post_meta($product_id, 'comments_customer', true);
-	$property_frametype = get_post_meta($product_id, 'property_frametype', true);
-	$frameleft_first = get_post_meta($product_id, 'property_frameleft', true);
-	$frameright_first = get_post_meta($product_id, 'property_frameright', true);
-	$frametop_first = get_post_meta($product_id, 'property_frametop', true);
-	$framebottom_first = get_post_meta($product_id, 'property_framebottom', true);
-	$property_builtout = get_post_meta($product_id, 'property_builtout', true);
-	$property_stile = get_post_meta($product_id, 'property_stile', true);
+$property_stile = '';
+$material = '138'; // Default: BiowoodPlus - sincronizat cu valoarea default din input property_material
+$property_builtout = '';
+$nr_code_prod = [];
+$items_name = [];
+$first_item = null;
 
-	// Define property categories and the number of items in each
-	$property_categories = [
-	  'g' => get_post_meta($product_id, 'counter_g', true),
-	  't' => get_post_meta($product_id, 'counter_t', true),
-	  'c' => get_post_meta($product_id, 'counter_c', true),
-	  'b' => get_post_meta($product_id, 'counter_b', true), // Assuming 'b' represents both 'bp' and 'ba'
-	];
+// Variabile pentru frame
+$frameleft_first = '';
+$frameright_first = '';
+$frametop_first = '';
+$framebottom_first = '';
 
-	$nr_code_prod = []; // Initialize the array to hold the counts
+// Variabile pentru culori și control
+$hingecolour_first = '';
+$shuttercolour_first = '';
+$property_colour_other = '';
+$controltype_first = '';
+$bladesize_first = '';
+$positioncritical_first = '';
+$property_doubleClosingLouvres_first = '';
 
-// Loop through each category to fetch properties (if needed) and store counts
-	foreach ($property_categories as $category_prefix => $count) {
-		$nr_code_prod[$category_prefix] = $count; // Store the count directly into $nr_code_prod
-		for ($i = 1; $i <= $count; $i++) {
-			// Construct the meta key dynamically
-			$meta_key = "property_{$category_prefix}{$i}";
-		}
-	}
+// Găsește cart_name
+foreach ($carts_sort as $key => $carts) {
+    if (isset($userialize_data['customer_id']) && $userialize_data['customer_id'] == $key) {
+        $cart_name = $carts['name'];
+    }
+}
 
-	global $woocommerce;
-	$cart = WC()->cart->get_cart();
-	foreach ($cart as $cart_item_key => $cart_item) {
-		$products = $cart_item['data']->get_id();
-		if ($products == $product_id) {
-//			echo ' QTY:' . $quant = $cart_item['quantity'];
-//			echo ' _qty:' . $quant = $cart_item['_qty'];
-		}
-	}
+// ==== PROCESARE PRODUS EXISTENT (EDIT MODE) ====
+if ($raw_product_id > 0) {
+    $product_id = $raw_product_id / 1498765 / 33;
+    echo "<input type='hidden' id='pod_item_id' val='" . esc_attr($product_id) . "'>";
+
+    // OPTIMIZARE: Încarcă toate meta-urile o singură dată
+    $product_meta = get_post_meta($product_id);
+
+    // Extrage valorile din array-ul pre-încărcat
+    $property_style = get_meta_value($product_meta, 'property_style');
+    $property_order_edit = get_meta_value($product_meta, 'order_edit');
+    if (empty($order_edit)) {
+        $order_edit = $property_order_edit;
+    }
+
+    $property_room_other = get_meta_value($product_meta, 'property_room_other');
+    $attachment = get_meta_value($product_meta, 'attachment');
+    $attachmentDraw = get_meta_value($product_meta, 'attachmentDraw');
+    $property_horizontaltpost = get_meta_value($product_meta, 'property_horizontaltpost');
+    $bay_post_type = get_meta_value($product_meta, 'bay-post-type');
+    $t_post_type = get_meta_value($product_meta, 't-post-type');
+    $material = get_meta_value($product_meta, 'property_material');
+    $property_builtout = get_meta_value($product_meta, 'property_builtout');
+    $property_solidtype = get_meta_value($product_meta, 'property_solidtype');
+    $property_trackedtype = get_meta_value($product_meta, 'property_trackedtype');
+    $property_freefolding = get_meta_value($product_meta, 'property_freefolding');
+    $property_bypasstype = get_meta_value($product_meta, 'property_bypasstype');
+    $property_colour_other = get_meta_value($product_meta, 'property_shuttercolour_other');
+    $property_lightblocks = get_meta_value($product_meta, 'property_lightblocks');
+    $property_tracksnumber = get_meta_value($product_meta, 'property_tracksnumber');
+    $property_tposttype = get_meta_value($product_meta, 'property_tposttype');
+    $comments_customer = get_meta_value($product_meta, 'comments_customer');
+    $property_frametype = get_meta_value($product_meta, 'property_frametype');
+    $frameleft_first = get_meta_value($product_meta, 'property_frameleft');
+    $frameright_first = get_meta_value($product_meta, 'property_frameright');
+    $frametop_first = get_meta_value($product_meta, 'property_frametop');
+    $framebottom_first = get_meta_value($product_meta, 'property_framebottom');
+    $property_stile = get_meta_value($product_meta, 'property_stile');
+
+    // Property categories
+    $property_categories = [
+        'g' => get_meta_value($product_meta, 'counter_g', 0),
+        't' => get_meta_value($product_meta, 'counter_t', 0),
+        'c' => get_meta_value($product_meta, 'counter_c', 0),
+        'b' => get_meta_value($product_meta, 'counter_b', 0),
+    ];
+
+    foreach ($property_categories as $category_prefix => $count) {
+        $nr_code_prod[$category_prefix] = $count;
+    }
+
+    // Verifică cart
+    $cart = WC()->cart->get_cart();
+    foreach ($cart as $cart_item_key => $cart_item) {
+        $products = $cart_item['data']->get_id();
+        // Procesare dacă e nevoie
+    }
+
 } else {
-	$cart = WC()->cart->get_cart();
+    // ==== MOD NOU PRODUS ====
+    $cart = WC()->cart->get_cart();
 
-	if (count($cart) >= 1 && $edit_customer == false) {
-		foreach ($cart as $cart_item_key => $cart_item) {
-			// get id product
-			$product_id_cart = $cart_item['product_id'];
-			$property_room_other = get_post_meta($product_id_cart, 'property_room_other', true);
-			$items_name[] = str_replace("'", "", $property_room_other);
-			// if clone id existsin GET and is equal to prod id from cart then update as principal id
-			if (!empty($clone_id) && $clone_id == $product_id_cart) {
-				update_post_meta($product_id_cart, 'clone_prod_id', $clone_id);
-			} // if clone id existsin GET and is not equal to prod id from cart then update empty
-            elseif (!empty($clone_id) && $clone_id != $product_id_cart) {
-				update_post_meta($product_id_cart, 'clone_prod_id', '');
-			}
-		}
+    if (count($cart) >= 1 && $edit_customer == false) {
+        foreach ($cart as $cart_item_key => $cart_item) {
+            $product_id_cart = $cart_item['product_id'];
+            $room_other = get_post_meta($product_id_cart, 'property_room_other', true);
+            $items_name[] = str_replace("'", "", $room_other);
 
-		if ($clone_id == '') {
-			$clone_id = get_post_meta($product_id_cart, 'clone_prod_id', true);
-		}
+            // Gestionare clone_id
+            if (!empty($clone_id) && $clone_id == $product_id_cart) {
+                update_post_meta($product_id_cart, 'clone_prod_id', $clone_id);
+            } elseif (!empty($clone_id) && $clone_id != $product_id_cart) {
+                update_post_meta($product_id_cart, 'clone_prod_id', '');
+            }
+        }
 
-		$first_item = array_shift($cart);
-		$first_prod_id = !empty($clone_id) ? $clone_id : $first_item['product_id'];
+        if ($clone_id == '' && isset($product_id_cart)) {
+            $clone_id = get_post_meta($product_id_cart, 'clone_prod_id', true);
+        }
 
-		$material = get_post_meta($first_prod_id, 'property_material', true);
-		$property_style = get_post_meta($first_prod_id, 'property_style', true);
-		$bladesize_first = get_post_meta($first_prod_id, 'property_bladesize', true);
-		$positioncritical_first = get_post_meta($first_prod_id, 'property_midrailpositioncritical', true);
-		// Frame Type, Left, Right, Top, Bottom, Ad buildout, Stile
-		if (!in_array($property_style, [35, 38, 39, 40, 41])) {
-			$property_frametype = get_post_meta($first_prod_id, 'property_frametype', true);
-			$frameleft_first = get_post_meta($first_prod_id, 'property_frameleft', true);
-			$frameright_first = get_post_meta($first_prod_id, 'property_frameright', true);
-			$frametop_first = get_post_meta($first_prod_id, 'property_frametop', true);
-			$framebottom_first = get_post_meta($first_prod_id, 'property_framebottom', true);
-			$property_builtout = get_post_meta($first_prod_id, 'property_builtout', true);
-			$property_stile = get_post_meta($first_prod_id, 'property_stile', true);
-		}
-		// Hinge Colour, Shutter Colour, Control Type
-		$hingecolour_first = get_post_meta($first_prod_id, 'property_hingecolour', true);
-		$shuttercolour_first = get_post_meta($first_prod_id, 'property_shuttercolour', true);
-		$property_colour_other = get_post_meta($first_prod_id, 'property_shuttercolour_other', true);
-		$controltype_first = get_post_meta($first_prod_id, 'property_controltype', true);
-		$property_doubleClosingLouvres_first = get_post_meta($first_prod_id, 'property_double_closing_louvres', true);
-	}
+        $first_item = array_shift($cart);
+        $first_prod_id = !empty($clone_id) ? $clone_id : (isset($first_item['product_id']) ? $first_item['product_id'] : 0);
+
+        if ($first_prod_id) {
+            // OPTIMIZARE: Încarcă toate meta-urile o singură dată pentru primul produs
+            $first_meta = get_post_meta($first_prod_id);
+
+            $material = get_meta_value($first_meta, 'property_material');
+            $property_style = get_meta_value($first_meta, 'property_style');
+            $bladesize_first = get_meta_value($first_meta, 'property_bladesize');
+            $positioncritical_first = get_meta_value($first_meta, 'property_midrailpositioncritical');
+
+            // Frame Type, Left, Right, Top, Bottom, Buildout, Stile (doar pentru stiluri non-tracked)
+            if (!in_array($property_style, STYLES_TRACKED_NO_FRAME)) {
+                $property_frametype = get_meta_value($first_meta, 'property_frametype');
+                $frameleft_first = get_meta_value($first_meta, 'property_frameleft');
+                $frameright_first = get_meta_value($first_meta, 'property_frameright');
+                $frametop_first = get_meta_value($first_meta, 'property_frametop');
+                $framebottom_first = get_meta_value($first_meta, 'property_framebottom');
+                $property_builtout = get_meta_value($first_meta, 'property_builtout');
+                $property_stile = get_meta_value($first_meta, 'property_stile');
+            }
+
+            // Hinge Colour, Shutter Colour, Control Type
+            $hingecolour_first = get_meta_value($first_meta, 'property_hingecolour');
+            $shuttercolour_first = get_meta_value($first_meta, 'property_shuttercolour');
+            $property_colour_other = get_meta_value($first_meta, 'property_shuttercolour_other');
+            $controltype_first = get_meta_value($first_meta, 'property_controltype');
+            $property_doubleClosingLouvres_first = get_meta_value($first_meta, 'property_double_closing_louvres');
+        }
+    }
 }
 
 
@@ -310,333 +708,12 @@ if (!empty($_GET['id'])) {
                                                 <div class="row" style="margin-top:1em;">
                                                     <div class="col-sm-12"> Installation Style:
                                                         <div id="choose-style">
-
-
-                                                            <!--   Earth special installations-->
-                                                            <div class="alu-installations">
-                                                                <label style="display:none;">
-                                                                    <br/> ALU Panel Only
-                                                                    <br/>
-                                                                    <input type="radio" name="property_style"
-                                                                           data-code="fullheight"
-                                                                           data-title="ALU Panel Only"
-                                                                           value="27"
-																	  <?php if ($property_style == '27') {
-																		  echo "checked";
-																	  } ?> />
-                                                                    <img src="/wp-content/plugins/shutter-module/imgs/alu-panel-only.png">
-                                                                </label>
-                                                                <label style="display:none;">
-                                                                    <br/> ALU Fixed Shutter
-                                                                    <br/>
-                                                                    <input type="radio" name="property_style"
-                                                                           data-code="fullheight"
-                                                                           data-title="ALU Fixed Shutter"
-                                                                           value="28"
-																	  <?php if ($property_style == '28') {
-																		  echo "checked";
-																	  } ?> />
-                                                                    <img src="/wp-content/plugins/shutter-module/imgs/alu-fixed-shutter.png">
-                                                                </label>
-                                                            </div>
-                                                            <!--   End - Earth special installations-->
-
-
-                                                            <label>
-                                                                <br/> Full Height
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="fullheight" data-title="Full Height"
-                                                                       value="29"
-																  <?php if ($property_style == '29') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Full-Height.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Tier-on-Tier
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tot" data-title="Tier-on-Tier"
-                                                                       value="31"
-																  <?php if ($property_style == '31') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Tier-On-Tier.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Café Style
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="cafe" data-title="Café Style"
-                                                                       value="30"
-																  <?php if ($property_style == '30') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Cafe-Style.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Bay Window
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="bay" data-title="Bay Window"
-                                                                       value="32"
-																  <?php if ($property_style == '32') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Bay-Window.png">
-                                                            </label>
-                                                            <label style="display:none;"> Bay Window<br/>Tier-on-Tier
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="bay-tot"
-                                                                       data-title="Bay Window Tier-on-Tier" value="146"
-																  <?php if ($property_style == '146') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Bay-Window-Tier-On-Tier.png">
-                                                            </label>
-                                                            <label style="display:none;"> Bay Window<br/>Café Style
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="cafe-bay"
-                                                                       data-title="Café Style Bay Window" value="225"
-																  <?php if ($property_style == '225') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Bay-Window-Cafe-Style.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> Solid Full Height
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-flat"
-                                                                       data-title="Solid Flat Panel"
-                                                                       value="221"
-																  <?php if ($property_style == '221') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Flat-Panel.png">
-                                                            </label>
-                                                            <label style="display:none;"> Solid
-                                                                <br/>Tier-on-Tier
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-flat-tot"
-                                                                       data-title="Solid Flat Tier-on-Tier" value="227"
-																  <?php if ($property_style == '227') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Flat-Panel-Tier-On-Tier.png">
-                                                            </label>
-                                                            <label style="display:none;"> Solid
-                                                                <br/>Café Style
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-raised-cafe-style"
-                                                                       data-title="Solid Raised Café Style" value="226"
-																  <?php if ($property_style == '226') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Raised-Panel-Cafe-Style.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> Combi Panel
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-combi" data-title="Combi Panel"
-                                                                       value="229"
-																  <?php if ($property_style == '229') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Combi-Panel.png">
-                                                            </label>
-                                                            <label> Solid Panel Bay Window Full Height
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-flat-bay"
-                                                                       data-title="Solid Panel Bay Window Full Height"
-                                                                       value="230"
-																  <?php if ($property_style == '230') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Bay-Window-Full-Height.png">
-                                                            </label>
-                                                            <label> Solid Panel Bay Window Tier-on-Tier
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-flat-bay-tot"
-                                                                       data-title="Solid Panel Bay Window Tier-on-Tier"
-                                                                       value="231"
-																  <?php if ($property_style == '231') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Bay-Window-Tier-On-Tier.png">
-                                                            </label>
-                                                            <label> Solid Panel Bay Window Cafe Style
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-raised-bay-cafe-style"
-                                                                       data-title="Solid Panel Bay Window Cafe Style"
-                                                                       value="232"
-																  <?php if ($property_style == '232') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Solid-Bay-Window-Cafe-Style.png">
-                                                            </label>
-                                                            <label> Combi Panel Bay Window
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="solid-combi-bay"
-                                                                       data-title="Solid Combi Panel Bay Window"
-                                                                       value="233"
-																  <?php if ($property_style == '233') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Combi-Panel-Bay-Window.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Arched Shaped
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="shaped" data-title="Arched Shaped"
-                                                                       value="36"
-																  <?php if ($property_style == '36') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Arched.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Special Shaped
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="shaped" data-title="Special Shaped"
-                                                                       value="33"
-																  <?php if ($property_style == '33') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Special-Shape.png">
-                                                            </label>
-
-                                                            <label style="display:none;">
-                                                                <br/> Solid Arched Shaped
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="shaped" data-title="Solid Arched Shaped"
-                                                                       value="42"
-																  <?php if ($property_style == '42') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/SolidArched.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Solid Special Shaped
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="shaped" data-title="Solid Special Shaped"
-                                                                       value="43"
-																  <?php if ($property_style == '43') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/SolidSpecial-Shape.png">
-                                                            </label>
-
-                                                            <label style="display:none;">
-                                                                <br/> French Door Cut
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="french" data-title="French Door Cut"
-                                                                       value="34"
-																  <?php if ($property_style == '34') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/French-Door-Cut.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Tracked By-Pass
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked" data-title="Tracked By-Pass"
-                                                                       value="37"
-																  <?php if ($property_style == '37') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Tracked-By-Pass.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Tracked By-Fold
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked" data-title="Tracked By-Fold"
-                                                                       value="35"
-																  <?php if ($property_style == '35') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Tracked-By-Fold.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Solid Tracked By-Pass
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked"
-                                                                       data-title="Solid Tracked By-Pass"
-                                                                       value="38"
-																  <?php if ($property_style == '38') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Solid-Tracked-ByPass.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                <br/> Solid Tracked By-Fold
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked"
-                                                                       data-title="Solid Tracked By-Fold"
-                                                                       value="39"
-																  <?php if ($property_style == '39') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Solid-Tracked-BiFold.png">
-                                                            </label>
-
-                                                            <label style="display:none;">
-                                                                Combi Tracked By-Pass
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked"
-                                                                       data-title="Combi Tracked By-Pass"
-                                                                       value="40"
-																  <?php if ($property_style == '40') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Combi-Tracked-ByPass.png">
-                                                            </label>
-                                                            <label style="display:none;">
-                                                                Combi Tracked By-Fold
-                                                                <br/>
-                                                                <input type="radio" name="property_style"
-                                                                       data-code="tracked"
-                                                                       data-title="Combi Tracked By-Fold"
-                                                                       value="41"
-																  <?php if ($property_style == '41') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img src="/wp-content/plugins/shutter-module/imgs/Combi-Tracked-BiFold.png">
-                                                            </label>
+                                                            <?php
+                                                            // Generează opțiunile de style dinamic din $STYLE_OPTIONS
+                                                            foreach ($STYLE_OPTIONS as $option) {
+                                                                echo render_radio_option('property_style', $option, $property_style);
+                                                            }
+                                                            ?>
                                                         </div>
                                                     </div>
 
@@ -938,473 +1015,12 @@ if (!empty($_GET['id'])) {
                                                                 available Frame Type choices</i>
                                                         </p>
                                                         <div id="choose-frametype">
-                                                            <label>
-                                                                <br/>U-Channel
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F50" data-title="U-Channel"
-                                                                       value="291"
-																  <?php if ($property_frametype == '291') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/u-channel.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4008A
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F50" data-title="4008A" value="307"
-																  <?php if ($property_frametype == '307') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4008A.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4008B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="4008B" value="310"
-																  <?php if ($property_frametype == '310') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4008B.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4008C
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="4008C" value="313"
-																  <?php if ($property_frametype == '313') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4008C.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4108C
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="4108C" value="420"
-																  <?php if ($property_frametype == '420') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4108C.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4008T
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F90" data-title="4008T" value="353"
-																  <?php if ($property_frametype == '353') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4008T.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4028B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="4028B" value="333"
-																  <?php if ($property_frametype == '333') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4028B.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4007A
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L70" data-title="4007A" value="306"
-																  <?php if ($property_frametype == '306') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4007A.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4007B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L90" data-title="4007B" value="309"
-																  <?php if ($property_frametype == '309') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4007B.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4007C
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L90" data-title="4007C" value="312"
-																  <?php if ($property_frametype == '312') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4007C.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4001A
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L50" data-title="4001A" value="305"
-																  <?php if ($property_frametype == '305') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4001A.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4001B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L70" data-title="4001B" value="308"
-																  <?php if ($property_frametype == '308') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4001B.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4011B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z3CS" data-title="4011B" value="290"
-																  <?php if ($property_frametype == '290') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4011B.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4001C
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L70" data-title="4001C" value="311"
-																  <?php if ($property_frametype == '311') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4001C.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4022B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="4022B" value="332"
-																  <?php if ($property_frametype == '332') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4022B.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4009
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="D50" data-title="4009" value="142"
-																  <?php if ($property_frametype == '142') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4009.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4013
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="4013" value="316"
-																  <?php if ($property_frametype == '316') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4013.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4014
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="4014" value="317"
-																  <?php if ($property_frametype == '317') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4014.png">
-                                                            </label>
-                                                            <label>Basswood
-                                                                <br/> 4024
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="4024" value="352"
-																  <?php if ($property_frametype == '352') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4024.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4003
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z40" data-title="4003" value="314"
-																  <?php if ($property_frametype == '314') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4003.png">
-                                                            </label>
-                                                            <label>
-                                                                Basswood
-                                                                <br/> 4004
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z3CS" data-title="4004" value="315"
-																  <?php if ($property_frametype == '315') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/4004.png">
-                                                            </label>
-
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4022B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z40" data-title="P4022B" value="351"
-																  <?php if ($property_frametype == '351') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4022B.png">
-                                                            </label>
-                                                            <!--                                                            <label>-->
-                                                            <!--                                                                <br/> P4008K-->
-                                                            <!--                                                                <input type="radio" name="property_frametype"-->
-                                                            <!--                                                                       data-code="F50" data-title="P4008K"-->
-                                                            <!--                                                                       value="323" -->
-															<?php //if ($property_frametype == '323') {
-															//                                                                    echo "checked";
-															//                                                                }
-															?>
-                                                            <!-- />-->
-                                                            <!--                                                                <img src="/wp-content/plugins/shutter-module/imgs/P4008K.png">-->
-                                                            <!--                                                            </label>-->
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4008H
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F50" data-title="P4008H" value="321"
-																  <?php if ($property_frametype == '321') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4008H.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4028B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F90" data-title="P4028B" value="318"
-																  <?php if ($property_frametype == '318') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4028B.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4008S
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F70" data-title="P4008S" value="330"
-																  <?php if ($property_frametype == '330') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4008S.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4008T
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F90" data-title="P4008T" value="322"
-																  <?php if ($property_frametype == '322') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4008T.png">
-                                                            </label>
-
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4008W
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F90" data-title="P4008W" value="319"
-																  <?php if ($property_frametype == '319') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4008W.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4007A
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="F50" data-title="P4007A" value="331"
-																  <?php if ($property_frametype == '331') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4007A.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4001N
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L50" data-title="P4001N" value="320"
-																  <?php if ($property_frametype == '320') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4001N.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> A4001
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L50" data-title="A4001" value="300"
-																  <?php if ($property_frametype == '300') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/A4001.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4013
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z40" data-title="P4013" value="325"
-																  <?php if ($property_frametype == '325') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4013.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4033
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="P4033" value="327"
-																  <?php if ($property_frametype == '327') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4033.png">
-                                                            </label>
-
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4023B
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="P4023B" value="289"
-																  <?php if ($property_frametype == '289') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4023B.png">
-                                                            </label>
-
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4043
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z40" data-title="P4043" value="328"
-																  <?php if ($property_frametype == '328') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4043.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4073
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="P4073" value="324"
-																  <?php if ($property_frametype == '324') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4073.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4083
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="P4083" value="304"
-																  <?php if ($property_frametype == '304') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4083.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4014
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z3CS" data-title="P4014" value="329"
-																  <?php if ($property_frametype == '329') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4014.png">
-                                                            </label>
-                                                            <label>
-                                                                PVC
-                                                                <br/> P4009
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z3CS" data-title="P4009" value="303"
-																  <?php if ($property_frametype == '303') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/P4009.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> A4027
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="A4027" value="302"
-																  <?php if ($property_frametype == '302') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/A4027.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> A4002
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="Z50" data-title="A4002" value="301"
-																  <?php if ($property_frametype == '301') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/A4002.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> Bottom M Track
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L50" data-title="Bottom M Track"
-                                                                       value="144"
-																  <?php if ($property_frametype == '144') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Bottom_M_Track.png">
-                                                            </label>
-                                                            <label>
-                                                                <br/> Track in Board
-                                                                <input type="radio" name="property_frametype"
-                                                                       data-code="L50" data-title="Track in Board"
-                                                                       value="143"
-																  <?php if ($property_frametype == '143') {
-																	  echo "checked";
-																  } ?> />
-                                                                <img
-                                                                  src="/wp-content/plugins/shutter-module/imgs/Track_in_Board.png">
-                                                            </label>
+                                                            <?php
+                                                            // Generează opțiunile de frametype dinamic din $FRAMETYPE_OPTIONS
+                                                            foreach ($FRAMETYPE_OPTIONS as $option) {
+                                                                echo render_radio_option('property_frametype', $option, $property_frametype);
+                                                            }
+                                                            ?>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1519,624 +1135,12 @@ if (!empty($_GET['id'])) {
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="col-sm-12" id="stile-img-earth">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-                                                            <label>
-                                                                <br/> 60mm A1002D (Std.beaded stile)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="60mm A1002D (Std.beaded stile)"
-                                                                       value="350"
-																  <?php if ($property_stile == '350' && $material == 187) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/A1002D.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 60mm A1006D (beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="60mm A1006D (beaded D-mould)"
-                                                                       value="354"
-																  <?php if ($property_stile == '354' && $material == 187) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/A1006D.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12" id="stile-img-ecowood">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-                                                            <label>
-                                                                <br/> 51mm PVC-P1001B(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="51mm PVC-P1001B(plain butt)"
-                                                                       value="380"
-																  <?php if ($property_stile == '380' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1001B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1005B(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="51mm PVC-P1005B(plain D-mould)"
-                                                                       value="381"
-																  <?php if ($property_stile == '381' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1005B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1003E(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="51mm PVC-P1003E(plain rebate)"
-                                                                       value="385"
-																  <?php if ($property_stile == '385' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1003B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1002B(beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="BS 50.8"
-                                                                       data-title="51mm PVC-P1002B(beaded butt)"
-                                                                       value="382"
-																  <?php if ($property_stile == '382' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-4"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1002B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1006B(beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DBS 50.8"
-                                                                       data-title="51mm PVC-P1006B(beaded D-mould)"
-                                                                       value="383"
-																  <?php if ($property_stile == '383' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-5"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1006B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1004E(beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RBS 50.8"
-                                                                       data-title="51mm PVC-P1004E(beaded rebate)"
-                                                                       value="384"
-																  <?php if ($property_stile == '384' && $material == 188) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-6"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1004B.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12" id="stile-img-supreme">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-
-<!-- 35mm stiles removed for Supreme -->
-
-                                                            <label>
-                                                                <br/> 41mm 1001M<br/>(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="41mm 1001M(plain butt)" value="376"
-																  <?php if ($property_stile == '376' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1001M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1005M<br/>(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="41mm 1005M(plain D-mould)"
-                                                                       value="377"
-																  <?php if ($property_stile == '377' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1005M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1003M<br/>(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1003M(plain rebate)"
-                                                                       value="378"
-																  <?php if ($property_stile == '378' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1003M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1002M (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1002M(beaded butt)"
-                                                                       value="459"
-                                                                  <?php if ($property_stile == '459' && $material == 139) {
-                                                                      echo "checked";
-                                                                  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1002M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1004M (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1006M(beaded rebate)"
-                                                                       value="460"
-                                                                  <?php if ($property_stile == '460' && $material == 139) {
-                                                                      echo "checked";
-                                                                  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1004M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1006M (beaded d mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1006M(beaded D-mould)"
-                                                                       value="461"
-                                                                  <?php if ($property_stile == '461' && $material == 139) {
-                                                                      echo "checked";
-                                                                  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1006M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1001B( plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="51mm 1001B( plain butt)" value="355"
-																  <?php if ($property_stile == '355' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1001B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1005B(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="51mm 1005B(plain D-mould)"
-                                                                       value="356"
-																  <?php if ($property_stile == '356' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1005B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1003B(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="51mm 1003B(plain rebate)" value="360"
-																  <?php if ($property_stile == '360' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1003B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1002B(beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="BS 50.8"
-                                                                       data-title="51mm 1002B(beaded butt)" value="357"
-																  <?php if ($property_stile == '357' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-4"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1002B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1006B(beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DBS 50.8"
-                                                                       data-title="51mm 1006B(beaded D-mould)"
-                                                                       value="358"
-																  <?php if ($property_stile == '358' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-5"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1006B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm 1004B(beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RBS 50.8"
-                                                                       data-title="51mm 1004B(beaded rebate)"
-                                                                       value="359"
-																  <?php if ($property_stile == '359' && $material == 139) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-6"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1004B.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12" id="stile-img-biowood">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-                                                            <label>
-                                                                <br/> 41mm 1001M<br/>(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="41mm 1001M(plain butt)" value="376"
-																  <?php if ($property_stile == '376' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1001M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1005M<br/>(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="41mm 1005M(plain D-mould)"
-                                                                       value="377"
-																  <?php if ($property_stile == '377' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1005M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1003M<br/>(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1003M(plain rebate)"
-                                                                       value="378"
-																  <?php if ($property_stile == '378' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1003M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm T1002M (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm T1002M(beaded butt)"
-                                                                       value="445"
-																  <?php if ($property_stile == '445' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1002M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm T1006M (beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm T1006M(beaded D-mould)"
-                                                                       value="447"
-																  <?php if ($property_stile == '447' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1006M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm T1004M (beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm T1004M(beaded rebate)"
-                                                                       value="446"
-																  <?php if ($property_stile == '446' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1004M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1001K<br/>(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="51mm T1001K(plain butt)" value="370"
-																  <?php if ($property_stile == '370' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1001K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1005K<br/>(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="51mm T1005K(plain D-mould)"
-                                                                       value="371"
-																  <?php if ($property_stile == '371' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1005K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1003K<br/>(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="51mm T1003K(plain rebate)"
-                                                                       value="375"
-																  <?php if ($property_stile == '375' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1003K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1002K (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="BS 50.81"
-                                                                       data-title="51mm T1002K (beaded butt)" value="372"
-																  <?php if ($property_stile == '372' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-4"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1002K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1006K (beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DBS 50.8"
-                                                                       data-title="51mm T1006K (beaded D-mould)"
-                                                                       value="373"
-																  <?php if ($property_stile == '373' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-5"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1006K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1004K (beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RBS 50.8"
-                                                                       data-title="51mm T1004K (beaded rebate)"
-                                                                       value="374"
-																  <?php if ($property_stile == '374' && $material == 6) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-6"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1004K.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12" id="stile-img-biowoodPlus">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-                                                            <label>
-                                                                <br/> 41mm 1001M<br/>(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="41mm 1001M(plain butt)" value="376"
-																  <?php if ($property_stile == '376' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1001M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1005M<br/>(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="41mm 1005M(plain D-mould)"
-                                                                       value="377"
-																  <?php if ($property_stile == '377' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1005M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1003M<br/>(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1003M(plain rebate)"
-                                                                       value="378"
-																  <?php if ($property_stile == '378' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1003M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1002M (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1002M(beaded butt)"
-                                                                       value="459"
-																  <?php if ($property_stile == '459' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1002M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1004M (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1006M(beaded rebate)"
-                                                                       value="460"
-                                                                  <?php if ($property_stile == '460' && $material == 138) {
-                                                                      echo "checked";
-                                                                  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1004M.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 41mm 1006M (beaded d mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="41mm 1006M(beaded D-mould)"
-                                                                       value="461"
-																  <?php if ($property_stile == '461' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/1006M.png"/>
-                                                            </label>
-
-                                                            <label>
-                                                                <br/> 51mm T1001K<br/>(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="51mm T1001K(plain butt)" value="370"
-																  <?php if ($property_stile == '370' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1001K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1005K<br/>(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="51mm T1005K(plain D-mould)"
-                                                                       value="371"
-																  <?php if ($property_stile == '371' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1005K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1003K<br/>(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="51mm T1003K(plain rebate)"
-                                                                       value="375"
-																  <?php if ($property_stile == '375' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1003K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1002K (beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="BS 50.81"
-                                                                       data-title="51mm T1002K (beaded butt)" value="372"
-																  <?php if ($property_stile == '372' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-4"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1002K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1006K (beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DBS 50.8"
-                                                                       data-title="51mm T1006K (beaded D-mould)"
-                                                                       value="373"
-																  <?php if ($property_stile == '373' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-5"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1006K.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm T1004K (beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RBS 50.8"
-                                                                       data-title="51mm T1004K (beaded rebate)"
-                                                                       value="374"
-																  <?php if ($property_stile == '374' && $material == 138) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-6"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/T1004K.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-12" id="stile-img-ecowoodPlus">
-                                                        <div id="choose-stiletype" class="" style="display: block;">
-                                                            <label>
-                                                                <br/> 51mm PVC-P1001B(plain butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="FS 50.8"
-                                                                       data-title="51mm PVC-P1001B(plain butt)"
-                                                                       value="380"
-																  <?php if ($property_stile == '380' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-1"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1001B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1005B(plain D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DFS 50.8"
-                                                                       data-title="51mm PVC-P1005B(plain D-mould)"
-                                                                       value="381"
-																  <?php if ($property_stile == '381' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-2"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1005B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1003E(plain rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RFS 50.8"
-                                                                       data-title="51mm PVC-P1003E(plain rebate)"
-                                                                       value="385"
-																  <?php if ($property_stile == '385' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-3"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1003B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1002B(beaded butt)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="BS 50.8"
-                                                                       data-title="51mm PVC-P1002B(beaded butt)"
-                                                                       value="382"
-																  <?php if ($property_stile == '382' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-4"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1002B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1006B(beaded D-mould)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="DBS 50.8"
-                                                                       data-title="51mm PVC-P1006B(beaded D-mould)"
-                                                                       value="383"
-																  <?php if ($property_stile == '383' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-5"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1006B.png"/>
-                                                            </label>
-                                                            <label>
-                                                                <br/> 51mm PVC-P1004E(beaded rebate)
-                                                                <input type="radio" name="property_stile"
-                                                                       data-code="RBS 50.8"
-                                                                       data-title="51mm PVC-P1004E(beaded rebate)"
-                                                                       value="384"
-																  <?php if ($property_stile == '384' && $material == 137) {
-																	  echo "checked";
-																  } ?> />
-                                                                <img class="stile-6"
-                                                                     src="/wp-content/plugins/shutter-module/imgs/P1004B.png"/>
-                                                            </label>
-                                                        </div>
-                                                    </div>
+                                                    <?php
+                                                    // Generează blocurile de stile options dinamic
+                                                    foreach ($STILE_DIV_CONFIG as $div_name => $mat_id) {
+                                                        echo render_stile_block($div_name, $mat_id, $property_stile, $STILE_OPTIONS_CONFIG, $material);
+                                                    }
+                                                    ?>
                                                 </div>
                                                 <!-- <div class="row">                               <div class="col-sm-4">                                     <div class="">                                       Stile:                                       <br/>                                       <input class="property-select required" id="property_stile" name="property_stile" type="text" value="<?php echo get_post_meta($product_id, 'property_stile', true); ?>" />                                     </div>                                     <br/>                               </div>                             </div> -->
                                                 <div class="row">
@@ -2442,6 +1446,11 @@ if (!empty($_GET['id'])) {
                                                                                         <option value="adjustable"
                                                                                                 selected>Adjustable
                                                                                         </option>
+																					<?php } else { ?>
+                                                                                        <option value="normal" selected>Normal
+                                                                                        </option>
+                                                                                        <option value="adjustable">Adjustable
+                                                                                        </option>
 																					<?php } ?>
                                                                                 </select>
                                                                                 <br>
@@ -2609,7 +1618,7 @@ if (!empty($_GET['id'])) {
 														echo 'display: none;';
 													}
 													?>">
-                                                        <div class="col-sm-12 tpost-img type-img-supreme"
+                                                        <div class="col-sm-12 tpost-img type-img-basswoodPlus"
                                                              style="<?php
 														     $material = get_post_meta($product_id, 'property_material', true);
 														     if (!empty($material) && $material == 139) {
@@ -2625,7 +1634,80 @@ if (!empty($_GET['id'])) {
                                                                 <br/> <b>7001</b><br/>
                                                                 <input type="radio" name="property_tposttype"
                                                                        data-code="RBS 50.8"
-                                                                       data-title="7001 - Supreme Standard T-Post"
+                                                                       data-title="7001 - Basswood Standard T-Post"
+                                                                       value="438"
+																  <?php if ($property_tposttype == '438' && $t_sup == true) {
+																	  echo "checked";
+																  } ?> />
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/7001.png"/>
+                                                            </label>
+                                                            <label>
+                                                                Basswood
+                                                                <br/> <b>7011</b><br/>
+                                                                <input type="radio" name="property_tposttype"
+                                                                       data-code="RBS 50.8"
+                                                                       data-title="7011 - Large T-Post" value="441"
+																  <?php if ($property_tposttype == '441' && $t_sup == true) {
+																	  echo "checked";
+																  } ?> />
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/7011.png"/>
+                                                            </label>
+                                                            <label>
+                                                                Basswood
+                                                                <br/> <b>7032</b><br/>
+                                                                <input type="radio" name="property_tposttype"
+                                                                       data-code="RBS 50.8" data-title="7032"
+                                                                       value="443"
+																  <?php if ($property_tposttype == '443' && $t_sup == true) {
+																	  echo "checked";
+																  } ?> />
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/7032.png"/>
+                                                            </label>
+
+                                                            <label>
+                                                                Basswood
+                                                                <br/> <b>7201</b><br/>
+                                                                <input type="radio" name="property_tposttype"
+                                                                       data-code="RBS 50.8"
+                                                                       data-title="7201 - T-Post with insert"
+                                                                       value="439"
+																  <?php if ($property_tposttype == '439' && $t_sup == true) {
+																	  echo "checked";
+																  } ?> />
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/7201.png"/>
+                                                            </label>
+                                                            <!-- <img src="/wp-content/plugins/shutter-module/imgs/T-PostTypes.png" /> -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="tpost-type" style="<?php
+													$material = get_post_meta($product_id, 'property_material', true);
+													if (!empty($material) && $material == 147 && $containT) {
+														echo 'display: block;';
+													} else {
+														echo 'display: none;';
+													}
+													?>">
+                                                        <div class="col-sm-12 tpost-img type-img-basswood"
+                                                             style="<?php
+														     $material = get_post_meta($product_id, 'property_material', true);
+														     if (!empty($material) && $material == 147) {
+															     $t_sup = true;
+															     echo 'display: block;';
+														     } else {
+															     $t_sup = false;
+															     echo 'display: none;';
+														     }
+														     ?>">
+                                                            <label>
+                                                                Basswood
+                                                                <br/> <b>7001</b><br/>
+                                                                <input type="radio" name="property_tposttype"
+                                                                       data-code="RBS 50.8"
+                                                                       data-title="7001 - Basswood Standard T-Post"
                                                                        value="438"
 																  <?php if ($property_tposttype == '438' && $t_sup == true) {
 																	  echo "checked";
@@ -2745,7 +1827,7 @@ if (!empty($_GET['id'])) {
                                                                 <br/> <b>7001</b><br/>
                                                                 <input type="radio" name="property_tposttype"
                                                                        data-code="RBS 50.8"
-                                                                       data-title="7001 - Supreme Standard T-Post"
+                                                                       data-title="7001 - Basswood Standard T-Post"
                                                                        value="438"
 																  <?php if ($property_tposttype == '438' && $t_bio == true) {
 																	  echo "checked";
@@ -3171,7 +2253,7 @@ if (!empty($_GET['id'])) {
                                                             <input class="" id="panels_left_right"
                                                                    name="panels_left_right"
                                                                    type="hidden" value=""/>
-                                                            <button class="btn btn-success"> Add to Quote
+                                                            <button type="button" class="btn btn-success" onclick="console.log('🔵 ONCLICK DIRECT PE BUTON');"> Add to Quote
                                                                 <i class="fa fa-chevron-right"></i>
                                                             </button> <?php
 														}
@@ -3551,6 +2633,14 @@ if (!empty($_GET['id'])) {
     <!-- Modal End -->
 
     <script type="text/javascript">
+        // Debug mode - setează true pentru a vedea mesajele în consolă
+        var DEBUG_MODE = false;
+        function debugLog() {
+            if (DEBUG_MODE && console && console.log) {
+                console.log.apply(console, arguments);
+            }
+        }
+
         jQuery(document).ready(function () {
 
             var litCanv;
@@ -3667,7 +2757,7 @@ if (!empty($_GET['id'])) {
                         };
 
                         var onPointerMove = function (pt) {
-                            console.log("Mouse moved to", pt);
+                            debugLog("Mouse moved to", pt);
                         };
 
                         // lc.on() returns a function that unsubscribes us. capture it.
@@ -3709,7 +2799,7 @@ if (!empty($_GET['id'])) {
                 var backgroundImage = new Image();
                 backgroundImage.src = '';
 
-                console.log('draw modal open');
+                debugLog('draw modal open');
                 // config draw
                 // var backgroundImage = new Image()
                 // backgroundImage.src = '';
@@ -3752,8 +2842,8 @@ if (!empty($_GET['id'])) {
                 jQuery('#shape-section-draw .images .clear-shape').show();
 
                 var itemImage = jQuery(this).find('img').attr('src');
-                console.log(this);
-                console.log(itemImage);
+                debugLog(this);
+                debugLog(itemImage);
 
                 // config draw
                 var backgroundImage = new Image();
@@ -3864,7 +2954,7 @@ if (!empty($_GET['id'])) {
             $('.export-canvas').on('click', function () {
 
                 imageExport.src = litCanv.getImage().toDataURL();
-                console.log(imageExport.src);
+                debugLog(imageExport.src);
                 $('.exported-image').attr('src', imageExport.src);
                 var roomName = jQuery('input#property_room_other').val();
 
@@ -3878,7 +2968,7 @@ if (!empty($_GET['id'])) {
                 })
                     .done(function (data) {
 
-                        console.log(data);
+                        debugLog(data);
                         var imageUrl = data;
                         $('.exported-image').attr('src', imageUrl);
                         $('input[name="attachmentDraw"]').val(imageUrl);

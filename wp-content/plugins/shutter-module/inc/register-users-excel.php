@@ -69,7 +69,7 @@ function process_csv_file()
 		// Map the row to variables using the provided header structure
 		list(
 		  $lead_recorded, $username, $password, $ecowood, $ecowood_plus, $biowood, $biowood_plus,
-		  $supreme, $earth, $show_biowood, $add_to_group, $group_name, $user_scanner_id, $first_name,
+		  $basswood, $earth, $show_biowood, $show_basswood, $add_to_group, $group_name, $user_scanner_id, $first_name,
 		  $last_name, $job_title, $company_name, $email_address, $mobile_no, $telephone_no,
 		  $street_address_1, $street_address_2, $street_address_3, $postal_town, $county_province,
 		  $post_code, $country
@@ -131,6 +131,7 @@ function process_csv_file()
 
 		// Update additional information for biowood and groups
 		update_user_meta($user_id, 'show_biowood', $show_biowood);
+		update_user_meta($user_id, 'show_basswood', $show_basswood);
 		update_user_meta($user_id, 'add_to_group', $add_to_group);
 		update_user_meta($user_id, 'group_name', $group_name);
 		update_user_meta($user_id, 'group_added', 'yes');
@@ -142,7 +143,7 @@ function process_csv_file()
 		update_user_meta($user_id, 'ecowood_plus', $ecowood_plus);
 		update_user_meta($user_id, 'biowood', $biowood);
 		update_user_meta($user_id, 'biowood_plus', $biowood_plus);
-		update_user_meta($user_id, 'supreme', $supreme);
+		update_user_meta($user_id, 'basswood', $basswood);
 		update_user_meta($user_id, 'earth', $earth);
 	}
 

@@ -149,9 +149,11 @@ $email_body = '<br><p>Dear July,<br>A new repair order has been uploaded to Matr
 
 $array_att = array();
 $array_table = array();
-foreach ($items
+foreach (
+    $items
 
-         as $item_id => $item_data) {
+    as $item_id => $item_data
+) {
 
     //$product = $item_data->get_product();
     $_product = apply_filters('woocommerce_cart_item_product', $item_data['data'], $item_data, $item_id);
@@ -279,7 +281,7 @@ foreach ($items
                                     <!--td></td-->
                                     <td>
                                         <strong>
-                                            ' . number_format((double)$property_volume, 5) . '
+                                            ' . number_format((float)$property_volume, 5) . '
                                             q/m </strong>
                                         <br>
                                         ' . 'Qty:  <strong>' . $batten_qnt . '</strong>
@@ -558,7 +560,7 @@ foreach ($items
                 <!--td></td-->
                 <td>
                     <strong>
-                        ' . number_format((double)$property_total, 2) . '
+                        ' . number_format((float)$property_total, 2) . '
                         sq/m </strong>
                     <br>
                     Qty:  <strong>' . $item_data['quantity'] . '</strong>
@@ -639,26 +641,19 @@ $email_body .= '
                 </table></hr><br> ';
 
 
-//    $to = 'tudor@lifetimeshutters.com';
+// Recipients based on warranty status (configurable from Mail Settings)
 if ($warranty_find_yes === false) {
-    $multiple_recipients = array(
-        'tudor@lifetimeshutters.com', 'mike@lifetimeshutters.com', 'service@lifetimeshutters.co.uk'
-    );
-} else {
-    $multiple_recipients = array(
-        'tudor@lifetimeshutters.com', 'mike@lifetimeshutters.com'
-//, 'service@lifetimeshutters.co.uk', 'chris@lifetimeshutters.co.uk'
-    );
-}
-if ($warranty_find_yes === false) {
+    $warranty_mails = get_option('warranty_no_mails_matrix');
     $subject_mail_begin = 'Not Under Warranty - ';
 } else {
+    $warranty_mails = get_option('warranty_yes_mails_matrix');
     $subject_mail_begin = '';
 }
-//$multiple_recipients = 'marian93nes@gmail.com, tudor@fiqs.ro';
+$multiple_recipients = array_filter(array_map('trim', explode(',', $warranty_mails)));
+
 $subject = $subject_mail_begin . 'Repair Order LFR' . $repair['order-id-scv'] . ' for Original Order LF0' . $repair['order-id-scv'] . '';
 $body = $email_body;
-$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Service LifetimeShutters <service@lifetimeshutters.co.uk>');
+$headers = array('Content-Type: text/html; charset=UTF-8', 'From: ' . get_matrix_from_address('service'));
 
 wp_mail($multiple_recipients, $subject, $body, $headers);
 

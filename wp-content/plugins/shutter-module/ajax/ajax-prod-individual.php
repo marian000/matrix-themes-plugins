@@ -1069,11 +1069,17 @@ if ($products['property_nr_sections']) {
 			$basic = $sum;
 			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
 		}
-		if ($products['property_material'] == 139 || $products['property_material'] == 147) {
+		if ($products['property_material'] == 139) {
+			$sum = $sqm_value * dolarSum('BasswoodPlus-dolar', $user_id);
+			echo 'SUM 1 dolar: ' . $sum . ' ..... ';
+			$basic = $sum;
+			// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
+		}
+		if ($products['property_material'] == 147) {
 			$sum = $sqm_value * dolarSum('Basswood-dolar', $user_id);
 			echo 'SUM 1 dolar: ' . $sum . ' ..... ';
 			$basic = $sum;
-			// echo 'BASIC 1 dolar: ' . $basic . '<br>';
+			// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
 		}
 
 //style

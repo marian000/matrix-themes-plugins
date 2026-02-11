@@ -4,6 +4,7 @@ $app_access = get_user_meta($user->id, 'app_access', true);
 $suspended = get_user_meta($user->id, 'suspended_user', true);
 $view_price = get_user_meta($user->id, 'view_price', true);
 $show_biowood = get_user_meta($user->id, 'show_biowood', true);
+$show_basswood = get_user_meta($user->id, 'show_basswood', true);
 $favorite = get_user_meta($user->id, 'favorite_user', true);
 $vat_number = get_user_meta($user->id, 'vat_number_custom', true);
 $email_contabil = get_user_meta($user->id, 'email_contabil', true);
@@ -230,6 +231,22 @@ $propertie_price_placeholder = array(3 => get_post_meta(1, 'BattenStandard', tru
               //			}
             ?>>
             <label for="show_biowood_no">No</label>
+        </td>
+    </tr>
+
+
+    <tr>
+        <th>
+            <p>Show basswood</p>
+        </th>
+        <td>
+            <input name="show_basswood" type="radio" id="show_basswood_yes" value="yes"
+                <?php echo ($show_basswood === 'yes') ? 'checked' : ''; ?>>
+            <label for="show_basswood_yes">Yes</label>
+
+            <input name="show_basswood" type="radio" id="show_basswood_no" value="no"
+                <?php echo ($show_basswood === 'no' || empty($show_basswood)) ? 'checked' : ''; ?>>
+            <label for="show_basswood_no">No</label>
         </td>
     </tr>
 

@@ -2337,7 +2337,7 @@ export const property_values = [{
     {
         "id": 139,
         "property_id": 18,
-        "value": "Supreme",
+        "value": "Basswood",
         "created_at": "2015-10-19T20:32:01.000+01:00",
         "updated_at": "2015-10-19T20:32:01.000+01:00",
         "code": "basswood",
@@ -6906,7 +6906,7 @@ export const property_values = [{
     }, {
         "id": 438,
         "property_id": 23,
-        "value": "7001 - Supreme std. T-Post",
+        "value": "7001 - Basswood std. T-Post",
         "created_at": "2015-09-26T01:28:40.000+01:00",
         "updated_at": "2015-09-26T01:28:40.000+01:00",
         "code": "",

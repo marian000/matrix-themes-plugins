@@ -1201,6 +1201,12 @@ if ($products['property_material'] == 139) {
 	$basic = $sum;
 	// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
 }
+if ($products['property_material'] == 147) {
+	$sum = $sqm_value * dolarSum('Basswood-dolar', $user_id);
+	echo 'SUM 1 dolar: ' . $sum . ' ..... ';
+	$basic = $sum;
+	// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
+}
 
 //style
 

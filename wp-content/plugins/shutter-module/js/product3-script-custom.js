@@ -4,21 +4,22 @@ jQuery.noConflict();
     $(function () {
 
 
-        // ========== START - customize some properties by user =========
-        var idCustomer = null;
-        var idDealer = null;
-        var selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"6\"]}";
+          // ========== START - customize some properties by user =========
+          var idCustomer = null;
+          var idDealer = null;
+          var selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"147\",\"6\"]}";
+          // var selectedPropertyValuesEcowoodShutterColours = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\", \"6\"]}";
 
+          idCustomer = jQuery('input[name="customer_id"]').val();
+          idDealer = jQuery('input[name="dealer_id"]').val();
 
-        idCustomer = jQuery('input[name="customer_id"]').val();
-        idDealer = jQuery('input[name="dealer_id"]').val();
-
-        // "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\"]}",
-        if (idCustomer == 274 || idDealer == 274) {
-            selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"6\"]}"
-        }
-        console.log('idCustomer ', idCustomer);
-        console.log('selectedPropertyValuesEcowood ', selectedPropertyValuesEcowood);
+          // "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\"]}",
+          if (idCustomer == 274 || idDealer == 274) {
+              selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"147\",\"6\"]}"
+          }
+          console.log('idCustomer ', idCustomer);
+          console.log('selectedPropertyValuesEcowood ', selectedPropertyValuesEcowood);
+          // ========== END - customize some properties by user =========
 
 
         var showBiowood = {};
@@ -55,6 +56,45 @@ jQuery.noConflict();
                 }
             };
         }
+
+
+
+
+        var showBasswood = {};
+        console.log('Show Basswood:', my_showBiowood_object.showBasswood);
+        if (my_showBiowood_object.showBasswood === 'yes') {
+            showBasswood = {
+                "id": 147,
+                "property_id": 18,
+                "value": "Basswood",
+                "created_at": "2015-10-19T20:32:01.000+01:00",
+                "updated_at": "2015-10-19T20:32:01.000+01:00",
+                "code": "basswood",
+                "uplift": "0.0",
+                "color": "",
+                "all_products": true,
+                "selected_products": "{\"product_ids\":null}",
+                "all_property_values": true,
+                "selected_property_values": "{\"property_field\":null,\"property_value_ids\":null}",
+                "graphic": "none",
+                "image_file_name": null,
+                "image_content_type": null,
+                "image_file_size": null,
+                "image_updated_at": null,
+                "is_active": true,
+                "property": {
+                    "id": 18,
+                    "name": "Material",
+                    "created_at": "2015-10-19T20:30:37.000+01:00",
+                    "updated_at": "2015-10-19T21:47:55.000+01:00",
+                    "code": "material",
+                    "sort": 0,
+                    "help_text": "",
+                    "input_type": "select"
+                }
+            }
+        }
+
 
         // ========== END - customize some properties by user =========
 
@@ -1443,7 +1483,7 @@ jQuery.noConflict();
             "all_products": true,
             "selected_products": "{\"product_ids\":null}",
             "all_property_values": false,
-            "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"139\",\"137\",\"5\",\"187\"]}",
+            "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"139\",\"147\",\"137\",\"5\",\"187\"]}",
             "graphic": "none",
             "image_file_name": null,
             "image_content_type": null,
@@ -1503,7 +1543,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1533,7 +1573,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\",\"292\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\",\"292\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1563,7 +1603,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\",\"292\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\",\"292\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1593,7 +1633,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2406,7 +2446,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2435,7 +2475,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2464,7 +2504,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2493,7 +2533,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2522,7 +2562,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2551,7 +2591,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2580,7 +2620,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"292\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"292\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2609,7 +2649,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2758,10 +2798,11 @@ jQuery.noConflict();
                     "input_type": "select"
                 }
             },
+            showBasswood,
             {
                 "id": 139,
                 "property_id": 18,
-                "value": "Supreme",
+                "value": "BasswoodPlus",
                 "created_at": "2015-10-19T20:32:01.000+01:00",
                 "updated_at": "2015-10-19T20:32:01.000+01:00",
                 "code": "basswood",
@@ -2788,6 +2829,7 @@ jQuery.noConflict();
                     "input_type": "select"
                 }
             },
+           
             // {
             //     "id": 187,
             //     "property_id": 18,
@@ -2862,7 +2904,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"6\",\"139\",\"187\",\"188\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"6\",\"139\",\"147\",\"187\",\"188\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2892,7 +2934,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2921,7 +2963,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4788,7 +4830,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4817,7 +4859,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4846,7 +4888,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4875,7 +4917,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4904,7 +4946,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4933,7 +4975,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4962,7 +5004,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"138\",\"6\",\"137\",\"5\","188"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"147\",\"138\",\"6\",\"137\",\"5\","188"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4991,7 +5033,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5020,7 +5062,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"138\",\"6\",\"137\",\"5\","188"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"187\",\"139\",\"147\",\"138\",\"6\",\"137\",\"5\","188"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5049,7 +5091,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5107,7 +5149,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5136,7 +5178,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "Bay_Window.png",
                 "image_content_type": "image/png",
@@ -5165,7 +5207,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "Individual_Frames.jpg",
                 "image_content_type": "image/jpeg",
@@ -5194,7 +5236,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "thumb_Bay_Window.png",
                 "image_content_type": "image/png",
@@ -5223,7 +5265,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "Bay_Window_Cafe_Style_copy.jpg",
                 "image_content_type": "image/jpeg",
@@ -5368,7 +5410,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "combi-panel.jpg",
                 "image_content_type": "image/jpg",
@@ -5397,7 +5439,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "combi-panel.jpg",
                 "image_content_type": "image/jpg",
@@ -5426,7 +5468,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "combi-panel.jpg",
                 "image_content_type": "image/jpg",
@@ -5455,7 +5497,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "combi-panel.jpg",
                 "image_content_type": "image/jpg",
@@ -5484,7 +5526,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "combi-panel.jpg",
                 "image_content_type": "image/jpg",
@@ -5514,7 +5556,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "image",
                 "image_file_name": "Tier-on-Tier.png",
                 "image_content_type": "image/png",
@@ -5574,7 +5616,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4011B.png",
                 "image_content_type": "image/jpeg",
@@ -5663,7 +5705,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "L50.jpg",
                 "image_content_type": "image/jpeg",
@@ -5721,7 +5763,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5750,7 +5792,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5779,7 +5821,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5808,7 +5850,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5837,7 +5879,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5866,7 +5908,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5895,7 +5937,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5924,7 +5966,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5953,7 +5995,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5982,7 +6024,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6011,7 +6053,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6040,7 +6082,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6243,7 +6285,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6272,7 +6314,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6301,7 +6343,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"6\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\",\"6\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6504,7 +6546,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"188\",\"138\",\"6\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"188\",\"138\",\"6\",\"139\",\"147\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6533,7 +6575,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6562,7 +6604,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"188\",\"138\",\"6\",\"139\",\"187\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"188\",\"138\",\"6\",\"139\",\"147\",\"187\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6591,7 +6633,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6620,7 +6662,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6650,7 +6692,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6680,7 +6722,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6710,7 +6752,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6739,7 +6781,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6769,7 +6811,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6799,7 +6841,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6829,7 +6871,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6859,7 +6901,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6888,7 +6930,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6918,7 +6960,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"187\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6948,7 +6990,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6968,7 +7010,7 @@ jQuery.noConflict();
             }, {
                 "id": 438,
                 "property_id": 23,
-                "value": "7001 - Supreme std. T-Post",
+                "value": "7001 - Basswood std. T-Post",
                 "created_at": "2015-09-26T01:28:40.000+01:00",
                 "updated_at": "2015-09-26T01:28:40.000+01:00",
                 "code": "",
@@ -6977,7 +7019,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -7006,7 +7048,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -7035,7 +7077,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"6\",\"137\",\"5\",\"188\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -7745,7 +7787,7 @@ jQuery.noConflict();
                 if (style_check.indexOf('Shaped') > -1) {
                     $("#choose-frametype input[value=141]").prop("checked", false).closest("label").hide();
                 } else {
-                    if ($("#property_material").val() == '138' || $("#property_material").val() == '139' || $("#property_material").val() == '188') {
+                    if ($("#property_material").val() == '138' || $("#property_material").val() == '139' || $("#property_material").val() == '147' || $("#property_material").val() == '188') {
                         $("#choose-frametype input[value=141]").closest("label").show();
                     }
                     // Selectare default tposttype
@@ -7841,7 +7883,7 @@ jQuery.noConflict();
             if ($("#property_material").val() == '138' || $("#property_material").val() == '137' || $("#property_material").val() == '188') {
                 $("#property_tposttype").select2("val", '437');
             }
-            if ($("#property_material").val() == '139') {
+            if ($("#property_material").val() == '139' || $("#property_material").val() == '147') {
                 $("#property_tposttype").select2("val", '438');
             }
             // select frame checked
@@ -8357,7 +8399,8 @@ jQuery.noConflict();
                             // console.log('show earth img');
                             jQuery('#stile-img-earth').show();
                             jQuery('.tpost-img').hide();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-biowood').hide();
                             jQuery('#stile-img-biowoodPlus').hide();
                             jQuery('#stile-img-green').hide();
@@ -8368,11 +8411,12 @@ jQuery.noConflict();
                             jQuery('.type-img-earth').parent().show();
 
                         }
-                        // Supreme 139
+                        // BasswoodPlus 139
                         else if (material_id == 139) {
-                            // console.log('show Supreme img');
+                            // console.log('show Basswood img');
                             jQuery('.tpost-img').hide();
-                            jQuery('#stile-img-supreme').show();
+                            jQuery('#stile-img-BasswoodPlus').show();
+                            jQuery('#stile-img-Basswood').hide();
                             jQuery('#stile-img-earth').hide();
                             jQuery('#stile-img-ecowood').hide();
                             jQuery('#stile-img-biowood').hide();
@@ -8380,8 +8424,24 @@ jQuery.noConflict();
                             jQuery('#stile-img-green').hide();
                             jQuery('#stile-img-ecowoodPlus').hide();
                             //tpost-type
-                            jQuery('.type-img-supreme').show();
-                            jQuery('.type-img-supreme').parent().show();
+                            jQuery('.type-img-BasswoodPlus').show();
+                            jQuery('.type-img-BasswoodPlus').parent().show();
+                        }
+                        // Basswood 147
+                        else if (material_id == 147) {
+                            // console.log('show Basswood img');
+                            jQuery('.tpost-img').hide();
+                            jQuery('#stile-img-basswood').show();
+                            jQuery('#stile-img-BasswoodPlus').hide();
+                            jQuery('#stile-img-earth').hide();
+                            jQuery('#stile-img-ecowood').hide();
+                            jQuery('#stile-img-biowood').hide();
+                            jQuery('#stile-img-biowoodPlus').hide();
+                            jQuery('#stile-img-green').hide();
+                            jQuery('#stile-img-ecowoodPlus').hide();
+                            //tpost-type
+                            jQuery('.type-img-basswood').show();
+                            jQuery('.type-img-basswood').parent().show();
                         }
                         // Biowood 138
                         else if (material_id == 138) {
@@ -8389,7 +8449,8 @@ jQuery.noConflict();
                             jQuery('.tpost-img').hide();
                             jQuery('#stile-img-biowoodPlus').show();
                             jQuery('#stile-img-biowood').hide();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-earth').hide();
                             jQuery('#stile-img-ecowoodPlus').hide();
                             jQuery('#stile-img-ecowood').hide();
@@ -8403,7 +8464,8 @@ jQuery.noConflict();
                             // console.log('show Green img');
                             jQuery('.tpost-img').hide();
                             jQuery('#stile-img-green').show();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-biowood').hide();
                             jQuery('#stile-img-earth').hide();
                             jQuery('#stile-img-ecowood').hide();
@@ -8417,7 +8479,8 @@ jQuery.noConflict();
                             jQuery('.tpost-img').hide();
                             jQuery('#stile-img-ecowoodPlus').show();
                             jQuery('#stile-img-green').hide();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-biowood').hide();
                             jQuery('#stile-img-earth').hide();
                             jQuery('#stile-img-ecowood').hide();
@@ -8430,7 +8493,8 @@ jQuery.noConflict();
                             console.log('show ecowood img');
                             jQuery('.tpost-img').hide();
                             jQuery('#stile-img-ecowood').show();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-biowood').hide();
                             jQuery('#stile-img-biowoodPlus').hide();
                             jQuery('#stile-img-earth').hide();
@@ -8446,7 +8510,8 @@ jQuery.noConflict();
                             jQuery('.tpost-img').hide();
                             jQuery('#stile-img-biowoodPlus').show();
                             jQuery('#stile-img-biowood').hide();
-                            jQuery('#stile-img-supreme').hide();
+                            jQuery('#stile-img-basswood').hide();
+                            jQuery('#stile-img-basswoodPlus').hide();
                             jQuery('#stile-img-earth').hide();
                             jQuery('#stile-img-green').hide();
                             jQuery('#stile-img-ecowoodPlus').hide();
@@ -8490,41 +8555,50 @@ jQuery.noConflict();
 
 
                 if (text.charAt(i).toUpperCase() == 'B') {
-                    console.log('bchar_nr : ' + bchar_nr);
+                    // console.log('bchar_nr : ' + bchar_nr);
+
+                    if (property_material == 188 || property_material == 147) {
+                        $('.note-ecowood-angle').show();
+                    } else {
+                        $('.note-ecowood-angle').hide();
+                    }
+
                     layout_columns.b++;
 
                     label = 'Bay Post ' + layout_columns.b;
                     id2 = "property_bp" + layout_columns.b;
                     addField(label, id2, 1);
 
-                    // if (property_material == 188) {
-                    //     labela = 'Bay Angle ' + layout_columns.b;
-                    //     id1a = "property_ba" + layout_columns.b;
-                    //     addFieldBuildAngleSelect(labela, id1a, 1);
-                    // } else {
+                    if (property_material == 188 || property_material == 147) {
+                        labela = 'Bay Angle ' + layout_columns.b;
+                        id1a = "property_ba" + layout_columns.b;
+                        addFieldBuildAngleSelect(labela, id1a, 1);
+                    } else {
                     label = 'Bay Angle ' + layout_columns.b;
                     id1 = "property_ba" + layout_columns.b;
                     addField(label, id1, 1);
-                    // }
+                    }
 
                     if (bchar_nr < 2) {
                         label = 'B-Post Buildout ';
                         label2 = 'B-Post Type ';
                         id3 = "property_b_buildout" + bchar_nr;
                         addFieldCheckboxBuildoutSelect(label2, id3, 'help text demo', 'b');
-                        // addFieldCheckboxBuildout(label, id3, 1);
+                        addFieldCheckboxBuildout(label, id3, 1);
 
                         bchar_nr++;
-                        console.log('bchar_nr after : ' + bchar_nr);
+                        // console.log('bchar_nr after : ' + bchar_nr);
                     } else {
-                        console.log('bchar_nr depasit : ' + bchar_nr);
+                        // console.log('bchar_nr depasit : ' + bchar_nr);
                     }
 
-                    if (property_material == 188) {
+                    if (property_material == 188 || property_material == 147) {
                         $('select[name="bay-post-type"]').parent().parent().css('display', 'none');
                     } else {
                         $('select[name="bay-post-type"]').parent().parent().css('display', 'block');
                     }
+
+
                 }
 
 
@@ -9478,7 +9552,7 @@ jQuery.noConflict();
             if (id_material == 137) {
                 panel_height = 1350;
             }
-            //biowood-138, supreme-139, earth-187
+            //biowood-138, basswood-147, basswoodPlus-139 earth-187
             else {
                 panel_height = 1500;
             }
@@ -9536,7 +9610,7 @@ jQuery.noConflict();
 
             var check_louvresize = $("input#property_bladesize").val();
 
-            //calculate width   biowood-138  supreme-139  green-137   earth-187
+            //calculate width   biowood-138  basswood-139  green-137   earth-187
             panel1_width = (id_material == 137 ? 890 : 890);
             panel1_width = (id_material == 5 ? 890 : 890);
             panel2_width = (id_material == 137 ? 550 : 550);

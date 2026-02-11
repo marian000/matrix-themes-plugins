@@ -1304,7 +1304,7 @@ $cart_item = $woocommerce->cart->get_cart();
                                                         </div>
                                                     </div>
 
-                                                    <div class="col-sm-12" id="stile-img-supreme">
+                                                    <div class="col-sm-12" id="stile-img-basswood">
                                                         <div id="choose-frametype" class="col-sm-12 "
                                                             style="display: block;">
 
@@ -2100,13 +2100,13 @@ $cart_item = $woocommerce->cart->get_cart();
                                                     </div>
 
                                                     <div class="tpost-type" style="display: none;">
-                                                        <div class="col-sm-12 tpost-img type-img-supreme"
+                                                        <div class="col-sm-12 tpost-img type-img-basswood"
                                                             style="display: none;">
                                                             <label>
-                                                                <br /> 7001 - Supreme Std. T-Post
+                                                                <br /> 7001 - Basswood Std. T-Post
                                                                 <input type="radio" name="property_tposttype"
                                                                     data-code="RBS 50.8"
-                                                                    data-title="7001 - Supreme Standard T-Post"
+                                                                    data-title="7001 - Basswood Standard T-Post"
                                                                     value="438"
                                                                     <?php if (
                                                                                                                                                                                                 $property_tposttype == '438'
@@ -2164,10 +2164,10 @@ $cart_item = $woocommerce->cart->get_cart();
                                                                     src="/wp-content/plugins/shutter-module/imgs/P7032.png" />
                                                             </label>
                                                             <label>
-                                                                <br /> 7001 - Supreme Std. T-Post
+                                                                <br /> 7001 - Basswood Std. T-Post
                                                                 <input type="radio" name="property_tposttype"
                                                                     data-code="RBS 50.8"
-                                                                    data-title="7001 - Supreme Standard T-Post"
+                                                                    data-title="7001 - Basswood Standard T-Post"
                                                                     value="438"
                                                                     <?php if (
                                                                                                                                                                                                 $property_tposttype == '438'

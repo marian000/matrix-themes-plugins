@@ -225,6 +225,14 @@ print_r($product_attributes);
 echo "</pre>";
 echo "<br>Total product price: " . $sum . " Euro";
 
+// Apply discount_custom if set
+if (!empty($discount_custom) && $discount_custom > 0) {
+	$discount_amount = ($discount_custom * $basic) / 100;
+	$sum = $sum - $discount_amount;
+	echo "<br>Discount: " . $discount_amount . " (" . $discount_custom . "%)";
+	echo "<br>Total after discount: " . $sum . " Euro";
+}
+
 update_post_meta($post_id, '_price', floatval($sum));
 update_post_meta($post_id, '_regular_price', floatval($sum));
 update_post_meta($post_id, '_sale_price', floatval($sum));

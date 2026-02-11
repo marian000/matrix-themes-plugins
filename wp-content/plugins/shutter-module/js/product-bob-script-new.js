@@ -1194,7 +1194,7 @@ jQuery.noConflict();
                         // Define material mapping to ids and corresponding elements to show
                         const materialConfig = {
                             187: {img: '#stile-img-earth', typeClass: '.type-img-earth'},
-                            139: {img: '#stile-img-supreme', typeClass: '.type-img-supreme'},
+                            139: {img: '#stile-img-basswood', typeClass: '.type-img-basswood'},
                             138: {img: '#stile-img-biowood', typeClass: '.type-img-biowood'},
                             137: {img: '#stile-img-green', typeClass: '.type-img-green'},
                             188: {img: '#stile-img-ecowood', typeClass: '.type-img-ecowood'}
@@ -1294,41 +1294,50 @@ jQuery.noConflict();
 
 
                 if (text.charAt(i).toUpperCase() == 'B') {
-                    console.log('bchar_nr : ' + bchar_nr);
+                    // console.log('bchar_nr : ' + bchar_nr);
+
+                    if (property_material == 188 || property_material == 147) {
+                        $('.note-ecowood-angle').show();
+                    } else {
+                        $('.note-ecowood-angle').hide();
+                    }
+
                     layout_columns.b++;
 
-                    let label = 'Bay Post ' + layout_columns.b;
-                    let id2 = "property_bp" + layout_columns.b;
+                    label = 'Bay Post ' + layout_columns.b;
+                    id2 = "property_bp" + layout_columns.b;
                     addField(label, id2, 1);
 
-                    if (property_material == 188) {
-                        let labela = 'Bay Angle ' + layout_columns.b;
-                        let id1a = "property_ba" + layout_columns.b;
+                    if (property_material == 188 || property_material == 147) {
+                        labela = 'Bay Angle ' + layout_columns.b;
+                        id1a = "property_ba" + layout_columns.b;
                         addFieldBuildAngleSelect(labela, id1a, 1);
                     } else {
-                        label = 'Bay Angle ' + layout_columns.b;
-                        let id1 = "property_ba" + layout_columns.b;
-                        addField(label, id1, 1);
+                    label = 'Bay Angle ' + layout_columns.b;
+                    id1 = "property_ba" + layout_columns.b;
+                    addField(label, id1, 1);
                     }
 
                     if (bchar_nr < 2) {
                         label = 'B-Post Buildout ';
-                        let label2 = 'B-Post Type ';
-                        let id3 = "property_b_buildout" + bchar_nr;
+                        label2 = 'B-Post Type ';
+                        id3 = "property_b_buildout" + bchar_nr;
                         addFieldCheckboxBuildoutSelect(label2, id3, 'help text demo', 'b');
-                        // addFieldCheckboxBuildout(label, id3, 1);
+                        addFieldCheckboxBuildout(label, id3, 1);
 
                         bchar_nr++;
-                        console.log('bchar_nr after : ' + bchar_nr);
+                        // console.log('bchar_nr after : ' + bchar_nr);
                     } else {
-                        console.log('bchar_nr depasit : ' + bchar_nr);
+                        // console.log('bchar_nr depasit : ' + bchar_nr);
                     }
 
-                    if (property_material == 188) {
+                    if (property_material == 188 || property_material == 147) {
                         $('select[name="bay-post-type"]').parent().parent().css('display', 'none');
                     } else {
                         $('select[name="bay-post-type"]').parent().parent().css('display', 'block');
                     }
+
+
                 }
 
 
@@ -2113,7 +2122,7 @@ jQuery.noConflict();
             if (id_material == 137) {
                 let panel_height = 1350;
             }
-            //biowood-138, supreme-139, earth-187
+            //biowood-138, basswood-139, earth-187
             else {
                 let panel_height = 1500;
             }

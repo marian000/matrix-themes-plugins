@@ -387,7 +387,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, earth-187
         else {
             panel_height = 1500;
         }
@@ -578,7 +578,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         var check_louvresize = $("input#property_bladesize").val();
 
-        //calculate width   biowood-138  supreme-139  green-137   earth-187
+        //calculate width   biowood-138  basswood-139  green-137   earth-187
         panel1_width = (id_material == 137 ? 890 : 890);
         panel2_width = (id_material == 137 ? 550 : 550);
         panel2_width = (id_material == 138 ? 625 : 625);
@@ -753,7 +753,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = 550;
             if (id_material == 138 || id_material == 139) {
                 multi_panel_max_width_limit = 625;
@@ -1760,7 +1760,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, earth-187
         else {
             panel_height = 1500;
         }
@@ -1949,7 +1949,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         var check_louvresize = $("input#property_bladesize").val();
 
-        //calculate width   biowood-138  supreme-139  green-137   earth-187
+        //calculate width   biowood-138  basswood-139  green-137   earth-187
         panel1_width = (id_material == 137 ? 890 : 890);
         panel2_width = (id_material == 137 ? 550 : 550);
         panel2_width = (id_material == 138 ? 625 : 625);
@@ -2128,7 +2128,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = 550;
             if (id_material == 138 || id_material == 139) {
                 multi_panel_max_width_limit = 625;
@@ -3161,7 +3161,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, earth-187
         else {
             panel_height = 1500;
         }
@@ -3350,7 +3350,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         var check_louvresize = $("input#property_bladesize").val();
 
-        //calculate width   biowood-138  supreme-139  green-137   earth-187
+        //calculate width   biowood-138  basswood-139  green-137   earth-187
         panel1_width = (id_material == 137 ? 890 : 890);
         panel2_width = (id_material == 137 ? 550 : 550);
         panel2_width = (id_material == 138 ? 625 : 625);
@@ -3529,7 +3529,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = 550;
             if (id_material == 138 || id_material == 139) {
                 multi_panel_max_width_limit = 625;
@@ -4309,7 +4309,7 @@ jQuery('#add-product-single-form .btn.btn-primary.submit-batten').on('click', fu
     var property_room_other = jQuery('#property_room_other').val();
     var id_material = jQuery("#property_material").val();
     console.log('id_material: ' + id_material);
-    //biowood-138, supreme-139, earth-187, ecowood-188, green-137
+    //biowood-138, basswood-139, earth-187, ecowood-188, green-137
     console.log('parseFloat(jQuery("#property_height").val()) ' + parseFloat(jQuery("#property_height").val()));
     console.log('id_material !== 188 || id_material !== 137 ' + id_material !== 188 || id_material !== 137);
     if (parseFloat(property_depth) < 3 && (id_material == 188 || id_material == 137)) {
@@ -4452,27 +4452,27 @@ jQuery("#property_material").change(function () {
     if (material_id == 187) {
         // console.log('show earth img');
         jQuery('#stile-img-earth').show();
-        jQuery('#stile-img-supreme').hide();
+        jQuery('#stile-img-basswood').hide();
         jQuery('#stile-img-biowood').hide();
         jQuery('#stile-img-green').hide();
         //tpost-type
         jQuery('.type-img-earth').show();
-        jQuery('.type-img-supreme').hide();
+        jQuery('.type-img-basswood').hide();
         jQuery('.type-img-biowood').hide();
         jQuery('.type-img-green').hide();
         jQuery('.type-img-ecowood').hide();
 
     }
-    // Supreme 139
+    // Basswood 139
     else if (material_id == 139) {
-        // console.log('show Supreme img');
-        jQuery('#stile-img-supreme').show();
+        // console.log('show Basswood img');
+        jQuery('#stile-img-basswood').show();
         jQuery('#stile-img-earth').hide();
         jQuery('#stile-img-ecowood').hide();
         jQuery('#stile-img-biowood').hide();
         jQuery('#stile-img-green').hide();
         //tpost-type
-        jQuery('.type-img-supreme').show();
+        jQuery('.type-img-basswood').show();
         jQuery('.type-img-earth').hide();
         jQuery('.type-img-biowood').hide();
         jQuery('.type-img-green').hide();
@@ -4482,13 +4482,13 @@ jQuery("#property_material").change(function () {
     else if (material_id == 138) {
         // console.log('show Biowood img');
         jQuery('#stile-img-biowood').show();
-        jQuery('#stile-img-supreme').hide();
+        jQuery('#stile-img-basswood').hide();
         jQuery('#stile-img-earth').hide();
         jQuery('#stile-img-ecowood').hide();
         jQuery('#stile-img-green').hide();
         //tpost-type
         jQuery('.type-img-biowood').show();
-        jQuery('.type-img-supreme').hide();
+        jQuery('.type-img-basswood').hide();
         jQuery('.type-img-earth').hide();
         jQuery('.type-img-green').hide();
         jQuery('.type-img-ecowood').hide();
@@ -4497,13 +4497,13 @@ jQuery("#property_material").change(function () {
     else if (material_id == 137) {
         // console.log('show Green img');
         jQuery('#stile-img-green').show();
-        jQuery('#stile-img-supreme').hide();
+        jQuery('#stile-img-basswood').hide();
         jQuery('#stile-img-biowood').hide();
         jQuery('#stile-img-earth').hide();
         jQuery('#stile-img-ecowood').hide();
         //tpost-type
         jQuery('.type-img-green').show();
-        jQuery('.type-img-supreme').hide();
+        jQuery('.type-img-basswood').hide();
         jQuery('.type-img-biowood').hide();
         jQuery('.type-img-earth').hide();
         jQuery('.type-img-ecowood').hide();
@@ -4512,14 +4512,14 @@ jQuery("#property_material").change(function () {
     else if (material_id == 188) {
         // console.log('show ecowood img');
         jQuery('#stile-img-ecowood').show();
-        jQuery('#stile-img-supreme').hide();
+        jQuery('#stile-img-basswood').hide();
         jQuery('#stile-img-biowood').hide();
         jQuery('#stile-img-earth').hide();
         jQuery('#stile-img-green').hide();
         //tpost-type
         jQuery('.type-img-ecowood').show();
         jQuery('.type-img-green').hide();
-        jQuery('.type-img-supreme').hide();
+        jQuery('.type-img-basswood').hide();
         jQuery('.type-img-biowood').hide();
         jQuery('.type-img-earth').hide();
     }

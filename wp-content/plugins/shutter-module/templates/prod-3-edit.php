@@ -722,7 +722,7 @@ $cart_item = $woocommerce->cart->get_cart();
                                                         </div>
                                                     </div>
                                                     
-                                                    <div class="col-sm-12" id="stile-img-supreme">
+                                                    <div class="col-sm-12" id="stile-img-basswood">
                                                         <div id="choose-frametype" class="col-sm-12 " style="display: block;">
                                                             
                                                             <label>
@@ -1381,11 +1381,11 @@ $cart_item = $woocommerce->cart->get_cart();
                                                     } else {
                                                         echo 'display: none';
                                                     } ?>">
-                                                        <div class="col-sm-12 tpost-img type-img-supreme" style="display: none;">
+                                                        <div class="col-sm-12 tpost-img type-img-basswood" style="display: none;">
                                                             <label>
                                                                 <br />
-                                                                <p>7001 - Supreme Std. T-Post</p>
-                                                                <input type="radio" name="property_tposttype" data-code="RBS 50.8" data-title="7001 - Supreme Standard T-Post" value="438" <?php if ($property_tposttype == '438'
+                                                                <p>7001 - Basswood Std. T-Post</p>
+                                                                <input type="radio" name="property_tposttype" data-code="RBS 50.8" data-title="7001 - Basswood Standard T-Post" value="438" <?php if ($property_tposttype == '438'
                                                                 ) {
                                                                     echo "checked";
                                                                 } ?> />
@@ -1429,8 +1429,8 @@ $cart_item = $woocommerce->cart->get_cart();
                                                                 <img class="stile-6" src="/wp-content/plugins/shutter-module/imgs/P7032.png" />
                                                             </label>
                                                             <label>
-                                                                <br /> 7001 - Supreme Std. T-Post
-                                                                <input type="radio" name="property_tposttype" data-code="RBS 50.8" data-title="7001 - Supreme Standard T-Post" value="438" <?php if ($property_tposttype == '438'
+                                                                <br /> 7001 - Basswood Std. T-Post
+                                                                <input type="radio" name="property_tposttype" data-code="RBS 50.8" data-title="7001 - Basswood Standard T-Post" value="438" <?php if ($property_tposttype == '438'
                                                                 ) {
                                                                     echo "checked";
                                                                 } ?> />

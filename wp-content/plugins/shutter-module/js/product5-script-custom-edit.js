@@ -377,7 +377,7 @@ jQuery.noConflict();
                 {
                     "id": 139,
                     "property_id": 18,
-                    "value": "Supreme",
+                    "value": "Basswood",
                     "created_at": "2015-10-19T20:32:01.000+01:00",
                     "updated_at": "2015-10-19T20:32:01.000+01:00",
                     "code": "basswood",
@@ -2626,9 +2626,9 @@ jQuery.noConflict();
             function initfunction() {
                 var selectedMaterialId = $('input[name="property_material"]').val();
 
-                // Check if the selected material is Supreme (id: 139)
+                // Check if the selected material is Basswood (id: 139)
                 // if (selectedMaterialId == 139) {
-                //     loadColorsForSupreme();
+                //     loadColorsForBasswood();
                 // }
 
                 // Existing code to handle other initialization logic...

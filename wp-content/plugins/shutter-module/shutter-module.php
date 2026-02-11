@@ -200,9 +200,11 @@ function wpse_load_plugin_css()
 	// Fetch User Meta in PHP
 	// Ensure the user is logged in
 	if (is_user_logged_in()) {
-		$show_biowood = get_user_meta(get_current_user_id(), 'show_biowood', true); // Note: use ID instead of id
+		$show_biowood = get_user_meta(get_current_user_id(), 'show_biowood', true); 
+		$show_basswood = get_user_meta(get_current_user_id(), 'show_basswood', true); 
 	} else {
 		$show_biowood = 'no';
+		$show_basswood = 'no';
 	}
 
 	wp_enqueue_style('select2c-css', $plugin_url . 'css/jquery.fancybox.min.css');
@@ -230,7 +232,7 @@ function wpse_load_plugin_css()
 	wp_enqueue_script('jquery-flexslider', $plugin_url . 'js/jquery.flexslider.min.js', array(), '1.0.1', true);
 	wp_enqueue_script('jquery-fancybox', $plugin_url . 'js/jquery.fancybox.min.js', array(), '1.0.1', true);
 	wp_enqueue_script('jquery-masonry', $plugin_url . 'js/jquery.masonry.min.js', array(), '1.0.1', true);
-	wp_enqueue_script('shutter-modul-custom-scripts-js', $plugin_url . 'js/custom-scripts.js', array(), '1.4.3', true);
+	wp_enqueue_script('shutter-modul-custom-scripts-js', $plugin_url . 'js/custom-scripts.js', array(), '1.4.6', true);
 	wp_enqueue_script('update-item-scripts-js', $plugin_url . 'js/update-item-scripts.js', array(), '1.0.1', true);
 
 	if (in_array('prod1', $classes)) {
@@ -238,6 +240,7 @@ function wpse_load_plugin_css()
 		// Localize the script with new data
 		wp_localize_script('product-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
+			'showBasswood' => $show_basswood,
 		));
 	}
 	if (in_array('prodIndividual', $classes)) {
@@ -245,6 +248,7 @@ function wpse_load_plugin_css()
 		// Localize the script with new data
 		wp_localize_script('product-script-individual', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
+			'showBasswood' => $show_basswood,
 		));
 	}
 
@@ -254,6 +258,7 @@ function wpse_load_plugin_css()
 		// Localize the script with new data
 		wp_localize_script('product3-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
+			'showBasswood' => $show_basswood,
 		));
 	}
 
@@ -262,6 +267,7 @@ function wpse_load_plugin_css()
 		wp_enqueue_script('product5-script-custom', $plugin_url . 'js/product5-script-custom.js', array(), '1.6.3', true);
 		wp_localize_script('product5-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
+			'showBasswood' => $show_basswood,
 		));
 	}
 
@@ -269,6 +275,7 @@ function wpse_load_plugin_css()
 		wp_enqueue_script('product5-script-custom-edit', $plugin_url . 'js/product5-script-custom-edit.js', array(), '1.6.3', true);
 		wp_localize_script('product5-script-custom-edit', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
+			'showBBasswood' => $show_basswood,
 		));
 	}
 }

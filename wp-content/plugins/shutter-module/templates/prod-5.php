@@ -430,7 +430,7 @@ if (is_array($carts_sort)) {
                 //         jQuery('input[name="property_shuttercolour"]').val(id_shuttercolour);
                 //         console.log('id_material: ' + id_material);
                 //
-                //         //biowood-138, supreme-139, earth-187, ecowood-188, green-137
+                //         //biowood-138, basswood-139, earth-187, ecowood-188, green-137
                 //         if (parseFloat(property_depth) < 3 && (id_material == 188 || id_material == 137)) {
                 //             error_text = 'The minimum size of the batten can not be less than 3mm.';
                 //             addError("property_depth", error_text);

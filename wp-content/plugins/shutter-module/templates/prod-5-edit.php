@@ -393,7 +393,7 @@ $cart_item = $woocommerce->cart->get_cart();
 
         var error = 0;
         var id_material = jQuery("input#property_material").val();
-        //biowood-138, supreme-139, earth-187, ecowood-188, green-137
+        //biowood-138, basswood-139, earth-187, ecowood-188, green-137
         if ((parseFloat(jQuery("#property_height").val()) < 5 || jQuery("#property_height").val() == "") && (id_material == 138 || id_material == 139 || id_material == 187)) {
             error_text = 'The minimum size of the batten can not be less than 5mm.';
             addError("property_height", error_text);

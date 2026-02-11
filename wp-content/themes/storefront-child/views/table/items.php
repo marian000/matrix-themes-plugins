@@ -278,6 +278,7 @@ echo $table_class; ?>">
                 <td></td>
                 <td>£
 					<?php
+					$calculated_subtotal += $price;
 					echo number_format($price, 2); ?>
                 </td>
 				<?php

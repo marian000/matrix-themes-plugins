@@ -1,13 +1,223 @@
+/**
+ * =============================================================================
+ * CUSTOM-SCRIPTS.JS - Shutter Module
+ * =============================================================================
+ *
+ * GHID PENTRU DEZVOLTATORI:
+ *
+ * 1. MATERIALE - Folosiți constantele MATERIALS în loc de ID-uri hardcodate:
+ *    Exemplu: MATERIALS.BASSWOOD (147) în loc de numărul 147
+ *
+ * 2. LIMITE VALIDARE - Consultați MATERIAL_LIMITS pentru limite per material
+ *
+ * 3. IMAGINI - Folosiți funcția showMaterialImages() pentru afișarea imaginilor
+ *
+ * 4. DEBUG - Setați DEBUG_MODE = true pentru a activa logging-ul
+ *    Folosiți debugLog() în loc de console.log()
+ *
+ * 5. JQUERY vs $ - În acest fișier se folosește atât jQuery() cât și $()
+ *    Pentru cod nou, preferați jQuery() pentru consistență
+ *
+ * NOTĂ: Funcțiile validateHeightField() și validateMaterialHeightLimits()
+ * sunt disponibile pentru refactorizarea viitoare a validărilor duplicate.
+ *
+ * =============================================================================
+ * CONSTANTE ȘI CONFIGURĂRI
+ * =============================================================================
+ * Toate ID-urile de materiale și limitele sunt definite aici pentru ușurință
+ * în întreținere. Nu mai folosiți numere hardcodate în cod!
+ */
+
+console.log('🚀 custom-scripts.js LOADING...');
+console.log('jQuery available:', typeof jQuery !== 'undefined');
+
+// Material IDs - folosiți aceste constante în loc de numere
+var MATERIALS = {
+    GREEN: 137,
+    BIOWOOD: 6,
+    BIOWOOD_PLUS: 138,
+    BASSWOOD_PLUS: 139,
+    BASSWOOD: 147,
+    EARTH: 187,
+    ECOWOOD: 188,
+    ECOWOOD_PLUS: 5
+};
+
+// Limite de validare per material
+var MATERIAL_LIMITS = {
+    // Basswood Plus, Basswood, Biowood Plus, Ecowood, Biowood
+    139: { midrail: 1800, midrail2: 2700, divider: 3000 },
+    147: { midrail: 1800, midrail2: 2700, divider: 3000 },
+    138: { midrail: 1800, midrail2: 2700, divider: 3000 },
+    188: { midrail: 1800, midrail2: 2700, divider: 3000 },
+    6:   { midrail: 1800, midrail2: 2700, divider: 3000 },
+    // Ecowood Plus, Earth (limite mai mici)
+    5:   { midrail: 1500, midrail2: 2400, divider: 2700 },
+    187: { midrail: 1500, midrail2: 2700, divider: 3000 },
+    // Green (cele mai mici limite)
+    137: { midrail: 1350, midrail2: 2000, divider: 2500 }
+};
+
+// Mapare material ID -> nume imagine pentru stile images
+var MATERIAL_IMAGES = {
+    187: 'earth',
+    139: 'basswoodPlus',
+    147: 'basswood',
+    138: 'biowoodPlus',
+    6: 'biowood',
+    137: 'green',
+    188: 'ecowood',
+    5: 'ecowoodPlus'
+};
+
+// Setează DEBUG_MODE = true pentru a vedea mesaje în consolă
+var DEBUG_MODE = false;
+
+/**
+ * Funcție pentru logging controlabil
+ * @param {...any} args - Argumentele de logat
+ */
+function debugLog(...args) {
+    if (DEBUG_MODE) {
+        console.log(...args);
+    }
+}
+
+/**
+ * Validează înălțimea midrail/divider pe baza limitelor materialului
+ * @param {number} value - Valoarea de validat
+ * @param {number} maxLimit - Limita maximă
+ * @param {number} height - Înălțimea totală (pentru validare height - 300)
+ * @param {string} fieldSelector - Selectorul jQuery pentru câmp
+ * @param {string} errorMessage - Mesajul de eroare
+ * @returns {number} - Numărul de erori găsite (0 sau 1+)
+ */
+function validateHeightField(value, maxLimit, height, fieldSelector, errorMessage) {
+    var errCount = 0;
+    var $field = jQuery(fieldSelector);
+
+    if (!$field.is(":visible")) {
+        return 0;
+    }
+
+    if (value > maxLimit) {
+        errCount++;
+        modalShowError(errorMessage + ' should be less than ' + maxLimit);
+    }
+
+    if (value > height - 300) {
+        errCount++;
+        modalShowError(errorMessage + ' should be less than ' + (height - 300));
+    }
+
+    return errCount;
+}
+
+/**
+ * Validează toate câmpurile de midrail pentru un material
+ * @param {number} material - ID-ul materialului
+ * @param {object} values - Obiect cu valorile câmpurilor
+ * @param {number} height - Înălțimea totală
+ * @returns {number} - Numărul total de erori
+ */
+function validateMaterialHeightLimits(material, values, height) {
+    var limits = MATERIAL_LIMITS[material];
+    if (!limits) {
+        return 0; // Material necunoscut, nu validăm
+    }
+
+    var errCount = 0;
+
+    // Validare Midrail Height
+    errCount += validateHeightField(
+        values.midrailheight,
+        limits.midrail,
+        height,
+        '#property_midrailheight',
+        'Midrail Height'
+    );
+
+    // Validare Midrail Height 2
+    errCount += validateHeightField(
+        values.midrailheight2,
+        limits.midrail2,
+        height,
+        '#property_midrailheight2',
+        'Midrail Height 2'
+    );
+
+    // Validare Divider 1
+    errCount += validateHeightField(
+        values.divider1,
+        limits.divider,
+        height,
+        '#property_midraidevider1',
+        'Midrail divider1'
+    );
+
+    // Validare Divider 2
+    errCount += validateHeightField(
+        values.divider2,
+        limits.divider,
+        height,
+        '#property_midraidevider2',
+        'Midrail divider2'
+    );
+
+    return errCount;
+}
+
+/**
+ * Afișează imaginile corespunzătoare materialului selectat
+ * @param {number|string} materialId - ID-ul materialului
+ * @param {boolean} hasTpost - Dacă există T-post
+ */
+function showMaterialImages(materialId, hasTpost) {
+    var imageName = MATERIAL_IMAGES[materialId];
+
+    if (!imageName) {
+        debugLog('Material necunoscut pentru imagini:', materialId);
+        return;
+    }
+
+    // Ascunde toate imaginile
+    jQuery('.tpost-img').hide();
+    jQuery('#stile-img-earth').hide();
+    jQuery('#stile-img-basswood').hide();
+    jQuery('#stile-img-basswoodPlus').hide();
+    jQuery('#stile-img-biowood').hide();
+    jQuery('#stile-img-biowoodPlus').hide();
+    jQuery('#stile-img-green').hide();
+    jQuery('#stile-img-ecowood').hide();
+    jQuery('#stile-img-ecowoodPlus').hide();
+
+    // Arată imaginea pentru materialul selectat
+    jQuery('#stile-img-' + imageName).show();
+
+    // Arată T-post image dacă există
+    if (hasTpost) {
+        jQuery('.type-img-' + imageName).show();
+        jQuery('.type-img-' + imageName).parent().show();
+        debugLog('T-post images shown for:', imageName);
+    }
+}
+
+/**
+ * =============================================================================
+ * COD PRINCIPAL
+ * =============================================================================
+ */
+
 // on next step button click add class done
 jQuery('span.js-next-step.next-step, .panel-heading').click(function () {
-    console.log('js-next-step click!');
+    debugLog('js-next-step click!');
     if (jQuery(this).hasClass('js-next-step')) {
-        console.log(jQuery(this).parent().parent().parent().parent());
+        debugLog(jQuery(this).parent().parent().parent().parent());
         jQuery(this).parent().parent().parent().parent().addClass('done');
         jQuery(this).parent().parent().parent().parent().removeClass('inactive');
     }
     if (jQuery(this).hasClass('panel-heading')) {
-        console.log("jQuery(this).hasClass('panel-heading')");
+        debugLog("jQuery(this).hasClass('panel-heading')");
         if (jQuery(this).parent().hasClass('inactive')) {
             jQuery(this).parent().addClass('done');
             jQuery(this).parent().removeClass('inactive');
@@ -17,7 +227,7 @@ jQuery('span.js-next-step.next-step, .panel-heading').click(function () {
 
 jQuery('.btn.btn-info.show-next-panel').click(function () {
     var idPanel = jQuery(this).attr('next-panel');
-    console.log(idPanel);
+    debugLog(idPanel);
     jQuery(idPanel).parent().addClass('done');
     jQuery(idPanel).parent().removeClass('inactive');
 });
@@ -69,7 +279,7 @@ var shutter_type = "Shutter";
 
 //adds error to field or select box
 function addError(field_id, error) {
-    // console.log("Adding error " + error + " for field " + field_id);
+    // debugLog("Adding error " + error + " for field " + field_id);
     if ($("#" + field_id).prev().find('.select2-choice').length > 0) {
         $("#" + field_id).prev().addClass("error-field");
         $("#" + field_id).prev().css('display', 'block');
@@ -133,9 +343,27 @@ function modalShowErrorNoWarranty(errortext) {
  Start add product form
  **************************************************/
 
-jQuery('#add-product-single-form .btn-success').on('click', function (e) {
+jQuery(document).ready(function() {
+    console.log('📌 Document ready - attaching form handlers...');
+    console.log('Form exists:', jQuery('#add-product-single-form').length);
+    console.log('Button exists:', jQuery('#add-product-single-form .btn-success').length);
+
+    // Use event delegation for dynamically loaded forms
+    jQuery(document).on('submit', '#add-product-single-form', function(e) {
+        console.log('🔴 FORM SUBMIT TRIGGERED - preventing default');
+        console.log('Form action:', jQuery(this).attr('action'));
+        e.preventDefault();
+        return false;
+    });
+});
+
+// Use event delegation - attach to document, filter by selector
+jQuery(document).on('click', '#add-product-single-form .btn-success', function (e) {
+    console.log('🟢 BTN-SUCCESS CLICK HANDLER TRIGGERED');
+    console.log('Button clicked:', this);
 
     e.preventDefault();
+    e.stopPropagation();
     resetErrors();
 
 
@@ -180,11 +408,11 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         //check if select or input that are marked as required have values
         jQuery("select.required, input.required").each(function (index) {
-            //// console.log(jQuery(this).attr('id') + ' required ' + index);
+            //// debugLog(jQuery(this).attr('id') + ' required ' + index);
             if ((jQuery(this).val() === '' || jQuery(this).val() === null) && !jQuery(this).is(":hidden")) {
-                // console.log(' empty');
+                // debugLog(' empty');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError(jQuery(this).attr('id'), 'Please fill in this field');
                 modalShowError('Please fill in this field - ' + jQuery(this).attr('id'));
             }
@@ -193,11 +421,11 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -205,52 +433,52 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         }
 
         if ((property_room_other.length === 0) && !jQuery('#s2id_property_room_other').is(":hidden")) {
-            //// console.log('room name nu e setat');
+            //// debugLog('room name nu e setat');
             //alert('bladesize nu e setat');
             errors_no_warranty++;
             errors++;
             alert('No room name');
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Room Name is empty';
             addError("property_room_other", error_text);
             modalShowErrorNoWarranty(error_text);
         }
 
         if ((property_stile.length === 0) && !jQuery('#s2id_property_stile').is(":hidden")) {
-            //// console.log('property_stile nu e setat');
+            //// debugLog('property_stile nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile is empty';
             addError("property_stile", error_text);
             modalShowError(error_text);
         }
 
         if (property_solidtype == null && $('#solidtype').css('display') != 'none') {
-            //// console.log('property_solidtype nu e setat');
+            //// debugLog('property_solidtype nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile type is empty';
             addError("solidtype", error_text);
             modalShowError(error_text);
         }
 
         if (property_hingecolour.length === 0) {
-            //// console.log('property_hingecolour nu e setat');
+            //// debugLog('property_hingecolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property hingecolour is empty';
             addError("property_hingecolour", error_text);
             modalShowError(error_text);
         }
 
         if (property_shuttercolour.length === 0) {
-            //// console.log('property_shuttercolour nu e setat');
+            //// debugLog('property_shuttercolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property shuttercolour is empty';
             addError("property_shuttercolour", error_text);
             modalShowError(error_text);
@@ -259,10 +487,10 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if ($('input[name=property_frametype]:checked').val() == '171') {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
-                //// console.log('property_shuttercolour nu e setat');
+                //// debugLog('property_shuttercolour nu e setat');
                 //alert('bladesize nu e setat');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'Property Blackout Blind Colour is empty';
                 addError("property_blackoutblindcolour", error_text);
                 modalShowError(error_text);
@@ -271,15 +499,15 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
 
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
@@ -296,7 +524,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         /////  calculate original sizes
 
 
-        // console.log('bla bla submit');
+        // debugLog('bla bla submit');
 
         var check_height = parseFloat($("#property_height").val());
         var style_check = getStyleTitle();
@@ -325,7 +553,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text);
 
             } else if (check_midrailheight > (property_height - 300)) {
@@ -333,12 +561,12 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text)
 
             }
         } else {
-            // console.log('este special shapeee');
+            // debugLog('este special shapeee');
         }
 
         //midrailheight required for >1800 height and NOT Tier styles
@@ -347,12 +575,12 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if ($("#property_midrailheight").val() === '' || $("#property_midrailheight").val() === 0) {
 
                     $("#property_midrailheight").addClass("required");
-                    // console.log('midrail required');
+                    // debugLog('midrail required');
                     error_text = 'Midrail Height should be completed';
                     width_and_height_errors = width_and_height_errors + error_text + '. ';
                     width_and_height_errors_count++;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_midrailheight", error_text);
                     modalShowError(error_text);
                     //$("#midrail-height").show();
@@ -361,12 +589,12 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         }
         if (property_height >= 1800 && property_height <= 3000 && style_check.indexOf('Tracked') >= 0 && check_midrailheight == 0) {
             $("#property_midrailheight").addClass("required");
-            // console.log('midrail required');
+            // debugLog('midrail required');
             error_text = 'Midrail Height should be completed';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -374,7 +602,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if ($("#property_height").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -384,7 +612,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if ($("#property_width").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -395,7 +623,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //minimum height check
         if ($("#property_height").val() != '' && $("#property_material").val() == '137' && parseFloat($("#property_height").val()) < 300) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 300mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -405,7 +633,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if ($("#property_height").val() != '' && $("#property_material").val() == '187' && parseFloat($("#property_height").val()) < 400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 400mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -415,7 +643,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) < 250) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 250mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -430,7 +658,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, basswoodPlus-147, earth-187
         else {
             panel_height = 1500;
         }
@@ -439,7 +667,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (style_check.indexOf('Tier') > -1) {
             if (check_height > panel_height && check_totheight == 0) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'T-o-t height required for height more than ' + panel_height.toString() + 'mm. ';
                 width_and_height_errors = width_and_height_errors + error_text;
                 width_and_height_errors_count++;
@@ -456,7 +684,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             if (style_check.indexOf('Combi') < -1) {
                 if (check_height > panel_height && check_midrailheight == 0 && $("#property_midrailheight").hasClass('required')) {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     error_text = 'Midrail height required for height more than ' + panel_height.toString() + 'mm. ';
                     width_and_height_errors = width_and_height_errors + error_text;
                     width_and_height_errors_count++;
@@ -469,7 +697,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //max height
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) > max_height) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should not exceed ' + max_height.toString() + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -481,7 +709,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (check_midrailheight > 0 && (check_midrailheight > (check_height - 300))) {
             error_text = 'Midrail Height should not exceed height of shutter ' + (check_height - 300) + 'mm. ';
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -492,7 +720,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name=property_frametype]:checked').length == 0) {
             if (installation != 27) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 $("<span class=\"error-text\">Please select frame type</span>").insertBefore($("#choose-frametype"));
                 //$("#choose-frametype").closest(".panel").find(".panel-collapse").collapse("show");
                 error_text = 'Please select frame type';
@@ -505,7 +733,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -524,7 +752,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
 
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
@@ -536,7 +764,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -547,7 +775,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 35) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -558,7 +786,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -569,7 +797,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_bypasstype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select By-pass Type</span>").insertBefore($("#bypasstype"));
             $("#bypasstype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select By-pass Type';
@@ -580,7 +808,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_lightblocks"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Light Blocks</span>").insertBefore($("#lightblocks"));
             $("#lightblocks").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Light Blocks';
@@ -588,7 +816,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             modalShowErrorNoWarranty(error_text);
         }
 
-        // console.log('bla bla bla1');
+        // debugLog('bla bla bla1');
 
         //calculate max width
         //consecutive same panels 1=850,2=650,3=550
@@ -604,7 +832,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         var max_width = 0;
@@ -641,7 +869,8 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
          *  - (5) Ecow Plus
          *  - (6) Biow
          *  - (138) Biowood Plus
-         *  - (139) Supreme
+         *  - (139) Basswood
+         *  - (147) Basswood Plus
          *
          * Louvre size-uri incluse:
          *  - (164) -> 50.8 mm
@@ -712,7 +941,22 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 panel2: 625,
                 panel3: 550
             },
-            139: { // Supreme
+            139: { // Basswood
+                panel1: {
+                    // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
+                    overrides: {
+                        164: 890,
+                        53: 890,
+                        54: 890,
+                        55: 890,
+                        165: 890
+                    },
+                    default: 890
+                },
+                panel2: 625, // Poți ajusta dacă tabelul indică altceva
+                panel3: 550
+            },
+            147: { // Basswood
                 panel1: {
                     // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
                     overrides: {
@@ -787,11 +1031,11 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         }
 
 // Debug info
-        console.log('Material ID:', id_material);
-        console.log('Louvre Size:', check_louvresize);
-        console.log('panel1_width:', panel1_width);
-        console.log('panel2_width:', panel2_width);
-        console.log('panel3_width:', panel3_width);
+        debugLog('Material ID:', id_material);
+        debugLog('Louvre Size:', check_louvresize);
+        debugLog('panel1_width:', panel1_width);
+        debugLog('panel2_width:', panel2_width);
+        debugLog('panel3_width:', panel3_width);
 
 
         var arrayPanels = {
@@ -808,23 +1052,23 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 lastCharacter = layout_code.charAt(i);
             }
             currentCharacter = layout_code.charAt(i);
-            console.log('======================================');
-            console.log('currentCharacter ' + currentCharacter);
-            console.log('lastCharacter ' + lastCharacter);
+            debugLog('======================================');
+            debugLog('currentCharacter ' + currentCharacter);
+            debugLog('lastCharacter ' + lastCharacter);
 
             if (style_check.indexOf('Tracked') > -1) {
                 arrayPanels.multiPanels = arrayPanels.multiPanels + 1;
-                console.log('Total Panels finded Tracked : ' + total_panels);
+                debugLog('Total Panels finded Tracked : ' + total_panels);
             } else {
                 // If current layout character is B , C, T, G
                 if (layout_code.charAt(i) != 'L' && layout_code.charAt(i) != 'R') {
                     last_char = layout_code.charAt(i);
-                    console.log('Last Char ' + last_char);
+                    debugLog('Last Char ' + last_char);
                     // continue;
-                    console.log('Total Panels finded : ' + total_panels);
-                    console.log('TOTAL PANELS BCTG ' + total_panels);
-                    console.log(arrayPanels);
-                    console.log('reset total');
+                    debugLog('Total Panels finded : ' + total_panels);
+                    debugLog('TOTAL PANELS BCTG ' + total_panels);
+                    debugLog(arrayPanels);
+                    debugLog('reset total');
                     total_panels = 0;
                     lastCharacter = layout_code.charAt(i);
                 } else {
@@ -832,20 +1076,20 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                     // and current is different from last character
                     // and last character is NOT B, C, T, G
                     if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) < 0) {
-                        console.log('Total Panels finded : ' + total_panels);
-                        console.log('add to array panel1 !!! ');
+                        debugLog('Total Panels finded : ' + total_panels);
+                        debugLog('add to array panel1 !!! ');
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
-                        console.log('TOTAL PANELS RL ' + arrayPanels.panels1);
-                        console.log(arrayPanels);
-                        console.log('reset total');
+                        debugLog('TOTAL PANELS RL ' + arrayPanels.panels1);
+                        debugLog(arrayPanels);
+                        debugLog('reset total');
                         lastCharacter = layout_code.charAt(i);
                     } else if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) >= 0) {
                         // If current layout character is L or R
                         // and current is different from last character
                         // and last character is B, C, T, G
-                        console.log('add to array panel1 !!! ');
-                        console.log(arrayPanels.panels1);
+                        debugLog('add to array panel1 !!! ');
+                        debugLog(arrayPanels.panels1);
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
                         lastCharacter = layout_code.charAt(i);
@@ -856,31 +1100,31 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                         lastCharacter = layout_code.charAt(i);
                         if (total_panels === 2) {
                             arrayPanels.panels2 = arrayPanels.panels2 + total_panels;
-                            console.log('reset arrayPanels1');
+                            debugLog('reset arrayPanels1');
                             // if current character is same with last, panels1 must reset
                             arrayPanels.panels1 = arrayPanels.panels1 - 1;
                         } else if (total_panels === 3) {
                             arrayPanels.panels3 = arrayPanels.panels3 + total_panels;
-                            console.log('reset arrayPanels2');
+                            debugLog('reset arrayPanels2');
                             // if current character is same with last, panels2 must reset
                             arrayPanels.panels2 = arrayPanels.panels2 - (total_panels - 1);
                         } else if (total_panels > 3) {
                             arrayPanels.multiPanels = arrayPanels.multiPanels + total_panels;
-                            console.log('reset arrayPanels3');
+                            debugLog('reset arrayPanels3');
                             // if current character is same with last, panels3 must reset
                             arrayPanels.panels3 = arrayPanels.panels3 - (total_panels - 1);
                         }
                         if (i == 0) arrayPanels.panels1 = 1;
-                        console.log('TOTAL PANELS same ' + total_panels);
-                        console.log(arrayPanels);
+                        debugLog('TOTAL PANELS same ' + total_panels);
+                        debugLog(arrayPanels);
                         lastCharacter = layout_code.charAt(i);
                     }
                 }
             }
             multipanel_singlepanel_width = $("input#property_width").val() / total_panels;
-            // console.log('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
+            // debugLog('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
         }
-        console.log(arrayPanels);
+        debugLog(arrayPanels);
 
         // se verifica daca sunt caractere pentru 1 panel si se verifica daca totalul la max width poisibil pentru toate caracterele 1 panel este mai mai mic sau mai mare (eroare) decat limita sumei posibila a acestora
         current_max_width = 0;
@@ -893,7 +1137,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             for (var i = 1; i <= nr_individuals; i++) {
                 width_shutter = width_shutter + parseFloat($("#property_width" + i + "").val());
             }
-            console.log('width_shutter: ' + width_shutter);
+            debugLog('width_shutter: ' + width_shutter);
         }
 
         if (arrayPanels.panels1 > 0) {
@@ -907,10 +1151,10 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  basswoodPlus-147  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = panel3_width;
             current_max_width = current_max_width + (arrayPanels.panels3 * multi_panel_max_width_limit);
-            console.log('arrayPanels.panels3 > 0');
+            debugLog('arrayPanels.panels3 > 0');
         }
         if (arrayPanels.multiPanels > 0) {
 
@@ -921,10 +1165,10 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             if (!(style_check.indexOf('Tracked') > -1)) {
                 error_text = '<br/>Layout code is invalid. No more than 3 consecutive ' + last_char + ' panels allowed.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 width_and_height_errors_count++;
                 width_and_height_errors = width_and_height_errors + error_text;
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
 
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
@@ -936,34 +1180,34 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (style_check.indexOf('Tracked') == -1) {
             if (arrayPanels.panels1 > 0 && arrayPanels.panels2 === 0 && arrayPanels.panels3 === 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    console.log('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
+                    debugLog('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
                     error_text = '<br/>Max width for single panel too high. Max width ' + panel1_max_width_limit;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
 
                 }
                 if ((width_shutter / arrayPanels.panels1) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for single panel too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
 
                 }
             }
 
             if (arrayPanels.panels2 > 0 || arrayPanels.panels3 > 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Max width for multi-fold panels too high.';
                     errors++;
-                    console.log('current_max_width: ' + current_max_width);
+                    debugLog('current_max_width: ' + current_max_width);
 
                 }
                 if (((width_shutter / arrayPanels.panels1) + (width_shutter / arrayPanels.panels2) + (width_shutter / arrayPanels.panels3)) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for multi-fold panels too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
 
                 }
             }
@@ -977,12 +1221,12 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         }
 
         if (style_check.indexOf('Tracked') > -1) {
-            // console.log('In Tracked');
+            // debugLog('In Tracked');
             var multi_panel_max_width_limit = 890;
             // if (id_material == 187) {
             //     multi_panel_max_width_limit = 750;
             // }
-            // if (id_material == 139 || id_material == 138) {
+            // if (id_material == 139 || id_material == 138 || id_material == 147) {
             //     multi_panel_max_width_limit = 890;
             // }
             // if (id_material == 188 || id_material == 137) {
@@ -990,20 +1234,20 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             // }
 
             current_max_width = arrayPanels.multiPanels * multi_panel_max_width_limit;
-            console.log('current_max_width: ' + current_max_width);
+            debugLog('current_max_width: ' + current_max_width);
             if (current_max_width < width_shutter) {
-                // console.log('current_max_width: ' + current_max_width);
+                // debugLog('current_max_width: ' + current_max_width);
                 error_text = '<br/>Max width for single panel too high.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
             if ((width_shutter / arrayPanels.multiPanels) < 200) {
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
                 error_text = '<br/>Min width for multi-fold panels too low.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
@@ -1028,20 +1272,20 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                             }
                         });
                         if (notEven) {
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                             errors++;
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             error_text = 'Layout Configuration not supported. Please correct.';
                             modalShowError(error_text);
                         } else {
                             tracked_layout_error = false;
                         }
                     } else {
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                         errors++;
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         error_text = 'Layout Configuration not supported. Please correct.';
                         modalShowError(error_text);
                     }
@@ -1050,7 +1294,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
             if (tracked_layout_error) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 22');
                 error_text = 'Tracked shutters require even number of panels per layout code';
                 modalShowError(error_text);
@@ -1065,7 +1309,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //             last_char = layout_code.charAt(i);
         //             continue;
         //         }
-        //         // console.log(layout_code.charAt(i));
+        //         // debugLog(layout_code.charAt(i));
         //
         //         total_panels++;
         //         if (last_char != layout_code.charAt(i)) {
@@ -1094,10 +1338,10 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //                     current_max_width = counter * panel2_width;
         //                     error_text = '<br/>Layout code is invalid. No more than 2 consecutive ' + last_char + ' panels allowed.';
         //                     errors++;
-        //                     // console.log('errors: ' + errors);
+        //                     // debugLog('errors: ' + errors);
         //                     width_and_height_errors_count++;
         //                     width_and_height_errors = width_and_height_errors + error_text;
-        //                     // console.log('counter litere: ' + counter);
+        //                     // debugLog('counter litere: ' + counter);
         //
         //                     addError("property_layoutcode", error_text);
         //                     modalShowError(error_text);
@@ -1105,7 +1349,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //             }
         //             max_width = max_width + current_max_width;
         //         }
-        //         // console.log('counter litere 2: ' + counter);
+        //         // debugLog('counter litere 2: ' + counter);
         //
         //         last_char = layout_code.charAt(i);
         //     }
@@ -1120,7 +1364,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
 
         // if (tracked_layout_error) {
-        // 	errors++; // console.log('errors: ' + errors);
+        // 	errors++; // debugLog('errors: ' + errors);
         // 	addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 1');
         // }
 
@@ -1138,7 +1382,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         if (width_shutter != '' && width_shutter < min_width) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should be at least ' + min_width + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -1150,7 +1394,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         //For Blackout shutters a Tpost is required for >1400mm width
         if (shutter_type == 'Blackout' && ((layout_code.match(/t/ig) || []).length == 0 && (layout_code.match(/b/ig) || []).length == 0 && (layout_code.match(/c/ig) || []).length == 0) && width_shutter > 1400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_layoutcode", 'Shutter and Blackout Blind require a T-post if width is more than 1400mm');
         }
 
@@ -1158,7 +1402,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (!$indiv) {
             if ((layout_code.indexOf("B") > 0 || layout_code.indexOf("C") > 0) && (style_check.indexOf('Bay') == -1) && (style_check.indexOf('Tracked') == -1)) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Please choose Bay Window style with a layout code containing B or C.');
             }
         }
@@ -1173,7 +1417,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             // property_tposttype
             if ($('input[name=property_tposttype]:checked').length < 1) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 modalShowError('Please choose T-Post type.');
             }
         }
@@ -1233,9 +1477,9 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 var panel1_height = split_panel_at_height;
                 var panel2_height = check_height - panel1_height;
 
-                // console.log("Panel 1 height:" + panel1_height);
-                // console.log("Panel 2 height:" + panel2_height);
-                // console.log("Height required split:" + height_required_split);
+                // debugLog("Panel 1 height:" + panel1_height);
+                // debugLog("Panel 2 height:" + panel2_height);
+                // debugLog("Height required split:" + height_required_split);
 
                 if (panel1_height > height_required_split && panel2_height > height_required_split) {
                     split_required = true;
@@ -1263,7 +1507,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -1275,7 +1519,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height 2 and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -1288,7 +1532,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (parseInt(check_controlsplitheight) == 0) {
                     error_text = '<br/>Split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -1297,7 +1541,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (check_controlsplitheight > split_max_height) {
                     error_text = '<br/>Split height should be less than ' + split_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -1305,7 +1549,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (check_controlsplitheight < split_min_height) {
                     error_text = '<br/>Split height should be more than ' + split_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -1319,7 +1563,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (parseInt(check_controlsplitheight2) == 0) {
                     error_text = '<br/>Second split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -1328,7 +1572,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (check_controlsplitheight2 > split2_max_height) {
                     error_text = '<br/>Second split height should be less than ' + split2_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -1336,7 +1580,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 if (check_controlsplitheight2 < split2_min_height) {
                     error_text = '<br/>Second split height should be more than ' + split2_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -1354,74 +1598,60 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 newDrawFile = $('#attachment_draw').val();
                 if (existingShapeFile == '' && newShapeFile == '' && newDrawFile == '') {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("shape-upload-container", 'Please provide the desired shape for style "Shaped & French Cut Out"');
                 }
             }
         }
 
-        // if ($('input[name=property_style]:checked').length === 0) {
-        //     errors++;
-        //     // console.log('errors: ' + errors);
-        //     addError("choose-style", 'Please select a style for shutter!');
-        //     addError(jQuery('.choose-style').attr('id'), 'Please fill in this field');
-        //     // modalShowError('Please select a style for shutter!');
-        // }
-
-        // if ($("#canvas_container1 svg").length > 0) {
-        //     $("#shutter_svg").html($("#canvas_container1").html());
-        // }
-        // console.log('errors: ' + errors);
-        //alert('errors: '+errors)
-
-
-        if (property_material == 139 || property_material == 138 || property_material == 188 || property_material == 6) {
+        // Validare limite midrail/divider pe baza materialului selectat
+        if (property_material == 139 || property_material == 147 || property_material == 138 || property_material == 188 || property_material == 6) {
             if ((property_midrailheight > 1800) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1800');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -1429,49 +1659,49 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2400) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2400');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 2700) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 2700');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 2700) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 2700');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -1479,69 +1709,69 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
         }
 
-        console.log('1 property_controltype.length ' + property_controltype.length);
+        debugLog('1 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         // Check if #s2id_property_controltype is visible
-        console.log('property_controltype hidden: ', $('#s2id_property_controltype').is(':hidden'));
+        debugLog('property_controltype hidden: ', $('#s2id_property_controltype').is(':hidden'));
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
@@ -1549,11 +1779,11 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             }
         }
 
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
 
-        console.log('errors ' + errors_no_warranty);
-        console.log('errors_no_warranty ' + errors_no_warranty);
+        debugLog('errors ' + errors_no_warranty);
+        debugLog('errors_no_warranty ' + errors_no_warranty);
 
 
         /**
@@ -1562,7 +1792,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
          */
         let cart_items_name = $('input[name="cart_items_name"]').val();
         let itemsName = JSON.parse(cart_items_name);
-        console.log(itemsName);
+        debugLog(itemsName);
         if (itemsName !== null) {
             if (itemsName.includes(property_room_other)) {
                 errors_no_warranty++;
@@ -1573,7 +1803,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             }
         }
 
-        console.log('errors ', errors);
+        debugLog('errors ', errors);
 
         if (errors === 0 && errors_no_warranty === 0) {
 
@@ -1581,9 +1811,9 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             var formser = jQuery('#add-product-single-form').serialize();
             var svg = jQuery('#canvas_container1').html();
 
-            // console.log(formser);
+            // debugLog(formser);
             //alert(formser);
-            // console.log('submit 1');
+            // debugLog('submit 1');
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod.php";
             var nr_individuals = $("#property_nr_sections").val();
             if (nr_individuals) {
@@ -1601,7 +1831,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             })
                 .done(function (data) {
 
-                    console.log(data);
+                    debugLog(data);
                     alert('Shutter added to order!');
                     //jQuery('.show-prod-info').html(data);
                     var edit_customer = jQuery('input[name="edit_customer"]').val();
@@ -1627,7 +1857,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -1636,11 +1866,11 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -1651,7 +1881,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (property_hingecolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_hingecolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_hingecolour", 'Please select hinge colour for shutter!');
             error_text = 'Please select hinge colour';
@@ -1661,7 +1891,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (property_shuttercolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_shuttercolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_shuttercolour", 'Please select shutter colour!');
             error_text = 'Please select shutter colour';
@@ -1672,7 +1902,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
                 errors_no_warranty++;
                 errors++;
-                // console.log('errors_no_warranty 3');
+                // debugLog('errors_no_warranty 3');
                 $("#property_blackoutblindcolour").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_blackoutblindcolour", 'Please select Blackout Blind Colour!');
                 error_text = 'Please select Blackout Blind Colour';
@@ -1680,26 +1910,26 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
             }
         }
 
-        console.log('1 property_controltype.length ' + property_controltype.length);
+        debugLog('1 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
                 modalShowErrorNoWarranty(error_text);
             }
         }
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
 
         var layout_code = $("#property_layoutcode").val();
@@ -1714,7 +1944,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         if (layout_code) {
@@ -1725,7 +1955,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -1739,7 +1969,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
          */
         let cart_items_name = $('input[name="cart_items_name"]').val();
         let itemsName = JSON.parse(cart_items_name);
-        console.log(itemsName);
+        debugLog(itemsName);
         if (itemsName !== null) {
             if (itemsName.includes(property_room_other)) {
                 errors_no_warranty++;
@@ -1752,13 +1982,12 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
 
 
         if (errors_no_warranty === 0) {
+            console.log('🟡 NO ERRORS - Preparing AJAX call');
 
             var formser = jQuery('#add-product-single-form').serialize();
             var svg = jQuery('#canvas_container1').html();
 
-
-            // console.log(formser);
-            //alert(formser);
+            console.log('📝 Form serialized:', formser.substring(0, 200) + '...');
 
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod.php";
             var nr_individuals = $("#property_nr_sections").val();
@@ -1766,6 +1995,8 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-individual.php";
             }
 
+            console.log('🌐 AJAX URL:', url_ajax);
+            console.log('📤 Sending AJAX request...');
 
             $.ajax({
                 method: "POST",
@@ -1776,7 +2007,7 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                 }
             })
                 .done(function (data) {
-                    console.log(data);
+                    console.log('✅ AJAX SUCCESS - Response:', data);
                     alert('Shutter added to order!');
                     //jQuery('.show-prod-info').html(data);
                     var edit_customer = jQuery('input[name="edit_customer"]').val();
@@ -1789,8 +2020,14 @@ jQuery('#add-product-single-form .btn-success').on('click', function (e) {
                             window.location.replace("/checkout");
                         }
                     }, 500);
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.log('❌ AJAX ERROR:', textStatus, errorThrown);
+                    console.log('Response:', jqXHR.responseText);
                 });
 
+        } else {
+            console.log('🔴 ERRORS FOUND - errors_no_warranty:', errors_no_warranty);
         }
 
     }
@@ -1808,7 +2045,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
     resetErrors();
 
 
-    console.log('in update cusrom-script');
+    debugLog('in update cusrom-script');
 
     jQuery(document).ajaxStart(function () {
         jQuery('.spinner').show();
@@ -1830,7 +2067,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
     var property_midrailheight = jQuery('#property_midrailheight').val();
     var property_midrailheight2 = jQuery('#property_midrailheight2').val();
     var property_bladesize = jQuery('#property_bladesize').val();
-    console.log(property_bladesize);
+    debugLog(property_bladesize);
     var property_room_other = jQuery('#property_room_other').val();
     var property_stile = jQuery('input[name=property_stile]:checked').val();
     var property_solidtype = jQuery('input[name=property_solidtype]:checked').val();
@@ -1849,11 +2086,11 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         //check if select or input that are marked as required have values
         jQuery("select.required, input.required").each(function (index) {
-            //// console.log(jQuery(this).attr('id') + ' required ' + index);
+            //// debugLog(jQuery(this).attr('id') + ' required ' + index);
             if ((jQuery(this).val() === '' || jQuery(this).val() === null) && !jQuery(this).is(":hidden")) {
-                // console.log(' empty');
+                // debugLog(' empty');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError(jQuery(this).attr('id'), 'Please fill in this field');
                 modalShowError('Please fill in this field - ' + jQuery(this).attr('id'));
             }
@@ -1864,11 +2101,11 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -1876,52 +2113,52 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         }
 
         if ((property_room_other.length === 0) && !jQuery('#s2id_property_room_other').is(":hidden")) {
-            //// console.log('room name nu e setat');
+            //// debugLog('room name nu e setat');
             //alert('bladesize nu e setat');
             errors_no_warranty++;
             errors++;
             alert('No room name');
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Room Name is empty';
             addError("property_room_other", error_text);
             modalShowErrorNoWarranty(error_text);
         }
 
         if ((property_stile.length === 0) && !jQuery('#s2id_property_stile').is(":hidden")) {
-            //// console.log('property_stile nu e setat');
+            //// debugLog('property_stile nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile is empty';
             addError("property_stile", error_text);
             modalShowError(error_text);
         }
 
         if (property_solidtype == null && $('#solidtype').css('display') != 'none') {
-            //// console.log('property_solidtype nu e setat');
+            //// debugLog('property_solidtype nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile type is empty';
             addError("solidtype", error_text);
             modalShowError(error_text);
         }
 
         if (property_hingecolour.length === 0) {
-            //// console.log('property_hingecolour nu e setat');
+            //// debugLog('property_hingecolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property hingecolour is empty';
             addError("property_hingecolour", error_text);
             modalShowError(error_text);
         }
 
         if (property_shuttercolour.length === 0) {
-            //// console.log('property_shuttercolour nu e setat');
+            //// debugLog('property_shuttercolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property shuttercolour is empty';
             addError("property_shuttercolour", error_text);
             modalShowError(error_text);
@@ -1930,10 +2167,10 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if ($('input[name=property_frametype]:checked').val() == '171') {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
-                //// console.log('property_shuttercolour nu e setat');
+                //// debugLog('property_shuttercolour nu e setat');
                 //alert('bladesize nu e setat');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'Property Blackout Blind Colour is empty';
                 addError("property_blackoutblindcolour", error_text);
                 modalShowError(error_text);
@@ -1941,15 +2178,15 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         }
 
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
@@ -1957,26 +2194,26 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             }
         }
 
-        console.log('1 property_controltype.length ' + property_controltype.length);
+        debugLog('1 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
                 modalShowErrorNoWarranty(error_text);
             }
         }
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
 
         if (property_material === '' || property_material === null) {
@@ -2014,7 +2251,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text);
 
             } else if (check_midrailheight > (property_height - 300)) {
@@ -2022,12 +2259,12 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text)
 
             }
         } else {
-            // console.log('este special shapeeee');
+            // debugLog('este special shapeeee');
         }
 
         //midrailheight required for >1800 height and NOT Tier styles
@@ -2036,12 +2273,12 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if ($("#property_midrailheight").val() === '' || $("#property_midrailheight").val() === 0) {
 
                     $("#property_midrailheight").addClass("required");
-                    // console.log('midrail required');
+                    // debugLog('midrail required');
                     error_text = 'Midrail Height should be completed';
                     width_and_height_errors = width_and_height_errors + error_text + '. ';
                     width_and_height_errors_count++;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_midrailheight", error_text);
                     modalShowError(error_text);
                     //$("#midrail-height").show();
@@ -2051,12 +2288,12 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         }
         if (property_height >= 1800 && property_height <= 3000 && style_check.indexOf('Tracked') >= 0 && check_midrailheight == 0) {
             $("#property_midrailheight").addClass("required");
-            // console.log('midrail required');
+            // debugLog('midrail required');
             error_text = 'Midrail Height should be completed';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -2064,7 +2301,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if ($("#property_height").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -2074,7 +2311,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if ($("#property_width").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -2085,7 +2322,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         //minimum height check
         if ($("#property_height").val() != '' && $("#property_material").val() == '137' && parseFloat($("#property_height").val()) < 300) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 300mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -2095,7 +2332,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if ($("#property_height").val() != '' && $("#property_material").val() == '187' && parseFloat($("#property_height").val()) < 400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 400mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -2105,7 +2342,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) < 250) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 250mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -2120,7 +2357,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, basswoodPlus-147, earth-187
         else {
             panel_height = 1500;
         }
@@ -2129,7 +2366,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (style_check.indexOf('Tier') > -1) {
             if (check_height > panel_height && check_totheight == 0) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'T-o-t height required for height more than ' + panel_height.toString() + 'mm. ';
                 width_and_height_errors = width_and_height_errors + error_text;
                 width_and_height_errors_count++;
@@ -2146,7 +2383,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             if (style_check.indexOf('Combi') < -1) {
                 if (check_height > panel_height && check_midrailheight == 0 && $("#property_midrailheight").hasClass('required')) {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     error_text = 'Midrail height required for height more than ' + panel_height.toString() + 'mm. ';
                     width_and_height_errors = width_and_height_errors + error_text;
                     width_and_height_errors_count++;
@@ -2159,7 +2396,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         //max height
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) > max_height) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should not exceed ' + max_height.toString() + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -2171,7 +2408,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (check_midrailheight > 0 && (check_midrailheight > (check_height - 300))) {
             error_text = 'Midrail Height should not exceed height of shutter ' + (check_height - 300) + 'mm. ';
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -2182,7 +2419,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name=property_frametype]:checked').length == 0) {
             if (installation != 27) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 $("<span class=\"error-text\">Please select frame type</span>").insertBefore($("#choose-frametype"));
                 //$("#choose-frametype").closest(".panel").find(".panel-collapse").collapse("show");
                 error_text = 'Please select frame type';
@@ -2195,7 +2432,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -2214,7 +2451,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         if (layout_code) {
@@ -2225,7 +2462,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -2236,7 +2473,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="21"]:checked').val() == 35) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -2247,7 +2484,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -2258,7 +2495,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_bypasstype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select By-pass Type</span>").insertBefore($("#bypasstype"));
             $("#bypasstype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select By-pass Type';
@@ -2269,7 +2506,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_lightblocks"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Light Blocks</span>").insertBefore($("#lightblocks"));
             $("#lightblocks").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Light Blocks';
@@ -2292,7 +2529,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         var max_width = 0;
@@ -2329,7 +2566,8 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
          *  - (5) Ecow Plus
          *  - (6) Biow
          *  - (138) Biowood Plus
-         *  - (139) Supreme
+         *  - (139) Basswood
+         *  - (147) Basswood Plus
          *
          * Louvre size-uri incluse:
          *  - (164) -> 50.8 mm
@@ -2400,7 +2638,22 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 panel2: 625,
                 panel3: 550
             },
-            139: { // Supreme
+            139: { // Basswood
+                panel1: {
+                    // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
+                    overrides: {
+                        164: 890,
+                        53: 890,
+                        54: 890,
+                        55: 890,
+                        165: 890
+                    },
+                    default: 890
+                },
+                panel2: 625, // Poți ajusta dacă tabelul indică altceva
+                panel3: 550
+            },
+            147: { // Basswood
                 panel1: {
                     // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
                     overrides: {
@@ -2475,11 +2728,11 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         }
 
 // Debug info
-        console.log('Material ID:', id_material);
-        console.log('Louvre Size:', check_louvresize);
-        console.log('panel1_width:', panel1_width);
-        console.log('panel2_width:', panel2_width);
-        console.log('panel3_width:', panel3_width);
+        debugLog('Material ID:', id_material);
+        debugLog('Louvre Size:', check_louvresize);
+        debugLog('panel1_width:', panel1_width);
+        debugLog('panel2_width:', panel2_width);
+        debugLog('panel3_width:', panel3_width);
 
 
         var arrayPanels = {
@@ -2496,23 +2749,23 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 lastCharacter = layout_code.charAt(i);
             }
             currentCharacter = layout_code.charAt(i);
-            console.log('======================================');
-            console.log('currentCharacter ' + currentCharacter);
-            console.log('lastCharacter ' + lastCharacter);
+            debugLog('======================================');
+            debugLog('currentCharacter ' + currentCharacter);
+            debugLog('lastCharacter ' + lastCharacter);
 
             if (style_check.indexOf('Tracked') > -1) {
                 arrayPanels.multiPanels = arrayPanels.multiPanels + 1;
-                console.log('Total Panels finded Tracked : ' + total_panels);
+                debugLog('Total Panels finded Tracked : ' + total_panels);
             } else {
                 // If current layout character is B , C, T, G
                 if (layout_code.charAt(i) != 'L' && layout_code.charAt(i) != 'R') {
                     last_char = layout_code.charAt(i);
-                    console.log('Last Char ' + last_char);
+                    debugLog('Last Char ' + last_char);
                     // continue;
-                    console.log('Total Panels finded : ' + total_panels);
-                    console.log('TOTAL PANELS BCTG ' + total_panels);
-                    console.log(arrayPanels);
-                    console.log('reset total');
+                    debugLog('Total Panels finded : ' + total_panels);
+                    debugLog('TOTAL PANELS BCTG ' + total_panels);
+                    debugLog(arrayPanels);
+                    debugLog('reset total');
                     total_panels = 0;
                     lastCharacter = layout_code.charAt(i);
                 } else {
@@ -2520,20 +2773,20 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                     // and current is different from last character
                     // and last character is NOT B, C, T, G
                     if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) < 0) {
-                        console.log('Total Panels finded : ' + total_panels);
-                        console.log('add to array panel1 !!! ');
+                        debugLog('Total Panels finded : ' + total_panels);
+                        debugLog('add to array panel1 !!! ');
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
-                        console.log('TOTAL PANELS RL ' + arrayPanels.panels1);
-                        console.log(arrayPanels);
-                        console.log('reset total');
+                        debugLog('TOTAL PANELS RL ' + arrayPanels.panels1);
+                        debugLog(arrayPanels);
+                        debugLog('reset total');
                         lastCharacter = layout_code.charAt(i);
                     } else if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) >= 0) {
                         // If current layout character is L or R
                         // and current is different from last character
                         // and last character is B, C, T, G
-                        console.log('add to array panel1 !!! ');
-                        console.log(arrayPanels.panels1);
+                        debugLog('add to array panel1 !!! ');
+                        debugLog(arrayPanels.panels1);
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
                         lastCharacter = layout_code.charAt(i);
@@ -2544,31 +2797,31 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                         lastCharacter = layout_code.charAt(i);
                         if (total_panels === 2) {
                             arrayPanels.panels2 = arrayPanels.panels2 + total_panels;
-                            console.log('reset arrayPanels1');
+                            debugLog('reset arrayPanels1');
                             // if current character is same with last, panels1 must reset
                             arrayPanels.panels1 = arrayPanels.panels1 - 1;
                         } else if (total_panels === 3) {
                             arrayPanels.panels3 = arrayPanels.panels3 + total_panels;
-                            console.log('reset arrayPanels2');
+                            debugLog('reset arrayPanels2');
                             // if current character is same with last, panels2 must reset
                             arrayPanels.panels2 = arrayPanels.panels2 - (total_panels - 1);
                         } else if (total_panels > 3) {
                             arrayPanels.multiPanels = arrayPanels.multiPanels + total_panels;
-                            console.log('reset arrayPanels3');
+                            debugLog('reset arrayPanels3');
                             // if current character is same with last, panels3 must reset
                             arrayPanels.panels3 = arrayPanels.panels3 - (total_panels - 1);
                         }
                         if (i == 0) arrayPanels.panels1 = 1;
-                        console.log('TOTAL PANELS same ' + total_panels);
-                        console.log(arrayPanels);
+                        debugLog('TOTAL PANELS same ' + total_panels);
+                        debugLog(arrayPanels);
                         lastCharacter = layout_code.charAt(i);
                     }
                 }
             }
             multipanel_singlepanel_width = $("input#property_width").val() / total_panels;
-            // console.log('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
+            // debugLog('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
         }
-        console.log(arrayPanels);
+        debugLog(arrayPanels);
 
         // se verifica daca sunt caractere pentru 1 panel si se verifica daca totalul la max width poisibil pentru toate caracterele 1 panel este mai mai mic sau mai mare (eroare) decat limita sumei posibila a acestora
         current_max_width = 0
@@ -2580,7 +2833,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             for (var i = 1; i <= nr_individuals; i++) {
                 width_shutter = width_shutter + parseFloat($("#property_width" + i + "").val());
             }
-            console.log('width_shutter: ' + width_shutter);
+            debugLog('width_shutter: ' + width_shutter);
         }
 
         if (arrayPanels.panels1 > 0) {
@@ -2594,10 +2847,10 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  basswoodPlus-147  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = panel3_width;
             current_max_width = current_max_width + (arrayPanels.panels3 * multi_panel_max_width_limit);
-            console.log('arrayPanels.panels3 > 0');
+            debugLog('arrayPanels.panels3 > 0');
         }
         if (arrayPanels.multiPanels > 0) {
 
@@ -2608,10 +2861,10 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             if (!(style_check.indexOf('Tracked') > -1)) {
                 error_text = '<br/>Layout code is invalid. No more than 3 consecutive ' + last_char + ' panels allowed.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 width_and_height_errors_count++;
                 width_and_height_errors = width_and_height_errors + error_text;
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
 
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
@@ -2623,18 +2876,18 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (style_check.indexOf('Tracked') == -1) {
             if (arrayPanels.panels1 > 0 && arrayPanels.panels2 === 0 && arrayPanels.panels3 === 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    console.log('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
+                    debugLog('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
                     error_text = '<br/>Max width for single panel too high. Max width ' + panel1_max_width_limit;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
                 if ((width_shutter / arrayPanels.panels1) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for single panel too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
@@ -2642,18 +2895,18 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
             if (arrayPanels.panels2 > 0 || arrayPanels.panels3 > 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Max width for multi-fold panels too high.';
                     errors++;
-                    console.log('current_max_width: ' + current_max_width);
+                    debugLog('current_max_width: ' + current_max_width);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
                 if (((width_shutter / arrayPanels.panels1) + (width_shutter / arrayPanels.panels2) + (width_shutter / arrayPanels.panels3)) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for multi-fold panels too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
@@ -2667,12 +2920,12 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         }
 
         if (style_check.indexOf('Tracked') > -1) {
-            // console.log('In Tracked');
+            // debugLog('In Tracked');
             var multi_panel_max_width_limit = 890;
             // if (id_material == 187) {
             //     multi_panel_max_width_limit = 750;
             // }
-            // if (id_material == 139 || id_material == 138) {
+            // if (id_material == 139 || id_material == 147 || id_material == 138) {
             //     multi_panel_max_width_limit = 890;
             // }
             // if (id_material == 188 || id_material == 137) {
@@ -2680,20 +2933,20 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             // }
 
             current_max_width = arrayPanels.multiPanels * multi_panel_max_width_limit;
-            console.log('current_max_width: ' + current_max_width);
+            debugLog('current_max_width: ' + current_max_width);
             if (current_max_width < width_shutter) {
-                // console.log('current_max_width: ' + current_max_width);
+                // debugLog('current_max_width: ' + current_max_width);
                 error_text = '<br/>Max width for single panel too high.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
             if ((width_shutter / arrayPanels.multiPanels) < 200) {
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
                 error_text = '<br/>Min width for multi-fold panels too low.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
@@ -2719,20 +2972,20 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                             }
                         });
                         if (notEven) {
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                             errors++;
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             error_text = 'Layout Configuration not supported. Please correct.';
                             modalShowError(error_text);
                         } else {
                             tracked_layout_error = false;
                         }
                     } else {
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                         errors++;
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         error_text = 'Layout Configuration not supported. Please correct.';
                         modalShowError(error_text);
                     }
@@ -2741,7 +2994,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
             if (tracked_layout_error) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 22');
                 error_text = 'Tracked shutters require even number of panels per layout code';
                 modalShowError(error_text);
@@ -2757,7 +3010,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         //             last_char = layout_code.charAt(i);
         //             continue;
         //         }
-        //         //// console.log(layout_code.charAt(i));
+        //         //// debugLog(layout_code.charAt(i));
         //
         //         total_panels++;
         //         if (last_char != layout_code.charAt(i)) {
@@ -2770,15 +3023,15 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         //             counter++;
         //         }
         //
-        //         // console.log('counter litere 2: ' + counter);
-        //         // console.log('counter litere tracked2: ' + counter);
+        //         // debugLog('counter litere 2: ' + counter);
+        //         // debugLog('counter litere tracked2: ' + counter);
         //
         //         last_char = layout_code.charAt(i);
         //     }
         //     if ((style_check.indexOf('Tracked') > -1) && (counter % 2 != 0)) {
         //         tracked_layout_error = true;
         //         errors++;
-        //         // console.log('errors: ' + errors);
+        //         // debugLog('errors: ' + errors);
         //         addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 2');
         //         error_text = 'Tracked shutters require even number of panels per layout code';
         //         modalShowError(error_text);
@@ -2793,7 +3046,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         // }
 
         // if (tracked_layout_error) {
-        // 	errors++; // console.log('errors: ' + errors);
+        // 	errors++; // debugLog('errors: ' + errors);
         // 	addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 2');
         // 	error_text = 'Tracked shutters require even number of panels per layout code';
         // 	modalShowError(error_text);
@@ -2808,7 +3061,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         if (width_shutter != '' && width_shutter < min_width) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should be at least ' + min_width + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -2820,7 +3073,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         //For Blackout shutters a Tpost is required for >1400mm width
         if (shutter_type == 'Blackout' && ((layout_code.match(/t/ig) || []).length == 0 && (layout_code.match(/b/ig) || []).length == 0 && (layout_code.match(/c/ig) || []).length == 0) && width_shutter > 1400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_layoutcode", 'Shutter and Blackout Blind require a T-post if width is more than 1400mm');
         }
 
@@ -2828,7 +3081,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (!$indiv) {
             if ((layout_code.indexOf("B") > 0 || layout_code.indexOf("C") > 0) && (style_check.indexOf('Bay') == -1) && (style_check.indexOf('Tracked') == -1)) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Please choose Bay Window style with a layout code containing B or C.');
             }
         }
@@ -2842,7 +3095,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             // property_tposttype
             if ($('input[name=property_tposttype]:checked').length < 1) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 modalShowError('Please choose T-Post type.');
             }
         }
@@ -2901,9 +3154,9 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 var panel1_height = split_panel_at_height;
                 var panel2_height = check_height - panel1_height;
 
-                // console.log("Panel 1 height:" + panel1_height);
-                // console.log("Panel 2 height:" + panel2_height);
-                // console.log("Height required split:" + height_required_split);
+                // debugLog("Panel 1 height:" + panel1_height);
+                // debugLog("Panel 2 height:" + panel2_height);
+                // debugLog("Height required split:" + height_required_split);
 
                 if (panel1_height > height_required_split && panel2_height > height_required_split) {
                     split_required = true;
@@ -2931,7 +3184,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -2943,7 +3196,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height 2 and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -2956,7 +3209,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (parseInt(check_controlsplitheight) == 0) {
                     error_text = '<br/>Split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -2965,7 +3218,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (check_controlsplitheight > split_max_height) {
                     error_text = '<br/>Split height should be less than ' + split_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -2973,7 +3226,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (check_controlsplitheight < split_min_height) {
                     error_text = '<br/>Split height should be more than ' + split_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -2987,7 +3240,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (parseInt(check_controlsplitheight2) == 0) {
                     error_text = '<br/>Second split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -2996,7 +3249,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (check_controlsplitheight2 > split2_max_height) {
                     error_text = '<br/>Second split height should be less than ' + split2_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -3004,7 +3257,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 if (check_controlsplitheight2 < split2_min_height) {
                     error_text = '<br/>Second split height should be more than ' + split2_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -3022,75 +3275,60 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 newDrawFile = $('#attachment_draw').val();
                 if (existingShapeFile == '' && newShapeFile == '' && newDrawFile == '') {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("shape-upload-container", 'Please provide the desired shape for style "Shaped & French Cut Out"');
                 }
             }
         }
 
-        // if ($('input[name=property_style]:checked').length === 0) {
-        //     errors++;
-        //     // console.log('errors: ' + errors);
-        //     // console.log('errors: ' + errors);
-        //     addError("choose-style", 'Please select a style for shutter!');
-        //     addError(jQuery('.choose-style').attr('id'), 'Please fill in this field');
-        //     // modalShowError('Please select a style for shutter!');
-        // }
-
-        // if ($("#canvas_container1 svg").length > 0) {
-        //     $("#shutter_svg").html($("#canvas_container1").html());
-        // }
-        // console.log('errors: ' + errors);
-        //alert('errors: '+errors)
-
-
-        if (property_material == 139 || property_material == 138 || property_material == 188 || property_material == 6) {
+        // Validare limite midrail/divider pe baza materialului selectat
+        if (property_material == 139 || property_material == 147 || property_material == 138 || property_material == 188 || property_material == 6) {
             if ((property_midrailheight > 1800) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1800');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -3098,49 +3336,49 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2400) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2400');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 2700) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 2700');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 2700) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 2700');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -3148,64 +3386,64 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
         }
 
-        console.log('errors_no_warranty ' + errors_no_warranty);
+        debugLog('errors_no_warranty ' + errors_no_warranty);
         if (errors === 0 && errors_no_warranty === 0) {
 
             var formser = jQuery('#add-product-single-form').serialize();
             // var svg = jQuery('#canvas_container1').html();
 
 
-            //// console.log(formser);
+            //// debugLog(formser);
             //alert(formser);
-            // console.log('submit 2');
+            // debugLog('submit 2');
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update.php";
             var nr_individuals = $("#property_nr_sections").val();
             if (nr_individuals) {
@@ -3223,7 +3461,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             })
                 .done(function (data) {
                     //e.preventDefault();
-                    console.log(data);
+                    debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
                     var edit_customer = jQuery('input[name="edit_customer"]').val();
@@ -3249,7 +3487,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -3258,11 +3496,11 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -3281,7 +3519,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         if (layout_code) {
@@ -3292,7 +3530,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -3302,7 +3540,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (property_hingecolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_hingecolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_hingecolour", 'Please select hinge colour for shutter!');
             error_text = 'Please select hinge colour';
@@ -3312,7 +3550,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
         if (property_shuttercolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_shuttercolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_shuttercolour", 'Please select shutter colour!');
             error_text = 'Please select shutter colour';
@@ -3323,7 +3561,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
                 errors_no_warranty++;
                 errors++;
-                // console.log('errors_no_warranty 3');
+                // debugLog('errors_no_warranty 3');
                 $("#property_blackoutblindcolour").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_blackoutblindcolour", 'Please select Blackout Blind Colour!');
                 error_text = 'Please select Blackout Blind Colour';
@@ -3331,35 +3569,35 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
             }
         }
 
-        console.log('3 property_controltype.length ' + property_controltype.length);
+        debugLog('3 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
                 modalShowErrorNoWarranty(error_text);
             }
         }
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
         if (errors_no_warranty === 0) {
             var formser = jQuery('#add-product-single-form').serialize();
             // var svg = jQuery('#canvas_container1').html();
 
 
-            // console.log(formser);
+            // debugLog(formser);
             //alert(formser);
-            // console.log('submit 3');
+            // debugLog('submit 3');
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update.php";
             var nr_individuals = $("#property_nr_sections").val();
             if (nr_individuals) {
@@ -3378,7 +3616,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 .done(function (data) {
                     // json encode data
 
-                    console.log(data);
+                    debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
                     var edit_customer = jQuery('input[name="edit_customer"]').val();
@@ -3404,7 +3642,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
     function getSomething() {
 
         $.getJSON("/wp-content/plugins/shutter-module/ajax/shutter-values.php", function () {
-            // console.log("success");
+            // debugLog("success");
         })
             .done(function (data) {
 
@@ -3412,7 +3650,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 var result = JSON.stringify(data);
                 sessionStorage.prop_val = JSON.stringify(data);
                 //property_values.push( sessionStorage.prop_val );
-                //// console.log( "JSON success in get " + JSON.stringify(data) );
+                //// debugLog( "JSON success in get " + JSON.stringify(data) );
                 return result;
             });
         //return result;
@@ -3420,7 +3658,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
     }
 
     var property_values = localStorage.getItem("prop_val");
-    // console.log("json values outside get: " + property_values);
+    // debugLog("json values outside get: " + property_values);
     // alert(property_values);
 
 
@@ -3474,7 +3712,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
     var property_midrailheight = jQuery('#property_midrailheight').val();
     var property_midrailheight2 = jQuery('#property_midrailheight2').val();
     var property_bladesize = jQuery('#property_bladesize').val();
-    console.log(property_bladesize);
+    debugLog(property_bladesize);
     var property_room_other = jQuery('#property_room_other').val();
     var property_stile = jQuery('input[name=property_stile]:checked').val();
     var property_solidtype = jQuery('input[name=property_solidtype]:checked').val();
@@ -3493,11 +3731,11 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         //check if select or input that are marked as required have values
         jQuery("select.required, input.required").each(function (index) {
-            // console.log(jQuery(this).attr('id') + ' required ' + index);
+            // debugLog(jQuery(this).attr('id') + ' required ' + index);
             if ((jQuery(this).val() === '' || jQuery(this).val() === null) && !jQuery(this).is(":hidden")) {
-                // console.log(' empty');
+                // debugLog(' empty');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError(jQuery(this).attr('id'), 'Please fill in this field');
                 modalShowError('Please fill in this field - ' + jQuery(this).attr('id'));
             }
@@ -3508,11 +3746,11 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -3520,52 +3758,52 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         }
 
         if ((property_room_other.length === 0) && !jQuery('#s2id_property_room_other').is(":hidden")) {
-            // console.log('room name nu e setat');
+            // debugLog('room name nu e setat');
             //alert('bladesize nu e setat');
             errors_no_warranty++;
             errors++;
             alert('No room name');
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Room Name is empty';
             addError("property_room_other", error_text);
             modalShowErrorNoWarranty(error_text);
         }
 
         if ((property_stile.length === 0) && !jQuery('#s2id_property_stile').is(":hidden")) {
-            // console.log('property_stile nu e setat');
+            // debugLog('property_stile nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile is empty';
             addError("property_stile", error_text);
             modalShowError(error_text);
         }
 
         if (property_solidtype == null && $('#solidtype').css('display') != 'none') {
-            //// console.log('property_solidtype nu e setat');
+            //// debugLog('property_solidtype nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'property stile type is empty';
             addError("solidtype", error_text);
             modalShowError(error_text);
         }
 
         if (property_hingecolour.length === 0) {
-            // console.log('property_hingecolour nu e setat');
+            // debugLog('property_hingecolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property hingecolour is empty';
             addError("property_hingecolour", error_text);
             modalShowError(error_text);
         }
 
         if (property_shuttercolour.length === 0) {
-            // console.log('property_shuttercolour nu e setat');
+            // debugLog('property_shuttercolour nu e setat');
             //alert('bladesize nu e setat');
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Property shuttercolour is empty';
             addError("property_shuttercolour", error_text);
             modalShowError(error_text);
@@ -3574,36 +3812,36 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if ($('input[name=property_frametype]:checked').val() == '171') {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
-                //// console.log('property_shuttercolour nu e setat');
+                //// debugLog('property_shuttercolour nu e setat');
                 //alert('bladesize nu e setat');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'Property Blackout Blind Colour is empty';
                 addError("property_blackoutblindcolour", error_text);
                 modalShowError(error_text);
             }
         }
 
-        console.log('4 property_controltype.length ' + property_controltype.length);
+        debugLog('4 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         if (!$("#property_controltype").closest('div').hasClass('solid-selected')) {
-            console.log('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
+            debugLog('inside property_controltype $(\'#s2id_property_controltype\').is(\':visible\')');
             // Check if input#property_controltype has no value
             var controlTypeValue = $('#property_controltype').val().trim();
-            console.log('controlTypeValue: ' + controlTypeValue);
+            debugLog('controlTypeValue: ' + controlTypeValue);
 
             if (controlTypeValue === '') {
                 errors_no_warranty++;
                 errors++;
-                console.log('errors_no_warranty 3');
+                debugLog('errors_no_warranty 3');
                 $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_controltype", 'Please select control type!');
                 error_text = 'Please select controltype';
                 modalShowErrorNoWarranty(error_text);
             }
         }
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
 
         if (property_material === '' || property_material === null) {
@@ -3641,7 +3879,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text);
 
             } else if (check_midrailheight > (property_height - 300)) {
@@ -3649,12 +3887,12 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 width_and_height_errors = width_and_height_errors + error_text + '. ';
                 width_and_height_errors_count++;
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_midrailheight", error_text)
 
             }
         } else {
-            // console.log('este special shapee');
+            // debugLog('este special shapee');
         }
 
         //midrailheight required for >1800 height and NOT Tier styles
@@ -3663,12 +3901,12 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if ($("#property_midrailheight").val() === '' || $("#property_midrailheight").val() === 0) {
 
                     $("#property_midrailheight").addClass("required");
-                    // console.log('midrail required');
+                    // debugLog('midrail required');
                     error_text = 'Midrail Height should be completed';
                     width_and_height_errors = width_and_height_errors + error_text + '. ';
                     width_and_height_errors_count++;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_midrailheight", error_text);
                     modalShowError(error_text);
                 }
@@ -3676,12 +3914,12 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         }
         if (property_height >= 1800 && property_height <= 3000 && style_check.indexOf('Tracked') >= 0 && check_midrailheight == 0) {
             $("#property_midrailheight").addClass("required");
-            // console.log('midrail required');
+            // debugLog('midrail required');
             error_text = 'Midrail Height should be completed';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -3689,7 +3927,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if ($("#property_height").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -3699,7 +3937,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if ($("#property_width").val() == '') {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should completed!';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -3711,7 +3949,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //minimum height check
         if ($("#property_height").val() != '' && $("#property_material").val() == '137' && parseFloat($("#property_height").val()) < 300) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 300mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -3721,7 +3959,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if ($("#property_height").val() != '' && $("#property_material").val() == '187' && parseFloat($("#property_height").val()) < 400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 400mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -3731,7 +3969,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) < 250) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should be at least 250mm';
             width_and_height_errors = width_and_height_errors + error_text + '. ';
             width_and_height_errors_count++;
@@ -3746,7 +3984,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (id_material == 137) {
             panel_height = 1350;
         }
-        //biowood-138, supreme-139, earth-187
+        //biowood-138, basswood-139, basswoodPlus-147, earth-187
         else {
             panel_height = 1500;
         }
@@ -3755,7 +3993,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (style_check.indexOf('Tier') > -1) {
             if (check_height > panel_height && check_totheight == 0) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 error_text = 'T-o-t height required for height more than ' + panel_height.toString() + 'mm. ';
                 width_and_height_errors = width_and_height_errors + error_text;
                 width_and_height_errors_count++;
@@ -3772,7 +4010,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             if (style_check.indexOf('Combi') < -1) {
                 if (check_height > panel_height && check_midrailheight == 0 && $("#property_midrailheight").hasClass('required')) {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     error_text = 'Midrail height required for height more than ' + panel_height.toString() + 'mm. ';
                     width_and_height_errors = width_and_height_errors + error_text;
                     width_and_height_errors_count++;
@@ -3785,7 +4023,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //max height
         if ($("#property_height").val() != '' && parseFloat($("#property_height").val()) > max_height) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Height should not exceed ' + max_height.toString() + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -3797,7 +4035,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (check_midrailheight > 0 && (check_midrailheight > (check_height - 300))) {
             error_text = 'Midrail Height should not exceed height of shutter ' + (check_height - 300) + 'mm. ';
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_midrailheight", error_text);
             modalShowError(error_text);
         }
@@ -3808,7 +4046,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name=property_frametype]:checked').length == 0) {
             if (installation != 27) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 $("<span class=\"error-text\">Please select frame type</span>").insertBefore($("#choose-frametype"));
                 //$("#choose-frametype").closest(".panel").find(".panel-collapse").collapse("show");
                 error_text = 'Please select frame type';
@@ -3821,7 +4059,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -3840,7 +4078,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         if (layout_code) {
@@ -3851,7 +4089,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -3862,7 +4100,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 35) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -3873,7 +4111,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_trackedtype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Track Installation type</span>").insertBefore($("#trackedtype"));
             $("#trackedtype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Track Installation type';
@@ -3884,7 +4122,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_bypasstype"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select By-pass Type</span>").insertBefore($("#bypasstype"));
             $("#bypasstype").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select By-pass Type';
@@ -3895,7 +4133,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_lightblocks"]:checked').length == 0 && $('input[name="property_style"]:checked').val() == 37) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("<span class=\"error-text\">Please select Light Blocks</span>").insertBefore($("#lightblocks"));
             $("#lightblocks").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Please select Light Blocks';
@@ -3921,7 +4159,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
 
@@ -3955,7 +4193,8 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
          *  - (5) Ecow Plus
          *  - (6) Biow
          *  - (138) Biowood Plus
-         *  - (139) Supreme
+         *  - (139) Basswood
+         *  - (147) Basswood Plus
          *
          * Louvre size-uri incluse:
          *  - (164) -> 50.8 mm
@@ -4026,7 +4265,22 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 panel2: 625,
                 panel3: 550
             },
-            139: { // Supreme
+            139: { // Basswood
+                panel1: {
+                    // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
+                    overrides: {
+                        164: 890,
+                        53: 890,
+                        54: 890,
+                        55: 890,
+                        165: 890
+                    },
+                    default: 890
+                },
+                panel2: 625, // Poți ajusta dacă tabelul indică altceva
+                panel3: 550
+            },
+            147: { // Basswood Plus
                 panel1: {
                     // Tabelul indică 890 pentru (164, 53, 54, 55, 165)
                     overrides: {
@@ -4101,11 +4355,11 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         }
 
 // Debug info
-        console.log('Material ID:', id_material);
-        console.log('Louvre Size:', check_louvresize);
-        console.log('panel1_width:', panel1_width);
-        console.log('panel2_width:', panel2_width);
-        console.log('panel3_width:', panel3_width);
+        debugLog('Material ID:', id_material);
+        debugLog('Louvre Size:', check_louvresize);
+        debugLog('panel1_width:', panel1_width);
+        debugLog('panel2_width:', panel2_width);
+        debugLog('panel3_width:', panel3_width);
 
 
         var arrayPanels = {
@@ -4122,23 +4376,23 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 lastCharacter = layout_code.charAt(i);
             }
             currentCharacter = layout_code.charAt(i);
-            console.log('======================================');
-            console.log('currentCharacter ' + currentCharacter);
-            console.log('lastCharacter ' + lastCharacter);
+            debugLog('======================================');
+            debugLog('currentCharacter ' + currentCharacter);
+            debugLog('lastCharacter ' + lastCharacter);
 
             if (style_check.indexOf('Tracked') > -1) {
                 arrayPanels.multiPanels = arrayPanels.multiPanels + 1;
-                console.log('Total Panels finded Tracked : ' + total_panels);
+                debugLog('Total Panels finded Tracked : ' + total_panels);
             } else {
                 // If current layout character is B , C, T, G
                 if (layout_code.charAt(i) != 'L' && layout_code.charAt(i) != 'R') {
                     last_char = layout_code.charAt(i);
-                    console.log('Last Char ' + last_char);
+                    debugLog('Last Char ' + last_char);
                     // continue;
-                    console.log('Total Panels finded : ' + total_panels);
-                    console.log('TOTAL PANELS BCTG ' + total_panels);
-                    console.log(arrayPanels);
-                    console.log('reset total');
+                    debugLog('Total Panels finded : ' + total_panels);
+                    debugLog('TOTAL PANELS BCTG ' + total_panels);
+                    debugLog(arrayPanels);
+                    debugLog('reset total');
                     total_panels = 0;
                     lastCharacter = layout_code.charAt(i);
                 } else {
@@ -4146,20 +4400,20 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                     // and current is different from last character
                     // and last character is NOT B, C, T, G
                     if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) < 0) {
-                        console.log('Total Panels finded : ' + total_panels);
-                        console.log('add to array panel1 !!! ');
+                        debugLog('Total Panels finded : ' + total_panels);
+                        debugLog('add to array panel1 !!! ');
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
-                        console.log('TOTAL PANELS RL ' + arrayPanels.panels1);
-                        console.log(arrayPanels);
-                        console.log('reset total');
+                        debugLog('TOTAL PANELS RL ' + arrayPanels.panels1);
+                        debugLog(arrayPanels);
+                        debugLog('reset total');
                         lastCharacter = layout_code.charAt(i);
                     } else if (currentCharacter !== lastCharacter && 'BCTG'.indexOf(lastCharacter) >= 0) {
                         // If current layout character is L or R
                         // and current is different from last character
                         // and last character is B, C, T, G
-                        console.log('add to array panel1 !!! ');
-                        console.log(arrayPanels.panels1);
+                        debugLog('add to array panel1 !!! ');
+                        debugLog(arrayPanels.panels1);
                         arrayPanels.panels1 = arrayPanels.panels1 + 1;
                         total_panels = 1;
                         lastCharacter = layout_code.charAt(i);
@@ -4170,31 +4424,31 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                         lastCharacter = layout_code.charAt(i);
                         if (total_panels === 2) {
                             arrayPanels.panels2 = arrayPanels.panels2 + total_panels;
-                            console.log('reset arrayPanels1');
+                            debugLog('reset arrayPanels1');
                             // if current character is same with last, panels1 must reset
                             arrayPanels.panels1 = arrayPanels.panels1 - 1;
                         } else if (total_panels === 3) {
                             arrayPanels.panels3 = arrayPanels.panels3 + total_panels;
-                            console.log('reset arrayPanels2');
+                            debugLog('reset arrayPanels2');
                             // if current character is same with last, panels2 must reset
                             arrayPanels.panels2 = arrayPanels.panels2 - (total_panels - 1);
                         } else if (total_panels > 3) {
                             arrayPanels.multiPanels = arrayPanels.multiPanels + total_panels;
-                            console.log('reset arrayPanels3');
+                            debugLog('reset arrayPanels3');
                             // if current character is same with last, panels3 must reset
                             arrayPanels.panels3 = arrayPanels.panels3 - (total_panels - 1);
                         }
                         if (i == 0) arrayPanels.panels1 = 1;
-                        console.log('TOTAL PANELS same ' + total_panels);
-                        console.log(arrayPanels);
+                        debugLog('TOTAL PANELS same ' + total_panels);
+                        debugLog(arrayPanels);
                         lastCharacter = layout_code.charAt(i);
                     }
                 }
             }
             multipanel_singlepanel_width = $("input#property_width").val() / total_panels;
-            // console.log('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
+            // debugLog('multipanel_singlepanel_width ' + multipanel_singlepanel_width);
         }
-        console.log(arrayPanels);
+        debugLog(arrayPanels);
 
         // se verifica daca sunt caractere pentru 1 panel si se verifica daca totalul la max width poisibil pentru toate caracterele 1 panel este mai mai mic sau mai mare (eroare) decat limita sumei posibila a acestora
         current_max_width = 0
@@ -4206,7 +4460,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             for (var i = 1; i <= nr_individuals; i++) {
                 width_shutter = width_shutter + parseFloat($("#property_width" + i + "").val());
             }
-            console.log('width_shutter: ' + width_shutter);
+            debugLog('width_shutter: ' + width_shutter);
         }
 
         if (arrayPanels.panels1 > 0) {
@@ -4220,10 +4474,10 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             current_max_width = current_max_width + (arrayPanels.panels2 * multi_panel_max_width_limit);
         }
         if (arrayPanels.panels3 > 0) {
-            // biowood-138  supreme-139  green-137   earth-187 ecowood - 188
+            // biowood-138  basswood-139  basswoodPlus-147  green-137   earth-187 ecowood - 188
             var multi_panel_max_width_limit = panel3_width;
             current_max_width = current_max_width + (arrayPanels.panels3 * multi_panel_max_width_limit);
-            console.log('arrayPanels.panels3 > 0');
+            debugLog('arrayPanels.panels3 > 0');
         }
         if (arrayPanels.multiPanels > 0) {
 
@@ -4234,10 +4488,10 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             if (!(style_check.indexOf('Tracked') > -1)) {
                 error_text = '<br/>Layout code is invalid. No more than 3 consecutive ' + last_char + ' panels allowed.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 width_and_height_errors_count++;
                 width_and_height_errors = width_and_height_errors + error_text;
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
 
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
@@ -4249,18 +4503,18 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (style_check.indexOf('Tracked') == -1) {
             if (arrayPanels.panels1 > 0 && arrayPanels.panels2 === 0 && arrayPanels.panels3 === 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    console.log('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
+                    debugLog('width shutter: ' + width_shutter + ' width panels max ' + current_max_width);
                     error_text = '<br/>Max width for single panel too high. Max width ' + panel1_max_width_limit;
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
                 if ((width_shutter / arrayPanels.panels1) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for single panel too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
@@ -4268,18 +4522,18 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
             if (arrayPanels.panels2 > 0 || arrayPanels.panels3 > 0 && arrayPanels.multiPanels === 0) {
                 if (current_max_width < width_shutter) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Max width for multi-fold panels too high.';
                     errors++;
-                    console.log('current_max_width: ' + current_max_width);
+                    debugLog('current_max_width: ' + current_max_width);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
                 if (((width_shutter / arrayPanels.panels1) + (width_shutter / arrayPanels.panels2) + (width_shutter / arrayPanels.panels3)) < 200) {
-                    // console.log('counter litere: ' + counter);
+                    // debugLog('counter litere: ' + counter);
                     error_text = '<br/>Min width for multi-fold panels too low.';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("property_layoutcode", error_text);
                     modalShowError(error_text);
                 }
@@ -4292,12 +4546,12 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         }
 
         if (style_check.indexOf('Tracked') > -1) {
-            // console.log('In Tracked');
+            // debugLog('In Tracked');
             var multi_panel_max_width_limit = 890;
             // if (id_material == 187) {
             //     multi_panel_max_width_limit = 750;
             // }
-            // if (id_material == 139 || id_material == 138) {
+            // if (id_material == 139 || id_material == 147 || id_material == 138) {
             //     multi_panel_max_width_limit = 890;
             // }
             // if (id_material == 188 || id_material == 137) {
@@ -4305,20 +4559,20 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             // }
 
             current_max_width = arrayPanels.multiPanels * multi_panel_max_width_limit;
-            console.log('current_max_width: ' + current_max_width);
+            debugLog('current_max_width: ' + current_max_width);
             if (current_max_width < width_shutter) {
-                // console.log('current_max_width: ' + current_max_width);
+                // debugLog('current_max_width: ' + current_max_width);
                 error_text = '<br/>Max width for single panel too high.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
             if ((width_shutter / arrayPanels.multiPanels) < 200) {
-                // console.log('counter litere: ' + counter);
+                // debugLog('counter litere: ' + counter);
                 error_text = '<br/>Min width for multi-fold panels too low.';
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", error_text);
                 modalShowError(error_text);
             }
@@ -4344,20 +4598,20 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                             }
                         });
                         if (notEven) {
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                             errors++;
-                            // console.log('errors: ' + errors);
+                            // debugLog('errors: ' + errors);
                             error_text = 'Layout Configuration not supported. Please correct.';
                             modalShowError(error_text);
                         } else {
                             tracked_layout_error = false;
                         }
                     } else {
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         addError("property_layoutcode_tracked", 'Layout Configuration not supported. Please correct.');
                         errors++;
-                        // console.log('errors: ' + errors);
+                        // debugLog('errors: ' + errors);
                         error_text = 'Layout Configuration not supported. Please correct.';
                         modalShowError(error_text);
                     }
@@ -4366,7 +4620,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
             if (tracked_layout_error) {
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 22');
                 error_text = 'Tracked shutters require even number of panels per layout code';
                 modalShowError(error_text);
@@ -4381,7 +4635,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //             last_char = layout_code.charAt(i);
         //             continue;
         //         }
-        //         //// console.log(layout_code.charAt(i));
+        //         //// debugLog(layout_code.charAt(i));
         //
         //         total_panels++;
         //         if (last_char != layout_code.charAt(i)) {
@@ -4396,10 +4650,10 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //
         //         if (layout_code.charAt(i + 1) == 'undefined' || layout_code.charAt(i + 1) != layout_code.charAt(i)) {
         //             if (counter == 1) {
-        //                 // console.log('counter 1');
+        //                 // debugLog('counter 1');
         //                 current_max_width = counter * panel1_width;
         //             } else if (counter == 2) {
-        //                 // console.log('counter 2');
+        //                 // debugLog('counter 2');
         //                 current_max_width = counter * panel2_width;
         //             }
         //             // else if (counter == 3) {
@@ -4410,10 +4664,10 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //                     current_max_width = counter * panel2_width;
         //                     error_text = '<br/>Layout code is invalid. No more than 2 consecutive ' + last_char + ' panels allowed.';
         //                     errors++;
-        //                     // console.log('errors: ' + errors);
+        //                     // debugLog('errors: ' + errors);
         //                     width_and_height_errors_count++;
         //                     width_and_height_errors = width_and_height_errors + error_text;
-        //                     // console.log('counter litere: ' + counter);
+        //                     // debugLog('counter litere: ' + counter);
         //
         //                     addError("property_layoutcode", error_text);
         //                     modalShowError(error_text);
@@ -4421,7 +4675,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //             }
         //             max_width = max_width + current_max_width;
         //         }
-        //         // console.log('counter litere 2: ' + counter);
+        //         // debugLog('counter litere 2: ' + counter);
         //
         //         last_char = layout_code.charAt(i);
         //     }
@@ -4435,7 +4689,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         // }
 
         // if (tracked_layout_error) {
-        // 	errors++; // console.log('errors: ' + errors);
+        // 	errors++; // debugLog('errors: ' + errors);
         // 	addError("property_layoutcode", 'Tracked shutters require even number of panels per layout code 3');
         // }
 
@@ -4449,7 +4703,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         if (width_shutter != '' && width_shutter <= min_width) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             error_text = 'Width should be at least ' + min_width + 'mm. ';
             width_and_height_errors = width_and_height_errors + error_text;
             width_and_height_errors_count++;
@@ -4460,7 +4714,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         //For Blackout shutters a Tpost is required for >1400mm width
         if (shutter_type == 'Blackout' && ((layout_code.match(/t/ig) || []).length == 0 && (layout_code.match(/b/ig) || []).length == 0 && (layout_code.match(/c/ig) || []).length == 0) && width_shutter > 1400) {
             errors++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             addError("property_layoutcode", 'Shutter and Blackout Blind require a T-post if width is more than 1400mm');
         }
 
@@ -4468,7 +4722,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (!$indiv) {
             if ((layout_code.indexOf("B") > 0 || layout_code.indexOf("C") > 0) && (style_check.indexOf('Bay') == -1) && (style_check.indexOf('Tracked') == -1)) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 addError("property_layoutcode", 'Please choose Bay Window style with a layout code containing B or C.');
             }
         }
@@ -4482,7 +4736,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             // property_tposttype
             if ($('input[name=property_tposttype]:checked').length < 1) {
                 errors++;
-                console.log('errors: ' + errors);
+                debugLog('errors: ' + errors);
                 modalShowError('Please choose T-Post type.');
             }
         }
@@ -4541,9 +4795,9 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 var panel1_height = split_panel_at_height;
                 var panel2_height = check_height - panel1_height;
 
-                // console.log("Panel 1 height:" + panel1_height);
-                // console.log("Panel 2 height:" + panel2_height);
-                // console.log("Height required split:" + height_required_split);
+                // debugLog("Panel 1 height:" + panel1_height);
+                // debugLog("Panel 2 height:" + panel2_height);
+                // debugLog("Height required split:" + height_required_split);
 
                 if (panel1_height > height_required_split && panel2_height > height_required_split) {
                     split_required = true;
@@ -4571,7 +4825,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -4583,7 +4837,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (distance <= 10) {
                     error_text = '<br/>Distance between split height 2 and midrail should be more than 10mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -4596,7 +4850,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (parseInt(check_controlsplitheight) == 0) {
                     error_text = '<br/>Split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -4605,7 +4859,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (check_controlsplitheight > split_max_height) {
                     error_text = '<br/>Split height should be less than ' + split_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -4613,7 +4867,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (check_controlsplitheight < split_min_height) {
                     error_text = '<br/>Split height should be more than ' + split_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight", error_text);
@@ -4627,7 +4881,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (parseInt(check_controlsplitheight2) == 0) {
                     error_text = '<br/>Second split height is required for ' + check_louvresize + 'mm and height ' + check_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -4636,7 +4890,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (check_controlsplitheight2 > split2_max_height) {
                     error_text = '<br/>Second split height should be less than ' + split2_max_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -4644,7 +4898,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 if (check_controlsplitheight2 < split2_min_height) {
                     error_text = '<br/>Second split height should be more than ' + split2_min_height + 'mm';
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     width_and_height_errors_count++;
                     width_and_height_errors = width_and_height_errors + error_text;
                     addError("property_controlsplitheight2", error_text);
@@ -4662,74 +4916,61 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 newDrawFile = $('#attachment_draw').val();
                 if (existingShapeFile == '' && newShapeFile == '' && newDrawFile == '') {
                     errors++;
-                    // console.log('errors: ' + errors);
+                    // debugLog('errors: ' + errors);
                     addError("shape-upload-container", 'Please provide the desired shape for style "Shaped & French Cut Out"');
                 }
             }
         }
 
-        // if ($('input[name=property_style]:checked').length === 0) {
-        //     errors++;
-        //     // console.log('errors: ' + errors);
-        //     addError("choose-style", 'Please select a style for shutter!');
-        //     addError(jQuery('.choose-style').attr('id'), 'Please fill in this field');
-        //     // modalShowError('Please select a style for shutter!');
-        // }
-
-        // if ($("#canvas_container1 svg").length > 0) {
-        //     $("#shutter_svg").html($("#canvas_container1").html());
-        // }
-        // console.log('errors: ' + errors)
-        //alert('errors: '+errors)
-
-
-        if (property_material == 139 || property_material == 138 || property_material == 188 || property_material == 6) {
+        // Validare limite midrail/divider pe baza materialului selectat
+        // NOTĂ: Am corectat typo-ul 1147 -> 147
+        if (property_material == 139 || property_material == 147 || property_material == 138 || property_material == 188 || property_material == 6) {
             if ((property_midrailheight > 1800) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1800');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -4737,49 +4978,49 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2400) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2400');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 2700) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 2700');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 2700) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 2700');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
@@ -4787,62 +5028,62 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             if ((property_midrailheight > 1500) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than 1500');
             }
             if ((property_midrailheight > property_height - 300) && jQuery('#property_midrailheight').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height should be less than ' + property_height - 300);
             }
             if ((property_midrailheight2 > 2700) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than 2700');
             }
             if ((property_midrailheight2 > property_height - 300) && jQuery('#property_midrailheight2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail Height 2 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider1 > 3000) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than 3000');
             }
             if ((property_midraidevider1 > property_height - 300) && jQuery('#property_midraidevider1').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider1 should be less than ' + property_height - 300);
             }
             if ((property_midraidevider2 > 3000) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1800 and 2700');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than 3000');
             }
             if ((property_midraidevider2 > property_height - 300) && jQuery('#property_midraidevider2').is(":visible")) {
                 //alert('Midrail Height must be between 1500 and 2400');
                 errors++;
-                // console.log('errors: ' + errors);
+                // debugLog('errors: ' + errors);
                 modalShowError('Midrail divider2 should be less than ' + property_height - 300);
             }
 
         }
 
-        console.log('errors_no_warranty ' + errors_no_warranty);
+        debugLog('errors_no_warranty ' + errors_no_warranty);
         if (errors === 0 && errors_no_warranty === 0) {
 
             var formser = jQuery('#add-product-single-form').serialize();
             // var svg = jQuery('#canvas_container1').html();
 
 
-            // console.log(formser);
+            // debugLog(formser);
             //alert(formser);
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update.php";
             var nr_individuals = $("#property_nr_sections").val();
@@ -4860,7 +5101,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 }
             })
                 .done(function (data) {
-                    console.log(data);
+                    debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
                     // location.reload();
@@ -4878,7 +5119,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if ($('input[name="property_style"]:checked').length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#choose-style").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please select a style for shutter!');
             error_text = 'Please select Installation Style';
@@ -4887,11 +5128,11 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         style_check = $('input[name=property_style]:checked').data('title');
         if ((property_bladesize.length === 0) && !jQuery('#s2id_property_bladesize').is(":hidden") || property_bladesize === null || property_bladesize === '' && style_check.indexOf('Solid') == -1) {
-            //  console.log('bladesize nu e setat');
+            //  debugLog('bladesize nu e setat');
             // alert('bladesize nu e setat');
             errors++;
             errors_no_warranty++;
-            // console.log('errors: ' + errors);
+            // debugLog('errors: ' + errors);
             $("#s2id_property_bladesize").closest(".panel").find(".panel-collapse").collapse("show");
             error_text = 'Louvre Size is empty';
             addError("property_bladesize", error_text);
@@ -4910,7 +5151,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 }
                 layout_code = layout_code + $("#property_layoutcode" + i + "").val() + bTxt;
             }
-            console.log('Individual layout_code: ' + layout_code);
+            debugLog('Individual layout_code: ' + layout_code);
         }
         var layoutcode_tracked = $("#property_layoutcode_tracked").val();
         if (layout_code) {
@@ -4921,7 +5162,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (layout_code.length == 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_layoutcode").closest(".panel").find(".panel-collapse").collapse("show");
             addError("choose-style", 'Please complete with Layout Code!');
             error_text = 'Please complete with Layout Code!';
@@ -4931,7 +5172,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (property_hingecolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_hingecolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_hingecolour", 'Please select hinge colour for shutter!');
             error_text = 'Please select hinge colour';
@@ -4941,7 +5182,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
         if (property_shuttercolour.length === 0) {
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_shuttercolour").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_shuttercolour", 'Please select shutter colour!');
             error_text = 'Please select shutter colour';
@@ -4952,7 +5193,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             if (property_blackoutblindcolour === 0 || property_blackoutblindcolour === '' || property_blackoutblindcolour === null) {
                 errors_no_warranty++;
                 errors++;
-                // console.log('errors_no_warranty 3');
+                // debugLog('errors_no_warranty 3');
                 $("#property_blackoutblindcolour").closest(".panel").find(".panel-collapse").collapse("show");
                 addError("property_blackoutblindcolour", 'Please select Blackout Blind Colour!');
                 error_text = 'Please select Blackout Blind Colour';
@@ -4960,20 +5201,20 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             }
         }
 
-        console.log('5 property_controltype.length ' + property_controltype.length);
+        debugLog('5 property_controltype.length ' + property_controltype.length);
 
-        console.log('before property_controltype ');
+        debugLog('before property_controltype ');
         if ((property_controltype.length === 0) && !jQuery('#s2id_property_controltype').is(":hidden")) {
-            console.log('inside property_controltype');
+            debugLog('inside property_controltype');
             errors_no_warranty++;
             errors++;
-            // console.log('errors_no_warranty 3');
+            // debugLog('errors_no_warranty 3');
             $("#property_controltype").closest(".panel").find(".panel-collapse").collapse("show");
             addError("property_controltype", 'Please select control type!');
             error_text = 'Please select controltype';
             modalShowErrorNoWarranty(error_text);
         }
-        console.log('afeter property_controltype ');
+        debugLog('afeter property_controltype ');
 
         if (errors_no_warranty === 0) {
 
@@ -4981,7 +5222,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
             // var svg = jQuery('#canvas_container1').html();
 
 
-            // console.log(formser);
+            // debugLog(formser);
             //alert(formser);
             var url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update.php";
             var nr_individuals = $("#property_nr_sections").val();
@@ -4999,7 +5240,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 }
             })
                 .done(function (data) {
-                    console.log(data);
+                    debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
                     setTimeout(function () {
@@ -5019,7 +5260,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
     function getSomething() {
 
         $.getJSON("/wp-content/plugins/shutter-module/ajax/shutter-values.php", function () {
-            // console.log("success");
+            // debugLog("success");
         })
             .done(function (data) {
 
@@ -5027,7 +5268,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 var result = JSON.stringify(data);
                 sessionStorage.prop_val = JSON.stringify(data);
                 //property_values.push( sessionStorage.prop_val );
-                //// console.log( "JSON success in get " + JSON.stringify(data) );
+                //// debugLog( "JSON success in get " + JSON.stringify(data) );
                 return result;
             });
         //return result;
@@ -5035,7 +5276,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
     }
 
     var property_values = localStorage.getItem("prop_val");
-    // console.log("json values outside get: " + property_values);
+    // debugLog("json values outside get: " + property_values);
     // alert(property_values);
 
 
@@ -5067,10 +5308,10 @@ jQuery('#add-product-single-form .btn.btn-primary.submit-batten').on('click', fu
     var property_depth = jQuery('#property_depth').val();
     var property_room_other = jQuery('#property_room_other').val();
     var id_material = jQuery("#property_material").val();
-    console.log('id_material: ' + id_material);
-    //biowood-138, supreme-139, earth-187, ecowood-188, green-137
-    console.log('parseFloat(jQuery("#property_height").val()) ' + parseFloat(jQuery("#property_height").val()));
-    console.log('id_material !== 188 || id_material !== 137 ' + id_material !== 188 || id_material !== 137);
+    debugLog('id_material: ' + id_material);
+    //biowood-138, basswood-139, basswoodPlus-147, earth-187, ecowood-188, green-137
+    debugLog('parseFloat(jQuery("#property_height").val()) ' + parseFloat(jQuery("#property_height").val()));
+    debugLog('id_material !== 188 || id_material !== 137 ' + id_material !== 188 || id_material !== 137);
     if (parseFloat(property_depth) < 3 && (id_material == 188 || id_material == 137)) {
         error_text = 'The minimum size of the batten can not be less than 3mm.';
         addError("property_depth", error_text);
@@ -5086,21 +5327,21 @@ jQuery('#add-product-single-form .btn.btn-primary.submit-batten').on('click', fu
         addError("property_width", error_text);
         modalShowError(error_text);
 
-    } else if (parseFloat(property_height) < 5 && (id_material == 138 || id_material == 139 || id_material == 187)) {
+    } else if (parseFloat(property_height) < 5 && (id_material == 138 || id_material == 139 || id_material == 147 || id_material == 187)) {
         error_text = 'The minimum size of the batten can not be less than 5mm.';
         addError("property_height", error_text);
         modalShowError(error_text);
-        console.log('property_height The minimum size of the batten can not be less than 5mm.');
-    } else if (parseFloat(property_width) < 5 && (id_material == 138 || id_material == 139 || id_material == 187)) {
+        debugLog('property_height The minimum size of the batten can not be less than 5mm.');
+    } else if (parseFloat(property_width) < 5 && (id_material == 138 || id_material == 139 || id_material == 147 || id_material == 187)) {
         error_text = 'The minimum size of the batten can not be less than 5mm.';
         addError("property_width", error_text);
         modalShowError(error_text);
-        console.log('property_width The minimum size of the batten can not be less than 5mm.');
-    } else if (parseFloat(property_depth) < 5 && (id_material == 138 || id_material == 139 || id_material == 187)) {
+        debugLog('property_width The minimum size of the batten can not be less than 5mm.');
+    } else if (parseFloat(property_depth) < 5 && (id_material == 138 || id_material == 139 || id_material == 147 || id_material == 187)) {
         error_text = 'The minimum size of the batten can not be less than 5mm.';
         addError("property_depth", error_text);
         modalShowError(error_text);
-        console.log('property_depth The minimum size of the batten can not be less than 5mm.');
+        debugLog('property_depth The minimum size of the batten can not be less than 5mm.');
     } else if (property_width === '' || property_height === '' || property_depth === '' || property_room_other === '') {
 
         alert('Please compplete all the properties fields');
@@ -5111,9 +5352,9 @@ jQuery('#add-product-single-form .btn.btn-primary.submit-batten').on('click', fu
         //var svg = jQuery('#canvas_container1').html();
 
 
-        console.log('Batten FORM: ',formser);
+        debugLog('Batten FORM: ',formser);
         //alert(formser);
-        // console.log('submit 4');
+        // debugLog('submit 4');
 
         $.ajax({
             method: "POST",
@@ -5124,7 +5365,7 @@ jQuery('#add-product-single-form .btn.btn-primary.submit-batten').on('click', fu
         })
             .done(function (data) {
 
-                console.log(data);
+                debugLog(data);
                 alert('Batten added!');
                 jQuery('.show-prod-info').html(data);
 
@@ -5171,12 +5412,12 @@ jQuery(".print-drawing").click(function () {
 jQuery(document).ready(function () {
     for (var i = 0; i < 6; i++) {
         if (jQuery("#property_t" + i).length != 0) {
-            // console.log('exists t' + i);
+            // debugLog('exists t' + i);
             var t = jQuery('#t' + i).val();
             jQuery('#property_t' + i).val(t);
         }
         if (jQuery("#property_b" + i).length != 0) {
-            // console.log('exists b' + i);
+            // debugLog('exists b' + i);
             var b = jQuery('#b' + i).val();
             jQuery('#property_b' + i).val(b);
         }
@@ -5191,10 +5432,10 @@ jQuery(document).ready(function () {
             var val_frametype = jQuery('#property_frametype').val();
             if (val_frametype == 144) {
                 jQuery('input[value="144"]').attr('checked');
-                // console.log('checked 144');
+                // debugLog('checked 144');
             } else if (val_frametype == 143) {
                 jQuery('input[value="143"]').attr('checked');
-                // console.log('checked 143');
+                // debugLog('checked 143');
             }
         }
     }, 2000);
@@ -5202,162 +5443,37 @@ jQuery(document).ready(function () {
 });
 
 
-// show stile iamges by material selected
+// show stile images by material selected
+// REFACTORIZAT: Folosește funcția showMaterialImages din header
 jQuery("#property_material").change(function () {
-
     var material_id = jQuery(this).val();
-    // console.log(material_id);
     jQuery('.tpost-img label').hide();
+
+    // Verifică dacă există T-post și actualizează valorile
     var tpost = false;
     for (var i = 0; i < 6; i++) {
         if (jQuery("#property_t" + i).length != 0) {
-            console.log('exists t' + i);
+            debugLog('exists t' + i);
             var t = jQuery('#t' + i).val();
             jQuery('#property_t' + i).val(t);
             tpost = true;
         }
     }
 
-    // Earth 187
-    if (material_id == 187) {
-        // console.log('show earth img');
-        jQuery('#stile-img-earth').show();
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-green').hide();
-        jQuery('#stile-img-ecowood').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        jQuery('#stile-img-biowoodPlus').hide();
-        //tpost-type
-        if (tpost) {
-            jQuery('.type-img-earth').show();
-            jQuery('.type-img-earth').parent().show();
-        }
-    }
-    // Supreme 139
-    else if (material_id == 139) {
-        // console.log('show Supreme img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-supreme').show();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-ecowood').hide();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-green').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        jQuery('#stile-img-biowoodPlus').hide();
-        //tpost-type
+    // Folosește funcția centralizată pentru afișarea imaginilor
+    showMaterialImages(material_id, tpost);
 
-        if (tpost) {
-            jQuery('.type-img-supreme').show();
-            jQuery('.type-img-supreme').parent().show();
-        }
-    }
-    // Biowood 138
-    else if (material_id == 138) {
-        // console.log('show Biowood img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-biowoodPlus').show();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-ecowood').hide();
-        jQuery('#stile-img-green').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        //tpost-type
-
-        if (tpost) {
-            jQuery('.type-img-biowoodPlus').show();
-            jQuery('.type-img-biowoodPlus').parent().show();
-        }
-    }
-    // Biowood 6
-    else if (material_id == 6) {
-        // console.log('show Biowood img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-biowood').show();
-        jQuery('#stile-img-biowoodPlus').hide();
-        jQuery('#stile-img-supremePlus').hide();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-ecowood').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        //tpost-type
-        if (tpost) {
-            jQuery('.type-img-biowood').show();
-            jQuery('.type-img-biowood').parent().show();
-            console.log('jQuery(\'.type-img-biowood\').show();');
-        }
-    }
-    // ecowood plus
-    else if (material_id == 5) {
-        // console.log('show Green img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-ecowoodPlus').show();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-green').hide();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-biowoodPlus').hide();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-ecowood').hide();
-        //tpost-type
-        if (tpost) {
-            jQuery('.type-img-ecowoodPlus').show();
-            jQuery('.type-img-ecowoodPlus').parent().show();
-            console.log('jQuery(\'.type-img-ecowoodPlus\').show();');
-        }
-    }
-    // Green 137
-    else if (material_id == 137) {
-        // console.log('show Green img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-green').show();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-ecowood').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        jQuery('#stile-img-biowoodPlus').hide();
-        //tpost-type
-
-        if (tpost) {
-            jQuery('.type-img-green').show();
-            jQuery('.type-img-green').parent().show();
-        }
-    }
-    // ecowood 188
-    else if (material_id == 188) {
-        // console.log('show ecowood img');
-        jQuery('.tpost-img').hide();
-        jQuery('#stile-img-ecowood').show();
-        jQuery('#stile-img-supreme').hide();
-        jQuery('#stile-img-biowood').hide();
-        jQuery('#stile-img-earth').hide();
-        jQuery('#stile-img-green').hide();
-        jQuery('#stile-img-ecowoodPlus').hide();
-        jQuery('#stile-img-biowoodPlus').hide();
-        //tpost-type
-
-        if (tpost) {
-            jQuery('.type-img-ecowood').show();
-            jQuery('.type-img-ecowood').parent().show();
-        }
-
-    }
-
-
+    // Afișează label-urile după un mic delay
     setTimeout(function () {
-        jQuery('#choose-stiletype label, #stile-img-biowoodPlus label, #stile-img-ecowood label, #stile-img-earth label, #stile-img-supreme label, #stile-img-biowood label').show();
-        // console.log('show stile images by material selected');
+        jQuery('#choose-stiletype label, #stile-img-biowoodPlus label, #stile-img-ecowood label, #stile-img-earth label, #stile-img-basswood label, #stile-img-biowood label').show();
     }, 500);
-
 });
 
 
 jQuery(document).ready(function () {
     var val_frametype = jQuery('#property_frametype').val();
 
-    // console.log('Hidden frame: ' + jQuery('#property_frametype').val());
+    // debugLog('Hidden frame: ' + jQuery('#property_frametype').val());
 
     if (jQuery('#property_frametype').val() == 143) {
         jQuery('input[name="property_frametype"][value="143"]').click();
@@ -5369,7 +5485,7 @@ jQuery(document).ready(function () {
     jQuery("select#buildout-select").change(function () {
         // Check input( $( this ).val() ) for validity here
         if (jQuery(this).val() === 'flexible') {
-            // console.log('flexible');
+            // debugLog('flexible');
             jQuery('input[name="property_b_buildout1"]').prop('checked', false);
             jQuery('.pull-left.extra-column-buildout.property_b_buildout1').hide();
         } else {

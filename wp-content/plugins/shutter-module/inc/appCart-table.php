@@ -1752,7 +1752,7 @@ echo $table_class; ?>">
 <?php
 //function priceItemMaterialCustom($property_material, $user_id, $post_id)
 //{
-//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+//    $materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Basswood', 139 => 'BasswoodPlus', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 //
 //    foreach ($materials as $key => $material) {
 //        if ($property_material == $key) {

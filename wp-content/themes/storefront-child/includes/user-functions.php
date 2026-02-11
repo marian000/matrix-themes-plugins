@@ -127,6 +127,7 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Biowood_tax', $_POST['price-Biowood_tax']);
 		update_user_meta($user_id, 'BiowoodPlus_tax', $_POST['price-BiowoodPlus_tax']);
 		update_user_meta($user_id, 'Supreme_tax', $_POST['price-Supreme_tax']);
+		update_user_meta($user_id, 'Basswood_tax', $_POST['price-Basswood_tax']);
 		update_user_meta($user_id, 'SeaDelivery', $_POST['price-SeaDelivery']);
 
 		// Dolar Prices
@@ -139,6 +140,8 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Biowood-dolar', $_POST['price-dolar-Biowood']);
 		update_user_meta($user_id, 'BiowoodPlus-dolar', $_POST['price-dolar-BiowoodPlus']);
 		update_user_meta($user_id, 'Supreme-dolar', $_POST['price-dolar-Supreme']);
+		update_user_meta($user_id, 'Basswood-dolar', $_POST['price-dolar-Basswood']);
+		update_user_meta($user_id, 'BasswoodPlus-dolar', $_POST['price-dolar-BasswoodPlus']);
 		update_user_meta($user_id, 'Solid-dolar', $_POST['price-dolar-Solid']);
 		update_user_meta($user_id, 'Shaped-dolar', $_POST['price-dolar-Shaped']);
 		update_user_meta($user_id, 'Tracked-dolar', $_POST['price-dolar-Tracked']);

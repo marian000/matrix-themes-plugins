@@ -258,6 +258,14 @@ foreach ($_POST['prod'] as $product_serialize) {
 //echo "</pre>";
 	echo "\n Total product price: " . $sum . " Euro";
 
+	// Apply discount_custom if set
+	if (!empty($discount_custom) && $discount_custom > 0) {
+		$discount_amount = ($discount_custom * $basic) / 100;
+		$sum = $sum - $discount_amount;
+		echo "\n Discount: " . $discount_amount . " (" . $discount_custom . "%)";
+		echo "\n Total after discount: " . $sum . " Euro";
+	}
+
 	update_post_meta($post_id, '_price', floatval($sum));
 	update_post_meta($post_id, '_regular_price', floatval($sum));
 	update_post_meta($post_id, '_sale_price', floatval($sum));
@@ -360,7 +368,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 				// end - calculate sqm total order
 
 				// get material
-				$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood');
+				$materials = array(187 => 'Earth', 137 => 'Green', 5 => 'EcowoodPlus', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood');
 				$material = get_post_meta($product_id, 'property_material', true);
 				// calculate price of basic price of item without add
 				$basic_price = (float)$sqm * (float)get_post_meta(1, $materials[$material], true);

@@ -197,3 +197,178 @@ a.btn.btn-primary.blue {
     -webkit-transition: border .0s ease-in-out;
     transition: border .0s ease-in-out;
 }
+
+/* =============================================
+   Group Dashboard
+   ============================================= */
+
+/* Section header */
+.grup-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #1A6DB2;
+}
+.grup-section-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #212529;
+}
+.grup-section-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Chart card */
+.grup-chart-card {
+    background: #fff;
+    border: 1px solid rgba(26, 54, 126, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 16px 8px;
+    margin-bottom: 20px;
+}
+.grup-chart-card #container {
+    min-width: 310px;
+    height: 380px;
+    margin: 0 auto;
+}
+
+/* Legacy fallback for pages without the card wrapper */
+#container:not(.grup-chart-card #container) {
+    min-width: 310px;
+    height: 400px;
+    margin: 0 auto;
+}
+
+/* Table card */
+.grup-table-card {
+    background: #fff;
+    border: 1px solid rgba(26, 54, 126, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.grup-table-card table,
+.grup-chart-card .highcharts-container {
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+}
+
+/* Filter card */
+.grup-filter-card .card-body {
+    padding: 1rem 1.25rem;
+}
+
+/* Tab content spacing */
+.grup-tab-content .tab-pane {
+    padding-top: 1rem;
+}
+
+/* Table header */
+.grup-table thead th {
+    position: sticky;
+    top: 0;
+    background: #12447E;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 10px 12px;
+    border-color: rgba(255,255,255,0.15);
+}
+
+/* Table body */
+.grup-table tbody td {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    color: #495057;
+    vertical-align: middle;
+}
+.grup-table tbody tr:hover td {
+    background-color: rgba(26, 109, 178, 0.05);
+}
+
+/* Tabular nums for numeric cells */
+.grup-table td[style*="text-align:right"],
+.grup-table th[style*="text-align:right"] {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Empty month rows */
+.grup-row-empty td {
+    color: #adb5bd;
+}
+
+/* Totals row */
+.grup-table-totals td {
+    background: #f0f4f8 !important;
+    font-weight: 700 !important;
+    color: #12447E !important;
+    font-size: 0.85rem;
+    border-top: 2px solid #1A6DB2;
+    padding: 10px 12px;
+}
+
+/* DataTables overrides inside grup cards */
+.grup-table-card .dataTables_wrapper {
+    padding: 12px 16px 16px;
+}
+.grup-table-card .dataTables_wrapper .dataTables_filter {
+    margin-bottom: 8px;
+}
+.grup-table-card .dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.grup-table-card .dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #1A6DB2;
+    box-shadow: 0 0 0 2px rgba(26, 109, 178, 0.15);
+}
+.grup-table-card .dataTables_info {
+    font-size: 0.8rem;
+    color: #6c757d;
+    padding: 8px 0 0;
+}
+
+/* Export buttons — target by table wrapper IDs + generic fallback */
+.grup-table-card .dt-buttons,
+div[id$="_wrapper"] .dt-buttons {
+    margin-bottom: 10px;
+}
+.grup-table-card .dt-buttons button,
+.grup-table-card .dt-buttons a,
+div[id$="_wrapper"] .dt-buttons button,
+div[id$="_wrapper"] .dt-buttons a {
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 5px !important;
+    padding: 6px 16px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: #495057 !important;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 4px;
+    display: inline-block;
+}
+.grup-table-card .dt-buttons button:hover,
+.grup-table-card .dt-buttons a:hover,
+div[id$="_wrapper"] .dt-buttons button:hover,
+div[id$="_wrapper"] .dt-buttons a:hover {
+    background: #1A6DB2 !important;
+    border-color: #1A6DB2 !important;
+    color: #fff !important;
+}

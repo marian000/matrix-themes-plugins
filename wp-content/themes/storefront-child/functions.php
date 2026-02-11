@@ -88,6 +88,24 @@ function custom_matrix_scripts_admin($hook)
 			wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), '4.1.0-rc.0', true);
 		}
 	}
+
+	// DataTables on specific admin pages
+	$datatable_pages = array(
+		'woocommerce_page_users-group-grafic',
+		'toplevel_page_frametype-statistics',
+	);
+	if (in_array($hook, $datatable_pages)) {
+		wp_enqueue_style('dev-style_custom', get_stylesheet_directory_uri() . '/style-custom.css');
+		wp_enqueue_style('datatable-style_custom', get_stylesheet_directory_uri() . '/css/jquery.dataTables.min.css');
+		wp_enqueue_script('script-datatable', get_stylesheet_directory_uri() . '/js/jquery.dataTables.min.js', array('jquery'), '1.10.19', true);
+		wp_enqueue_script('script-datatable1', get_stylesheet_directory_uri() . '/js/datatable/dataTables.buttons.min.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable2', get_stylesheet_directory_uri() . '/js/datatable/buttons.flash.min.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable3', get_stylesheet_directory_uri() . '/js/datatable/jszip.min.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable4', get_stylesheet_directory_uri() . '/js/datatable/pdfmake.min.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable5', get_stylesheet_directory_uri() . '/js/datatable/vfs_fonts.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable6', get_stylesheet_directory_uri() . '/js/datatable/buttons.html5.min.js', array(), '1.10.19', true);
+		wp_enqueue_script('script-datatable7', get_stylesheet_directory_uri() . '/js/datatable/buttons.print.min.js', array(), '1.10.19', true);
+	}
 }
 
 

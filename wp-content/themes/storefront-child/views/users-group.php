@@ -10,19 +10,13 @@
 
 <script type='text/javascript'
         src='/wp-content/themes/storefront-child/js/highcharts.js'></script>
-<style>#container {
-        min-width: 310px;
-        max-width: 1024px;
-        height: 400px;
-        margin: 0 auto;
-    }</style>
 <div id="primary"
      class="content-area container">
   <main id="main"
         class="site-main"
         role="main">
 
-    <h2>Users Group</h2>
+    <h2 class="mb-3">Users Group</h2>
 
     <!-- Multi Cart Template -->
 		<?php if (is_active_sidebar('multicart_widgett')) : ?>
@@ -84,7 +78,7 @@
     <!--      </li>-->
     <!--    </ul>-->
 
-    <ul class="nav nav-pills nav-fill mt-5" id="myTab" role="tablist">
+    <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
       <li class="nav-item" role="presentation">
         <a class="nav-link active" id="grup-sqm-tab" data-bs-toggle="tab" data-bs-target="#grup-sqm" type="button" role="tab" aria-controls="grup-sqm"
            aria-selected="true">Year SQM
@@ -102,9 +96,9 @@
       </li>
     </ul>
 
-    <div class="tab-content" style="display: block;">
+    <div class="tab-content grup-tab-content" style="display: block;">
 
-      <div id="grup-sqm" class="tab-pane active" role="tabpanel" aria-labelledby="grup-sqm">
+      <div id="grup-sqm" class="tab-pane fade show active" role="tabpanel" aria-labelledby="grup-sqm">
         <div id="content-grup-sqm" class="mt-3">
           <button class="btn btn-primary" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -118,7 +112,7 @@
 				//				include_once(get_stylesheet_directory() . '/views/grup-users/grup-sqm.php');
 				?>
       </div>
-      <div id="grup-month" class="tab-pane" role="tabpanel" aria-labelledby="grup-month">
+      <div id="grup-month" class="tab-pane fade" role="tabpanel" aria-labelledby="grup-month">
         <div id="content-grup-month" class="mt-3">
           <button class="btn btn-primary" type="button" disabled>
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -132,7 +126,7 @@
 				//				include_once(get_stylesheet_directory() . '/views/grup-users/grup-month.php');
 				?>
       </div>
-      <div id="grup-perfect-shutter" class="tab-pane" role="tabpanel" aria-labelledby="grup-perfect-shutter">
+      <div id="grup-perfect-shutter" class="tab-pane fade" role="tabpanel" aria-labelledby="grup-perfect-shutter">
         <div id="content-grup-perfect-shutter" class="mt-3"></div>
 				<?php
 				/*
@@ -168,7 +162,8 @@
         <th style="text-align:right">Green</th>
         <th style="text-align:right">Biowood</th>
         <th style="text-align:right">BiowoodPlus</th>
-        <th style="text-align:right">Supreme</th>
+        <th style="text-align:right">Basswood Plus</th>
+        <th style="text-align:right">Basswood</th>
       </tr>
       </thead>
       <tbody>
@@ -260,7 +255,8 @@ for ($i = 11; $i >= 0; $i--) {
                 green: 0,
                 biowood: 0,
                 biowoodPlus: 0,
-                supreme: 0
+                basswoodPlus: 0,
+                basswood: 0
             };
             // parse object data
 
@@ -283,7 +279,8 @@ for ($i = 11; $i >= 0; $i--) {
                 rows += '<td style="text-align:right">' + item.green + '</td>';
                 rows += '<td style="text-align:right">' + item.biowood + '</td>';
                 rows += '<td style="text-align:right">' + item.biowoodPlus + '</td>';
-                rows += '<td style="text-align:right">' + item.supreme + '</td>';
+                rows += '<td style="text-align:right">' + item.basswoodPlus + '</td>';
+                rows += '<td style="text-align:right">' + item.basswood + '</td>';
                 rows += '</tr>';
 
                 // Update totals
@@ -299,7 +296,8 @@ for ($i = 11; $i >= 0; $i--) {
                 totals.green += parseFloat(item.green);
                 totals.biowood += parseFloat(item.biowood);
                 totals.biowoodPlus += parseFloat(item.biowoodPlus);
-                totals.supreme += parseFloat(item.supreme);
+                totals.basswoodPlus += parseFloat(item.basswoodPlus);
+                totals.basswood += parseFloat(item.basswood);
 
                 // Update totalSQMbyMonths
                 totalSQMbyMonths.push({ month: item.month, totalSQM: totals.sqm });
@@ -321,7 +319,8 @@ for ($i = 11; $i >= 0; $i--) {
             rows += '<td style="text-align:right"><strong>' + totals.green.toFixed(2) + '</strong></td>';
             rows += '<td style="text-align:right"><strong>' + totals.biowood.toFixed(2) + '</strong></td>';
             rows += '<td style="text-align:right"><strong>' + totals.biowoodPlus.toFixed(2) + '</strong></td>';
-            rows += '<td style="text-align:right"><strong>' + totals.supreme.toFixed(2) + '</strong></td>';
+            rows += '<td style="text-align:right"><strong>' + totals.basswoodPlus.toFixed(2) + '</strong></td>';
+            rows += '<td style="text-align:right"><strong>' + totals.basswood.toFixed(2) + '</strong></td>';
             rows += '</tr>';
             $('#orders-table tbody').html(rows);
         }
@@ -347,7 +346,8 @@ for ($i = 11; $i >= 0; $i--) {
                     existingItem.green = (parseFloat(existingItem.green) + parseFloat(newItem.green)).toFixed(2);
                     existingItem.biowood = (parseFloat(existingItem.biowood) + parseFloat(newItem.biowood)).toFixed(2);
                     existingItem.biowoodPlus = (parseFloat(existingItem.biowoodPlus) + parseFloat(newItem.biowoodPlus)).toFixed(2);
-                    existingItem.supreme = (parseFloat(existingItem.supreme) + parseFloat(newItem.supreme)).toFixed(2);
+                    existingItem.basswoodPlus = (parseFloat(existingItem.basswoodPlus) + parseFloat(newItem.basswoodPlus)).toFixed(2);
+                    existingItem.basswood = (parseFloat(existingItem.basswood) + parseFloat(newItem.basswood)).toFixed(2);
                 } else {
                     // Add new item to allData
                     allData[key] = newItem;

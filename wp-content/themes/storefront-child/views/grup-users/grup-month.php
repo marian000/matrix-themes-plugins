@@ -24,7 +24,7 @@ $totaly = array();
 $users_sqm = array();
 
 foreach ($orders as $id_order) {
-	$materials = array('Earth' => 0, 'Green' => 0, 'Biowood' => 0, 'BiowoodPlus' => 0, 'Supreme' => 0, 'Ecowood' => 0, 'EcowoodPlus' => 0);
+	$materials = array('Earth' => 0, 'Green' => 0, 'Biowood' => 0, 'BiowoodPlus' => 0, 'BasswoodPlus' => 0, 'Basswood' => 0, 'Ecowood' => 0, 'EcowoodPlus' => 0);
 
 	$order = wc_get_order($id_order);
 	$order_data = $order->get_data();
@@ -48,10 +48,11 @@ foreach ($orders as $id_order) {
 //    print_r($items_material);
 //    echo '</pre>';
 	foreach ($items_material as $material => $material_sqm) {
-		$prev_sqm = $materials[$material];
-		$materials[$material] = $material_sqm + $prev_sqm;
+		$prev_sqm = isset($materials[$material]) ? floatval($materials[$material]) : 0;
+		$materials[$material] = floatval($material_sqm) + $prev_sqm;
 
-		$users_sqm[$user_id][$material] = $users_sqm[$user_id][$material] + $material_sqm + $prev_sqm;
+		$prev_user_sqm = isset($users_sqm[$user_id][$material]) ? floatval($users_sqm[$user_id][$material]) : 0;
+		$users_sqm[$user_id][$material] = $prev_user_sqm + floatval($material_sqm) + $prev_sqm;
 	}
 
 	$i++;
@@ -59,12 +60,11 @@ foreach ($orders as $id_order) {
 //print_r($users_sqm);
 $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April', '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August', '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December');
 ?>
-<br>
-
 <div class="row">
   <div class="col-md-12">
     <div id="users_month">
-      <table class="table table-bordered table-striped">
+      <div class="table-responsive">
+      <table id="grup-month-table" class="table table-bordered table-striped grup-table">
         <thead>
         <tr>
           <th>Nr.</th>
@@ -72,10 +72,11 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
           <th>Total SQM / <?php echo $months[$selected_month]; ?></th>
           <th style="text-align:right">Earth</th>
           <th style="text-align:right">Ecowood</th>
-          <th style="text-align:right">EcowoodPlus</th>
+          <th style="text-align:right">Ecowood Plus</th>
           <th style="text-align:right">Biowood</th>
-          <th style="text-align:right">BiowoodPlus</th>
-          <th style="text-align:right">Supreme</th>
+          <th style="text-align:right">Biowood Plus</th>
+          <th style="text-align:right">Basswood Plus</th>
+          <th style="text-align:right">Basswood</th>
         </tr>
         </thead>
         <tbody>
@@ -87,7 +88,8 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
 				$total_sqm_ecowoodPlus = 0;
 				$total_sqm_biowood = 0;
 				$total_sqm_biowoodPlus = 0;
-				$total_sqm_supreme = 0;
+				$total_sqm_basswoodPlus = 0;
+				$total_sqm_basswood = 0;
 
 				foreach ($users_sqm as $user => $val) {
 					$i++;
@@ -98,36 +100,56 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
 					$total_sqm_ecowoodPlus = $total_sqm_ecowoodPlus + $users_sqm[$user]['EcowoodPlus'];
 					$total_sqm_biowood = $total_sqm_biowood + $users_sqm[$user]['Biowood'];
 					$total_sqm_biowoodPlus = $total_sqm_biowoodPlus + $users_sqm[$user]['BiowoodPlus'];
-					$total_sqm_supreme = $total_sqm_supreme + $users_sqm[$user]['Supreme'];
+					$total_sqm_basswoodPlus = $total_sqm_basswoodPlus + $users_sqm[$user]['BasswoodPlus'];
+					$total_sqm_basswood = $total_sqm_basswood + $users_sqm[$user]['Basswood'];
 					?>
           <tr>
             <td><?php echo $i; ?></td>
             <td><?php echo $user_info->display_name . " - " . $user_info->first_name . " " . $user_info->last_name; ?></td>
-            <td><?php echo number_format($users_sqm[$user]['sqm'], 2); ?> SQM</td>
+            <td data-order="<?php echo $users_sqm[$user]['sqm']; ?>"><?php echo number_format($users_sqm[$user]['sqm'], 2); ?> SQM</td>
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Earth'], 2); ?></td>
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Ecowood'], 2); ?></td>
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['EcowoodPlus'], 2); ?></td>
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Biowood'], 2); ?></td>
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['BiowoodPlus'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Supreme'], 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['BasswoodPlus'], 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Basswood'], 2); ?></td>
           </tr>
 				<?php } ?>
         </tbody>
         <tfoot>
+        <tr class="fw-bold">
         <td></td>
         <td>Total SQM</td>
         <td><?php echo number_format($total_sqm, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_earth, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_ecowood, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_ecowoodPlus, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_biowood, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_biowoodPlus, 2); ?></td>
-        <td style="text-align:right">  <?php echo number_format($total_sqm_supreme, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_earth, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_ecowood, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_ecowoodPlus, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_biowood, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_biowoodPlus, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_basswoodPlus, 2); ?></td>
+        <td style="text-align:right"><?php echo number_format($total_sqm_basswood, 2); ?></td>
+        </tr>
         </tfoot>
       </table>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+jQuery(document).ready(function(){
+    jQuery('#grup-month-table').DataTable({
+        paging: false,
+        dom: 'Bfrtip',
+        buttons: ['copy', 'csv', 'excel', 'print'],
+        order: [[2, 'desc']],
+        columnDefs: [
+            { targets: [2,3,4,5,6,7,8,9], className: 'text-end' }
+        ]
+    });
+});
+</script>
 
 <!-- *********************************************************************************************
 End Total user sqm

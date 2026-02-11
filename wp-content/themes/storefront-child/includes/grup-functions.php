@@ -14,7 +14,8 @@ function order_items_materials_sqm($order_id)
 		137 => 'Green',
 		138 => 'BiowoodPlus',
 		6 => 'Biowood',
-		139 => 'Supreme',
+		139 => 'BasswoodPlus',
+		147 => 'Basswood',
 		188 => 'Ecowood',
 		5 => 'EcowoodPlus',
 	);
@@ -280,7 +281,8 @@ function process_order_batch($orders) {
 					'ecowoodPlus' => number_format($total_materials_sqm[$year][$month_num]['EcowoodPlus'], 2),
 					'biowood' => number_format($total_materials_sqm[$year][$month_num]['Biowood'], 2),
 					'biowoodPlus' => number_format($total_materials_sqm[$year][$month_num]['BiowoodPlus'], 2),
-					'supreme' => number_format($total_materials_sqm[$year][$month_num]['Supreme'], 2)
+					'basswoodPlus' => number_format($total_materials_sqm[$year][$month_num]['BasswoodPlus'], 2),
+					'basswood' => number_format($total_materials_sqm[$year][$month_num]['Basswood'], 2)
 
 				];
 			}

@@ -21,7 +21,7 @@ if (isset($_POST['an_select'])) {
 function order_items_materials_sqm_perfect($order_id)
 {
 	// Define materials
-	$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'Supreme', 188 => 'Ecowood', 5 => 'EcowoodPlus');
+	$materials = array(187 => 'Earth', 137 => 'Green', 138 => 'BiowoodPlus', 6 => 'Biowood', 139 => 'BasswoodPlus', 147 => 'Basswood', 188 => 'Ecowood', 5 => 'EcowoodPlus');
 	$order_material_sqm = array();
 
 	// Get order details
@@ -102,7 +102,7 @@ $totaly = array();
 $users_sqm = array();
 
 foreach ($orders as $id_order) {
-	$materials = array('Earth' => 0, 'Green' => 0, 'Biowood' => 0, 'BiowoodPlus' => 0, 'Supreme' => 0, 'Ecowood' => 0, 'EcowoodPlus' => 0);
+	$materials = array('Earth' => 0, 'Green' => 0, 'Biowood' => 0, 'BiowoodPlus' => 0, 'BasswoodPlus' => 0, 'Basswood' => 0, 'Ecowood' => 0, 'EcowoodPlus' => 0);
 
 	$order = wc_get_order($id_order);
 	$order_data = $order->get_data();
@@ -137,12 +137,11 @@ foreach ($orders as $id_order) {
 //print_r($users_sqm);
 $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April', '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August', '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December');
 ?>
-<br>
-
 <div class="row">
   <div class="col-md-12">
     <div id="users_month">
-      <table class="table table-bordered table-striped">
+      <div class="table-responsive">
+      <table id="grup-perfect-table" class="table table-bordered table-striped grup-table">
         <thead>
         <tr>
           <th>Nr.</th>
@@ -150,12 +149,13 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
           <th>Total SQM / <?php echo $months[$selected_month]; ?></th>
           <th style="text-align:right">Earth</th>
           <th style="text-align:right">Ecowood</th>
-          <th style="text-align:right">EcowoodPlus</th>
-          <th style="text-align:right">EcowoodPlus frozen</th>
-          <th style="text-align:right">EcowoodPlus paint</th>
+          <th style="text-align:right">Ecowood Plus</th>
+          <th style="text-align:right">Ecowood Plus frozen</th>
+          <th style="text-align:right">Ecowood Plus paint</th>
           <th style="text-align:right">Biowood</th>
-          <th style="text-align:right">BiowoodPlus</th>
-          <th style="text-align:right">Supreme</th>
+          <th style="text-align:right">Biowood Plus</th>
+          <th style="text-align:right">Basswood Plus</th>
+          <th style="text-align:right">Basswood</th>
         </tr>
         </thead>
         <tbody>
@@ -180,13 +180,15 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
             <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['EcowoodPlusP'], 2); ?></td>
             <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Biowood'], 2); ?></td>
             <td style="text-align:right"><?php echo number_format($users_sqm[$user]['BiowoodPlus'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Supreme'], 2); ?></td>
+            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['BasswoodPlus'], 2); ?></td>
+            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Basswood'], 2); ?></td>
           </tr>
 				<?php } ?>
         </tbody>
         <tfoot>
+        <tr class="fw-bold">
         <td></td>
-        <td>Total SQM </td>
+        <td>Total SQM</td>
         <td><?php echo number_format($total_sqm, 2); ?></td>
         <td style="text-align:right"></td>
         <td style="text-align:right"></td>
@@ -195,11 +197,29 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
         <td style="text-align:right"></td>
         <td style="text-align:right"></td>
         <td style="text-align:right"></td>
+        <td style="text-align:right"></td>
+        <td style="text-align:right"></td>
+        </tr>
         </tfoot>
       </table>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+jQuery(document).ready(function(){
+    jQuery('#grup-perfect-table').DataTable({
+        paging: false,
+        dom: 'Bfrtip',
+        buttons: ['copy', 'csv', 'excel', 'print'],
+        order: [[2, 'desc']],
+        columnDefs: [
+            { targets: [2,3,4,5,6,7,8,9,10,11], className: 'text-end' }
+        ]
+    });
+});
+</script>
 
 <!-- *********************************************************************************************
 End Total user sqm

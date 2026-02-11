@@ -11,6 +11,26 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.3.0 - 2026-02-11 =
+* Feature: Group Dashboard visual overhaul - gradient chart columns, card layout, styled headers and totals
+* Feature: DataTables with search, sorting and export buttons (Copy, CSV, Excel, Print) on admin Group pages
+* Fix: DataTables not loading on admin pages (enqueue via admin_enqueue_scripts hook)
+* Fix: DataTables reinitialisation error - unique table IDs per tab
+* Fix: Month column now sorts chronologically instead of alphabetically
+* Fix: Month SQM tab numeric sorting (was sorting as text due to "SQM" suffix)
+* Improvement: Empty month rows styled with muted text
+* Improvement: Inline styles for AJAX-loaded content reliability
+
+= 1.2.9 - 2026-02-11 =
+* Update: Shutter module configurators, templates, and theme files
+
+= 1.2.8 - 2026-01-23 =
+* Fix: G-post counter being skipped when T-post exists at same index
+* Fix: T-Post type data being erased on product update
+
+= 1.2.7 - 2026-01-23 =
+* Fix: Buildout calculation for frame type 4108C (ID 420)
+
 = 1.2.6 - 2026-01-20 =
 * Feature: Added Total SQM metric to WooCommerce Reports page
 * Shows total square meters from wp_custom_orders for selected date range

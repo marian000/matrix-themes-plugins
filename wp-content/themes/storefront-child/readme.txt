@@ -11,7 +11,7 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
-= 1.3.0 - 2026-02-11 =
+= 1.3.0 - 2026-02-11 (~4h) =
 * Feature: Group Dashboard visual overhaul - gradient chart columns, card layout, styled headers and totals
 * Feature: DataTables with search, sorting and export buttons (Copy, CSV, Excel, Print) on admin Group pages
 * Fix: DataTables not loading on admin pages (enqueue via admin_enqueue_scripts hook)
@@ -21,58 +21,58 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 * Improvement: Empty month rows styled with muted text
 * Improvement: Inline styles for AJAX-loaded content reliability
 
-= 1.2.9 - 2026-02-11 =
+= 1.2.9 - 2026-02-11 (~8h) =
 * Update: Shutter module configurators, templates, and theme files
 
-= 1.2.8 - 2026-01-23 =
+= 1.2.8 - 2026-01-23 (~3h) =
 * Fix: G-post counter being skipped when T-post exists at same index
 * Fix: T-Post type data being erased on product update
 
-= 1.2.7 - 2026-01-23 =
+= 1.2.7 - 2026-01-23 (~1h) =
 * Fix: Buildout calculation for frame type 4108C (ID 420)
 
-= 1.2.6 - 2026-01-20 =
+= 1.2.6 - 2026-01-20 (~3h) =
 * Feature: Added Total SQM metric to WooCommerce Reports page
 * Shows total square meters from wp_custom_orders for selected date range
 * Supports all WooCommerce Reports time periods (Year, Last month, This month, 7 days, Custom)
 
-= 1.2.5 - 2026-01-15 =
+= 1.2.5 - 2026-01-15 (~2h) =
 * Fix: Unit Price column not displaying values for Plus materials (BiowoodPlus, BasswoodPlus, EcowoodPlus)
 * Fix: number_format() with comma separator breaking arithmetic calculations
 * Fix: Incorrect !empty() syntax with && inside parentheses
 * Fix: Non-numeric value PHP warnings in container-orders.php
 * Fix: Added floatval() wrappers for safe arithmetic operations
 
-= 1.2.4 - 2026-01-14 =
+= 1.2.4 - 2026-01-14 (~1h) =
 * Fix: PHP warning array_key_exists() expects string/integer in container-orders-prices.php
 * Fix: Non-numeric value warnings when multiplying post_meta values
 
-= 1.2.3 - 2026-01-08 =
+= 1.2.3 - 2026-01-08 (~2h) =
 * Fix: Products Total not including Individual Bay Window sections price
 * Fix: $calculated_subtotal not updated for section items
 
-= 1.2.2 - 2025-12-24 =
+= 1.2.2 - 2025-12-24 (~2h) =
 * Fix: Price/sqm not displaying for BasswoodPlus material in order tables
 * Fix: $material_price variable not initialized before foreach loops
 * Fix: Removed overwrite lines replacing valid prices with empty product meta
 
-= 1.2.1 - 2025-11-26 =
+= 1.2.1 - 2025-11-26 (~3h) =
 * Fix: Undefined variable notices in shutter templates
 * Fix: cart-empty.php errors preventing shutter buttons from showing
 * Fix: Cart total calculation - train_delivery was counted twice
 * Fix: Decimal formatting issues in checkout totals
 
-= 1.2.0 - 2025-11-01 =
+= 1.2.0 - 2025-11-01 (~12h) =
 * Feature: Container orders price reconciliation with CSV invoices
 * Feature: Individual Bay Window sections support
 * Improvement: Enhanced order table displays
 
-= 1.1.0 - 2025-10-01 =
+= 1.1.0 - 2025-10-01 (~16h) =
 * Feature: QuickBooks integration for invoicing
 * Feature: Multi-dealer pricing system
 * Feature: Repair order management
 
-= 1.0.0 - 2025-09-01 =
+= 1.0.0 - 2025-09-01 (~24h) =
 * Initial release
 * Custom order management system
 * WooCommerce integration for B2B ordering

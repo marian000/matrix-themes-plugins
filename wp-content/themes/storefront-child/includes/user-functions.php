@@ -60,6 +60,8 @@ function my_user_profile_update_action($user_id)
 	// Get the user object.
 	$user = get_userdata($user_id);
 
+	update_user_meta($user_id, 'show_basswood', $_POST['show_basswood']);
+
 	if (!in_array('senior_salesman', $user->roles) || !in_array('salesman', $user->roles) || !in_array('employe', $user->roles)) {
 		update_user_meta($user_id, 'max_nr_employees', $_POST['max_nr_employees']);
 		update_user_meta($user_id, 'suspended_user', $_POST['suspended_user']);
@@ -84,7 +86,8 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Green', $_POST['price-Green']);
 		update_user_meta($user_id, 'Biowood', $_POST['price-Biowood']);
 		update_user_meta($user_id, 'BiowoodPlus', $_POST['price-BiowoodPlus']);
-		update_user_meta($user_id, 'Supreme', $_POST['price-Supreme']);
+		update_user_meta($user_id, 'Basswood', $_POST['price-Basswood']);
+		update_user_meta($user_id, 'BasswoodPlus', $_POST['price-BasswoodPlus']);
 		update_user_meta($user_id, 'Solid', $_POST['price-Solid']);
 		update_user_meta($user_id, 'Shaped', $_POST['price-Shaped']);
 		update_user_meta($user_id, 'Tracked', $_POST['price-Tracked']);
@@ -126,8 +129,8 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Green_tax', $_POST['price-Green_tax']);
 		update_user_meta($user_id, 'Biowood_tax', $_POST['price-Biowood_tax']);
 		update_user_meta($user_id, 'BiowoodPlus_tax', $_POST['price-BiowoodPlus_tax']);
-		update_user_meta($user_id, 'Supreme_tax', $_POST['price-Supreme_tax']);
 		update_user_meta($user_id, 'Basswood_tax', $_POST['price-Basswood_tax']);
+		update_user_meta($user_id, 'BasswoodPlus_tax', $_POST['price-BasswoodPlus_tax']);
 		update_user_meta($user_id, 'SeaDelivery', $_POST['price-SeaDelivery']);
 
 		// Dolar Prices
@@ -139,7 +142,6 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Green-dolar', $_POST['price-dolar-Green']);
 		update_user_meta($user_id, 'Biowood-dolar', $_POST['price-dolar-Biowood']);
 		update_user_meta($user_id, 'BiowoodPlus-dolar', $_POST['price-dolar-BiowoodPlus']);
-		update_user_meta($user_id, 'Supreme-dolar', $_POST['price-dolar-Supreme']);
 		update_user_meta($user_id, 'Basswood-dolar', $_POST['price-dolar-Basswood']);
 		update_user_meta($user_id, 'BasswoodPlus-dolar', $_POST['price-dolar-BasswoodPlus']);
 		update_user_meta($user_id, 'Solid-dolar', $_POST['price-dolar-Solid']);
@@ -200,7 +202,8 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
 		update_user_meta($user_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
 		update_user_meta($user_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-		update_user_meta($user_id, 'Supreme', get_user_meta($master_dealer_id, 'Supreme', true));
+		update_user_meta($user_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
+		update_user_meta($user_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
 		update_user_meta($user_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
 		update_user_meta($user_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
 		update_user_meta($user_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
@@ -237,7 +240,8 @@ function my_user_profile_update_action($user_id)
 		update_user_meta($user_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
 		update_user_meta($user_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
 		update_user_meta($user_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-		update_user_meta($user_id, 'Supreme_tax', get_user_meta($master_dealer_id, 'Supreme_tax', true));
+		update_user_meta($user_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
+		update_user_meta($user_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
 		update_user_meta($user_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
 	}
 
@@ -263,7 +267,8 @@ function my_user_profile_update_action($user_id)
 				update_user_meta($employe_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
 				update_user_meta($employe_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
 				update_user_meta($employe_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-				update_user_meta($employe_id, 'Supreme', get_user_meta($master_dealer_id, 'Supreme', true));
+				update_user_meta($employe_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
+				update_user_meta($employe_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
 				update_user_meta($employe_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
 				update_user_meta($employe_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
 				update_user_meta($employe_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
@@ -300,7 +305,8 @@ function my_user_profile_update_action($user_id)
 				update_user_meta($employe_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
 				update_user_meta($employe_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
 				update_user_meta($employe_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-				update_user_meta($employe_id, 'Supreme_tax', get_user_meta($master_dealer_id, 'Supreme_tax', true));
+				update_user_meta($employe_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
+				update_user_meta($employe_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
 				update_user_meta($employe_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
 			}
 		}
@@ -337,7 +343,8 @@ function sthc_salesman_registration_imports($user_id)
 			update_user_meta($user_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
 			update_user_meta($user_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
 			update_user_meta($user_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-			update_user_meta($user_id, 'Supreme', get_user_meta($master_dealer_id, 'Supreme', true));
+			update_user_meta($user_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
+			update_user_meta($user_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
 			update_user_meta($user_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
 			update_user_meta($user_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
 			update_user_meta($user_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
@@ -371,7 +378,8 @@ function sthc_salesman_registration_imports($user_id)
 			update_user_meta($user_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
 			update_user_meta($user_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
 			update_user_meta($user_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-			update_user_meta($user_id, 'Supreme_tax', get_user_meta($master_dealer_id, 'Supreme_tax', true));
+			update_user_meta($user_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
+			update_user_meta($user_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
 			update_user_meta($user_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
 
 			// update billing

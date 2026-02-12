@@ -83,7 +83,7 @@ function starts_with($string, $startString)
  */
 function get_user_group()
 {
-	if ($_POST['group_name']) {
+	if (isset($_POST['group_name']) && $_POST['group_name']) {
 		if ($_POST['group_name'] === 'all_users') {
 			$users = get_users(array('fields' => array('ID')));
 			$group = array();
@@ -118,11 +118,22 @@ function get_user_group()
  * @param int $selected_year Selected year for the orders.
  * @return array List of order IDs.
  */
-function fetch_orders($user_group, $selected_year,  $page = 1, $per_page = -1, $batch = false)
+function fetch_orders($user_group, $selected_year, $page = 1, $per_page = -1, $batch = false, $selected_month = null)
 {
 	if ($batch) {
 		$per_page = 200;
 	}
+
+	if ($selected_month) {
+		// Filter by specific month using WooCommerce native date_created range
+		$month_padded = str_pad($selected_month, 2, '0', STR_PAD_LEFT);
+		$last_day = date('t', mktime(0, 0, 0, $selected_month, 1, $selected_year));
+		$date_created = $selected_year . '-' . $month_padded . '-01...' . $selected_year . '-' . $month_padded . '-' . $last_day;
+	} else {
+		// Full year using WooCommerce native date_created range
+		$date_created = $selected_year . '-01-01...' . $selected_year . '-12-31';
+	}
+
 	$args = array(
 		'customer_id' => $user_group,
 		'limit' => $per_page,
@@ -134,9 +145,7 @@ function fetch_orders($user_group, $selected_year,  $page = 1, $per_page = -1, $
 		),
 		'orderby' => 'date',
 		'order' => 'DESC',
-		'date_query' => array(
-			'after' => date('Y-m-d', mktime(0, 0, 0, 1, 0, $selected_year)),
-		),
+		'date_created' => $date_created,
 		'return' => 'ids',
 	);
 	return wc_get_orders($args);
@@ -182,7 +191,7 @@ function fetch_custom_order_data($order_ids)
  */
 function initialize_yearly_data(&$data_arrays, $year)
 {
-	$months_sum = array_fill_keys(range(1, 12), 0);
+	$months_sum = array_fill_keys(array('01','02','03','04','05','06','07','08','09','10','11','12'), 0);
 
 	foreach ($data_arrays as &$array) {
 		$array[$year] = $months_sum;
@@ -348,3 +357,56 @@ function compile_final_results()
 
 
 add_action('wp_ajax_compile_final_results', 'compile_final_results');
+
+
+/**
+ * AJAX handler: return users belonging to a selected group.
+ * Used by the Groups Portfolio SQM user filter dropdown.
+ */
+add_action('wp_ajax_get_group_users', 'ajax_get_group_users');
+
+function ajax_get_group_users() {
+	check_ajax_referer('grup_portfolio_sqm_nonce', 'nonce');
+
+	if ( ! current_user_can('manage_groups_portfolio') ) {
+		wp_send_json_error('Insufficient permissions');
+	}
+
+	$group_name = isset($_POST['group_name']) ? sanitize_text_field($_POST['group_name']) : '';
+
+	if ( empty($group_name) ) {
+		wp_send_json_error('Group name required');
+	}
+
+	if ( $group_name === 'all_users' ) {
+		$users = get_users(array(
+			'fields' => array('ID', 'display_name'),
+			'orderby' => 'display_name',
+			'order' => 'ASC',
+		));
+	} else {
+		$user_ids = get_post_meta(1, $group_name, true);
+		if ( empty($user_ids) || ! is_array($user_ids) ) {
+			wp_send_json_success(array('users' => array()));
+			return;
+		}
+		$users = get_users(array(
+			'include' => $user_ids,
+			'fields' => array('ID', 'display_name'),
+			'orderby' => 'display_name',
+			'order' => 'ASC',
+		));
+	}
+
+	$users_data = array();
+	foreach ( $users as $user ) {
+		$company = get_user_meta($user->ID, 'billing_company', true);
+		$users_data[] = array(
+			'id'           => $user->ID,
+			'display_name' => $user->display_name,
+			'company'      => $company ? $company : '(No company)',
+		);
+	}
+
+	wp_send_json_success(array('users' => $users_data));
+}

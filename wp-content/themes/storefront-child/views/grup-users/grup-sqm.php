@@ -2,8 +2,15 @@
 $path = preg_replace('/wp-content(?!.*wp-content).*/', '', __DIR__);
 include($path . 'wp-load.php');
 
+// Auth check
+if (!is_user_logged_in()) {
+	wp_die('Unauthorized access.', 403);
+}
+if (!isset($_POST['_grup_nonce']) || !wp_verify_nonce($_POST['_grup_nonce'], 'grup_ajax_nonce')) {
+	wp_die('Invalid nonce.', 403);
+}
 
-if ($_POST['group_name']) {
+if (isset($_POST['group_name']) && $_POST['group_name']) {
     $page_title = esc_html($_POST['group_name']) . ' SQM';
 } else {
     $groups_created = get_post_meta(1, 'groups_created', true);
@@ -298,31 +305,10 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
     echo 'Total Execution Time: ' . $execution_time . ' seconds';
 }
 
-//$new = array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12');
 $luni = array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12');
-$newlunian = array();
 $new = array();
-$news = array();
-for ($i = 11; $i >= 0; $i--) {
-    //teo				$newlunian[] = date('Y-m', strtotime('-'.$i.' months'));
-    $newlunian[] = date('Y-m', mktime(0, 0, 0, date('m') - $i, 1, date('Y')));
-}
-
-$current_year = date("y");
-foreach ($newlunian as $k => $anluna) {
-    $pieces = explode("-", $anluna);
-    $an = $pieces[0]; // piece1
-    $luna = $pieces[1]; // piece2
-    if (!empty($total[$an][$luna])) {
-        $new[$luna] = round($total[$an][$luna], 0);
-        //print_r($t);
-    } else {
-        if ($new[$luna] != 0) {
-        } else {
-            $new[$luna] = 0;
-            //print_r($new[$luna]);
-        }
-    }
+foreach ($luni as $luna) {
+    $new[$luna] = isset($total[$selected_year][$luna]) ? round($total[$selected_year][$luna], 0) : 0;
 }
 
 //echo '<pre>';
@@ -487,10 +473,10 @@ foreach ($newlunian as $k => $anluna) {
 </div>
 
 <?php
+$months_labels = array('01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'May','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec');
 $months_cart = array();
-for ($i = 11; $i >= 0; $i--) {
-    $month = date('M y', mktime(0, 0, 0, date('m') - $i, 1, date('Y')));
-    $months_cart[] = $month;
+foreach ($months_labels as $num => $label) {
+    $months_cart[] = $label . ' ' . substr($selected_year, -2);
 } ?>
 
 <script>

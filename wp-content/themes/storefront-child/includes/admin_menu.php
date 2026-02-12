@@ -428,6 +428,16 @@ function matrix_container_my_custom_submenu_page()
     		'dashicons-chart-bar', // Icon URL (use a Dashicon or custom URL)
     		51 // Position; just after Groups Portfolio
     	);
+
+		add_menu_page(
+			__('Groups Portfolio SQM', 'textdomain'),
+			__('Groups Portfolio SQM', 'textdomain'),
+			'manage_groups_portfolio',
+			'groups-portfolio-sqm',
+			'render_groups_portfolio_sqm_page',
+			'dashicons-chart-area',
+			52
+		);
 	}
 }
 
@@ -455,6 +465,11 @@ function render_groups_portfolio_page()
 function render_frametype_statistics_page()
 {
 	include 'templates/frametype-statistics.php';
+}
+
+function render_groups_portfolio_sqm_page()
+{
+	include 'templates/groups-portfolio-sqm.php';
 }
 
 // End - Custom submenu for Container

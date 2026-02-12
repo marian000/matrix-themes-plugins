@@ -2,6 +2,14 @@
 $path = preg_replace('/wp-content(?!.*wp-content).*/', '', __DIR__);
 include($path . 'wp-load.php');
 
+// Auth check
+if (!is_user_logged_in()) {
+	wp_die('Unauthorized access.', 403);
+}
+if (!isset($_POST['_grup_nonce']) || !wp_verify_nonce($_POST['_grup_nonce'], 'grup_ajax_nonce')) {
+	wp_die('Invalid nonce.', 403);
+}
+
 $i = 1;
 // luna selectata
 if (isset($_POST['luna_select'])) {
@@ -16,8 +24,8 @@ $group = get_user_group();
 // Get selected year
 $selected_year = isset($_POST['an_select']) ? $_POST['an_select'] : date("Y");
 
-// Fetch orders
-$orders = fetch_orders($group, $selected_year);
+// Fetch orders filtered by month
+$orders = fetch_orders($group, $selected_year, 1, -1, false, $selected_month);
 
 $total = array();
 $totaly = array();
@@ -48,11 +56,8 @@ foreach ($orders as $id_order) {
 //    print_r($items_material);
 //    echo '</pre>';
 	foreach ($items_material as $material => $material_sqm) {
-		$prev_sqm = isset($materials[$material]) ? floatval($materials[$material]) : 0;
-		$materials[$material] = floatval($material_sqm) + $prev_sqm;
-
 		$prev_user_sqm = isset($users_sqm[$user_id][$material]) ? floatval($users_sqm[$user_id][$material]) : 0;
-		$users_sqm[$user_id][$material] = $prev_user_sqm + floatval($material_sqm) + $prev_sqm;
+		$users_sqm[$user_id][$material] = $prev_user_sqm + floatval($material_sqm);
 	}
 
 	$i++;

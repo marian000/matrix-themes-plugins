@@ -3,7 +3,7 @@
        *********************************************************************************************	-->
 
 <?php
-if ($_POST['group_name']) {
+if (isset($_POST['group_name']) && $_POST['group_name']) {
     if($_POST['group_name'] === 'all_users'){
         $users = get_users( array( 'fields' => array( 'ID' ) ) );
         $group = array();
@@ -26,14 +26,14 @@ $i = 1;
 // luna selectata
 if (isset($_POST['luna_select'])) {
     $selected_month = $_POST['luna_select'];
-    echo '<br>luna selectata ' . $selected_month;
+    // luna selectata
 } else {
     $selected_month = date("m");
 }
 // an selectat
 if (isset($_POST['an_select'])) {
     $selected_year = $_POST['an_select'];
-    echo '<br>an selectat ' . $selected_year;
+    // an selectat
 } else {
     $selected_year = date("Y");
 }
@@ -41,7 +41,7 @@ if (isset($_POST['an_select'])) {
 $orders = array();
 // foreach ($group as $key => $user_id) {
 $args = array(
-    //'customer_id' => $group,
+    'customer_id' => $group,
     'limit' => -1,
     'type' => 'shop_order',
     'status' => array('wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing', 'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision'),
@@ -53,8 +53,7 @@ $args = array(
     'return' => 'ids',
 );
 
-echo ' after: ' . date('Y-m-d', mktime(0, 0, 0, $selected_month, 1, $selected_year));
-echo ' before: ' . date('Y-m-t', mktime(0, 0, 0, $selected_month, 1, $selected_year));
+// Debug removed
 
 $orders = wc_get_orders($args);
 // $orders = array_merge($orders, $orders_user);

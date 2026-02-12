@@ -1,34 +1,20 @@
 <?php
 
 /**
- * Obține utilizatorii după companie
- * @param string $company Numele companiei sau ID-ul
- * @return array Array de obiecte WP_User
+ * Groups Portfolio SQM — SQM-only view with user filter
  */
-function get_user_ids_by_billing_company($company_name)
+
+function get_user_ids_by_billing_company_sqm($company_name)
 {
-    // Get users with matching billing company
     $users = get_users(array(
         'meta_key' => 'billing_company',
         'meta_value' => $company_name,
-        'fields' => 'ids', // Only return IDs to be more efficient
+        'fields' => 'ids',
     ));
-
     return $users;
 }
 
-
 ?>
-
-<!-- Latest compiled and minified CSS -->
-<!--<link rel="stylesheet"-->
-<!--      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
-<!---->
-<!-- Latest compiled JavaScript -->
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
-<!-- Use Font Awesome Free CDN modified-->
-<!--<link rel="stylesheet"-->
-<!--      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">-->
 
 <style>
     #container {
@@ -193,6 +179,10 @@ function get_user_ids_by_billing_company($company_name)
         font-variant-numeric: tabular-nums;
     }
 
+    #user-filter-select {
+        min-height: 38px;
+    }
+
 </style>
 
 
@@ -202,43 +192,17 @@ function get_user_ids_by_billing_company($company_name)
         class="site-main"
         role="main">
 
-        <h2>Users Group</h2>
+        <h2>Groups Portfolio SQM</h2>
 
-        <!-- Multi Cart Template -->
-        <?php if (is_active_sidebar('multicart_widgett')) : ?>
-            <div id="bmc-woocom-multisession-2"
-                class="widget bmc-woocom-multisession-widget">
-                <?php //dynamic_sidebar( 'multicart_widgett' ); 
-                ?>
-            </div>
-            <!-- #primary-sidebar -->
-        <?php endif;
-
+        <?php
         $user_id = get_current_user_id();
-        $meta_key = 'wc_multiple_shipping_addresses';
 
         global $wpdb;
-        $addresses = $wpdb->get_results($wpdb->prepare(
-            "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
-            $user_id,
-            '_woocom_multisession'
-        ));
-
-        /*
-				 * Create Group
-				 * Delete Group
-				 * Rename Group
-				 */
-        //  include_once(get_stylesheet_directory() . '/views/grup-users/grup-malipulation.php');
-
-        /*
-				 * Search Group
-				 */
         ?>
 
         <div class="grup-section-header">
             <h3>Search Group Info</h3>
-            <span class="grup-section-subtitle">Filter by group and date range</span>
+            <span class="grup-section-subtitle">Filter by group, company and date range — SQM only</span>
         </div>
 
         <div class="card grup-filter-card mb-4">
@@ -249,19 +213,18 @@ function get_user_ids_by_billing_company($company_name)
                 $currentYear = date("Y");
                 $luni = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 'April', '05' => 'May', '06' => 'June', '07' => 'July', '08' => 'August', '09' => 'September', '10' => 'October', '11' => 'November', '12' => 'December');
 
-                // Build last 10 years in descending order
                 $last10Years = [];
                 for ($i = 0; $i < 10; $i++) {
                     $last10Years[] = $currentYear - $i;
                 }
 
-                // Determine current values (from POST or defaults)
                 $posted_from_month = isset($_POST['luna_from']) ? $_POST['luna_from'] : $month;
                 $posted_from_year  = isset($_POST['an_from']) ? $_POST['an_from'] : $currentYear;
                 $posted_to_month   = isset($_POST['luna_to']) ? $_POST['luna_to'] : $month;
                 $posted_to_year    = isset($_POST['an_to']) ? $_POST['an_to'] : $currentYear;
                 ?>
                 <form action="" method="POST">
+                    <?php wp_nonce_field('grup_portfolio_sqm_nonce', 'grup_portfolio_sqm_nonce_field'); ?>
                     <!-- Quick presets -->
                     <div class="mb-3 d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-outline-secondary btn-sm date-preset" data-fm="<?php echo $month; ?>" data-fy="<?php echo $currentYear; ?>" data-tm="<?php echo $month; ?>" data-ty="<?php echo $currentYear; ?>">This Month</button>
@@ -275,10 +238,9 @@ function get_user_ids_by_billing_company($company_name)
 
                     <div class="row g-3 align-items-end">
                         <!-- Group selector -->
-                        <div class="col-sm-6 col-lg-3">
+                        <div class="col-sm-6 col-lg-2">
                             <label for="q_status_order_id_eq" class="form-label">Group</label>
                             <?php
-                                // Determine the effective selected group (matches data query logic below)
                                 $effective_group_name = 'all_users';
                                 if (isset($_POST['group_name']) && $_POST['group_name'] !== '') {
                                     $effective_group_name = $_POST['group_name'];
@@ -301,6 +263,37 @@ function get_user_ids_by_billing_company($company_name)
                             </select>
                         </div>
 
+                        <!-- Company filter -->
+                        <div class="col-sm-6 col-lg-2">
+                            <label for="user-filter-select" class="form-label">Filter by Company</label>
+                            <select id="user-filter-select" name="user_filter[]" class="form-select" multiple>
+                                <?php
+                                // Pre-populate with companies from current group
+                                if ($effective_group_name === 'all_users') {
+                                    $filter_users = get_users(array('fields' => array('ID'), 'orderby' => 'display_name', 'order' => 'ASC'));
+                                } else {
+                                    $filter_user_ids = get_post_meta(1, $effective_group_name, true);
+                                    $filter_users = !empty($filter_user_ids) ? get_users(array('include' => $filter_user_ids, 'fields' => array('ID'), 'orderby' => 'display_name', 'order' => 'ASC')) : array();
+                                }
+                                $posted_user_filter = isset($_POST['user_filter']) ? array_map('intval', $_POST['user_filter']) : array();
+                                // Build unique company list (company => user_id)
+                                $company_options = array();
+                                foreach ($filter_users as $fu) {
+                                    $fu_company = get_user_meta($fu->ID, 'billing_company', true);
+                                    if (!empty($fu_company) && !isset($company_options[$fu_company])) {
+                                        $company_options[$fu_company] = $fu->ID;
+                                    }
+                                }
+                                ksort($company_options);
+                                foreach ($company_options as $co_name => $co_uid) {
+                                    $co_selected = in_array((int)$co_uid, $posted_user_filter) ? 'selected' : '';
+                                    echo '<option value="' . esc_attr($co_uid) . '" ' . $co_selected . '>' . esc_html($co_name) . '</option>';
+                                }
+                                ?>
+                            </select>
+                            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+
                         <!-- FROM: month + year -->
                         <div class="col-sm-3 col-lg-2">
                             <label for="select-luna-from" class="form-label">From month</label>
@@ -313,7 +306,7 @@ function get_user_ids_by_billing_company($company_name)
                                 <?php } ?>
                             </select>
                         </div>
-                        <div class="col-sm-3 col-lg-2">
+                        <div class="col-sm-3 col-lg-1">
                             <label for="select-an-from" class="form-label">From year</label>
                             <select id="select-an-from" name="an_from" class="form-select">
                                 <?php foreach ($last10Years as $an) {
@@ -361,9 +354,8 @@ function get_user_ids_by_billing_company($company_name)
         </div>
         <?php
 
-        //		print_r($_POST);
         $user_id = get_current_user_id();
-        $allowed_user_ids = [1, 2, 18, 192, 354]; // Array of allowed user IDs. Change these to the actual IDs you want to allow.
+        $allowed_user_ids = [1, 2, 18, 192, 354];
 
         if (isset($_POST['group_name']) && $_POST['group_name'] !== '') {
             if ($_POST['group_name'] === 'all_users') {
@@ -389,6 +381,12 @@ function get_user_ids_by_billing_company($company_name)
             }
         }
 
+        // Apply user filter — intersect with selected users
+        if (isset($_POST['user_filter']) && !empty($_POST['user_filter'])) {
+            $selected_users = array_map('intval', $_POST['user_filter']);
+            $group = array_intersect($group, $selected_users);
+        }
+
         $i = 1;
         // Date range: From / To
         $from_month = isset($_POST['luna_from']) ? $_POST['luna_from'] : date("m");
@@ -396,7 +394,6 @@ function get_user_ids_by_billing_company($company_name)
         $to_month   = isset($_POST['luna_to']) ? $_POST['luna_to'] : date("m");
         $to_year    = isset($_POST['an_to']) ? $_POST['an_to'] : date("Y");
 
-        // Build date range: start of from_month to end of to_month
         $date_after  = date('Y-m-d', mktime(0, 0, 0, $from_month, 0, $from_year));
         $date_before = date('Y-m-d', strtotime('+1 month', strtotime($to_year . '-' . $to_month . '-1')));
 
@@ -417,7 +414,7 @@ function get_user_ids_by_billing_company($company_name)
 
         $group_companies = array();
 
-        // === BATCH DATA LOADING (eliminates thousands of per-order queries) ===
+        // === BATCH DATA LOADING ===
 
         // 1. Batch fetch wp_custom_orders SQM data
         $custom_order_data = fetch_custom_order_data($orders);
@@ -458,7 +455,7 @@ function get_user_ids_by_billing_company($company_name)
             }
         }
 
-        // 4. Material ID mapping (constant)
+        // 4. Material ID mapping
         $material_ids_map = array(
             187 => 'Earth',
             137 => 'Green',
@@ -472,7 +469,6 @@ function get_user_ids_by_billing_company($company_name)
 
         // === MAIN ORDER LOOP ===
         foreach ($orders as $id_order) {
-            // Use batch-cached data instead of per-order queries
             $property_total = isset($custom_order_data[$id_order]) ? $custom_order_data[$id_order]['sqm'] : 0;
             $user_id = isset($order_meta_cache[$id_order]['_customer_user']) ? $order_meta_cache[$id_order]['_customer_user'] : '';
             $company = isset($company_cache[$user_id]) ? $company_cache[$user_id] : '';
@@ -487,21 +483,13 @@ function get_user_ids_by_billing_company($company_name)
                 $group_companies[$company]['sqm'] = $property_total;
             }
 
-            // Load order object once (needed for items + subtotal)
-            $order = wc_get_order($id_order);
-
-            // Check if order is awning type
+            // Skip awning orders — SQM-only view
             if ($type_order === 'awning') {
-                if (!isset($group_companies[$company]['type'])) {
-                    $group_companies[$company]['type'] = $type_order;
-                    $group_companies[$company]['awning_items'] = 0;
-                    $group_companies[$company]['awning_subtotal'] = 0;
-                }
-                $group_companies[$company]['awning_items'] += count($order->get_items());
-                $group_companies[$company]['awning_subtotal'] += $order->get_subtotal();
+                continue;
             }
 
-            // Materials — inline extraction (avoids duplicate wc_get_order + redundant attributes_array fetch)
+            // Materials — inline extraction
+            $order = wc_get_order($id_order);
             foreach ($order->get_items() as $item) {
                 $product_id = $item['product_id'];
                 $material_id = get_post_meta($product_id, 'property_material', true);
@@ -513,7 +501,7 @@ function get_user_ids_by_billing_company($company_name)
             }
         }
 
-        // === FILL MISSING COMPANIES (batch query instead of per-user get_user_meta) ===
+        // === FILL MISSING COMPANIES ===
         $materials = array('Earth' => 0, 'Green' => 0, 'Biowood' => 0, 'BiowoodPlus' => 0, 'BasswoodPlus' => 0, 'Basswood' => 0, 'Ecowood' => 0, 'EcowoodPlus' => 0);
         if (!empty($group)) {
             $group_ids_str = implode(',', array_map('intval', $group));
@@ -535,29 +523,10 @@ function get_user_ids_by_billing_company($company_name)
         }
 
         uasort($group_companies, function ($a, $b) {
-            // Compară valorile 'sqm'
-            // Pentru sortare ascendentă, folosește:
-            //			return $a['sqm'] <=> $b['sqm'];
-
-            // Pentru sortare descendentă, inversează comparația:
             return $b['sqm'] <=> $a['sqm'];
         });
 
-        //		echo '<pre>';
-        //		print_r($group_companies);
-        //		echo '</pre>';
-
-        // Obținem valorile default pentru prețurile materialelor
-        $default_EcowoodPlus = get_post_meta(1, 'EcowoodPlus', true);
-        $default_Ecowood = get_post_meta(1, 'Ecowood', true);
-        $default_BiowoodPlus = get_post_meta(1, 'BiowoodPlus', true);
-        $default_Biowood = get_post_meta(1, 'Biowood', true);
-        $default_Green = get_post_meta(1, 'Green', true);
-        $default_BasswoodPlus = get_post_meta(1, 'BasswoodPlus', true);
-        $default_Basswood = get_post_meta(1, 'Basswood', true);
-        $default_Earth = get_post_meta(1, 'Earth', true);
-
-        // Prime user meta cache in a single query (eliminates ~1700 individual get_user_meta calls)
+        // Prime user meta cache
         $render_user_ids = array_filter(array_column($group_companies, 'user_id'));
         if (!empty($render_user_ids)) {
             cache_users($render_user_ids);
@@ -577,46 +546,32 @@ function get_user_ids_by_billing_company($company_name)
         }
         ?>
         <div class="grup-section-header">
-            <h3>Dealer Portfolio</h3>
+            <h3>Dealer Portfolio — SQM</h3>
             <span class="grup-section-subtitle"><?php echo $range_label; ?></span>
         </div>
 
         <div id="grup-month" class="tab-pane">
             <div class="grup-table-card">
                 <div class="table-responsive">
-                    <table id="grup-portfolio-table" class="table table-bordered table-striped table-hover grup-table">
-                        <!-- Tabelul de antet -->
+                    <table id="grup-portfolio-sqm-table" class="table table-bordered table-striped table-hover grup-table">
                         <thead>
                             <tr>
                                 <th>Nr.</th>
                                 <th>User</th>
                                 <th>Total SQM</th>
-                                <th>Ecowood £</th>
-                                <th>Ecowood SQM</th>
-                                <th>EcowoodPlus £</th>
-                                <th>EcowoodPlus SQM</th>
-                                <th>Biowood £</th>
-                                <th>Biowood SQM</th>
-                                <th>BiowoodPlus £</th>
-                                <th>BiowoodPlus SQM</th>
-                                <th>BasswoodPlus £</th>
-                                <th>BasswoodPlus SQM</th>
-                                <th>Basswood £</th>
-                                <th>Basswood SQM</th>
-                                <th>Earth £</th>
-                                <th>Earth SQM</th>
-                                <th>Green £</th>
-                                <th>Green SQM</th>
-                                <th>Awnings £</th>
-                                <th>Awnings Items</th>
+                                <th>Ecowood</th>
+                                <th>EcowoodPlus</th>
+                                <th>Biowood</th>
+                                <th>BiowoodPlus</th>
+                                <th>BasswoodPlus</th>
+                                <th>Basswood</th>
+                                <th>Earth</th>
+                                <th>Green</th>
                             </tr>
                         </thead>
 
-                        <!-- Corpul tabelului -->
                         <tbody>
                             <?php
-
-                            // Inițializăm variabilele pentru totaluri
                             $i = 1;
                             $total_sqm = 0;
                             $total_sqm_earth = 0;
@@ -627,12 +582,8 @@ function get_user_ids_by_billing_company($company_name)
                             $total_sqm_biowoodPlus = 0;
                             $total_sqm_basswoodPlus = 0;
                             $total_sqm_basswood = 0;
-                            $total_awning_subtotal = 0;
-                            $total_awning_items = 0;
 
-                            // Parcurgem array-ul $companys_sqm (cheia este ID-ul userului)
                             foreach ($group_companies as $company => $data) {
-                                // Acumulăm totalul SQM pentru raport
                                 $total_sqm += $data['sqm'];
                                 $total_sqm_earth += (float)($data['Earth'] ?? 0);
                                 $total_sqm_ecowood += (float)($data['Ecowood'] ?? 0);
@@ -642,64 +593,19 @@ function get_user_ids_by_billing_company($company_name)
                                 $total_sqm_biowoodPlus += (float)($data['BiowoodPlus'] ?? 0);
                                 $total_sqm_basswoodPlus += (float)($data['BasswoodPlus'] ?? 0);
                                 $total_sqm_basswood += (float)($data['Basswood'] ?? 0);
-                                $total_awning_subtotal += (float)($data['awning_subtotal'] ?? 0);
-                                $total_awning_items += (float)($data['awning_items'] ?? 0);
 
-                                // Use stored user_id directly (no more get_user_ids_by_billing_company query)
                                 $user_id = isset($data['user_id']) ? $data['user_id'] : 0;
 
-                                // Preluăm valorile din user meta; dacă nu există, folosim valorile default
-                                $ecowood = get_user_meta($user_id, 'Ecowood', true);
-                                if (empty($ecowood)) {
-                                    $ecowood = $default_Ecowood;
-                                }
-                                $ecowoodPlus = get_user_meta($user_id, 'EcowoodPlus', true);
-                                if (empty($ecowoodPlus)) {
-                                    $ecowoodPlus = $default_EcowoodPlus;
-                                }
-                                $biowood = get_user_meta($user_id, 'Biowood', true);
-                                if (empty($biowood)) {
-                                    $biowood = $default_Biowood;
-                                }
-                                $biowoodPlus = get_user_meta($user_id, 'BiowoodPlus', true);
-                                if (empty($biowoodPlus)) {
-                                    $biowoodPlus = $default_BiowoodPlus;
-                                }
-                                $green = get_user_meta($user_id, 'Green', true);
-                                if (empty($green)) {
-                                    $green = $default_Green;
-                                }
-                                $basswood = get_user_meta($user_id, 'Supreme', true);  // legacy meta key
-                                if (empty($basswood)) {
-                                    $basswood = $default_Basswood;
-                                }
-                                $basswoodPlus = get_user_meta($user_id, 'BasswoodPlus', true);
-                                if (empty($basswoodPlus)) {
-                                    $basswoodPlus = $default_BasswoodPlus;
-                                }
-                                $earth = get_user_meta($user_id, 'Earth', true);
-                                if (empty($earth)) {
-                                    $earth = $default_Earth;
-                                }
-
-                                // Preluăm telefonul și adresa de livrare a userului
+                                // User details for modal
                                 $phone_number = get_user_meta($user_id, 'billing_phone', true);
                                 $shipping_address = array(
-                                    'first_name' => get_user_meta($user_id, 'shipping_first_name', true),
-                                    'last_name' => get_user_meta($user_id, 'shipping_last_name', true),
-                                    'company' => get_user_meta($user_id, 'shipping_company', true),
                                     'address_1' => get_user_meta($user_id, 'shipping_address_1', true),
-                                    'address_2' => get_user_meta($user_id, 'shipping_address_2', true),
-                                    'city' => get_user_meta($user_id, 'shipping_city', true),
-                                    'state' => get_user_meta($user_id, 'shipping_state', true),
                                     'postcode' => get_user_meta($user_id, 'shipping_postcode', true),
-                                    'country' => get_user_meta($user_id, 'shipping_country', true),
                                 );
                             ?>
-                                <tr<?php echo ($group_companies[$company]['sqm'] == 0) ? ' class="grup-row-empty"' : ''; ?>>
+                                <tr<?php echo ($data['sqm'] == 0) ? ' class="grup-row-empty"' : ''; ?>>
                                     <td><?php echo $i; ?></td>
                                     <td>
-                                        <!-- Butonul deschide un modal cu detaliile utilizatorului -->
                                         <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#exampleModal"
                                             data-bs-name="<?php echo esc_html($company); ?>"
                                             data-bs-phone="<?php echo esc_html($phone_number); ?>"
@@ -709,78 +615,44 @@ function get_user_ids_by_billing_company($company_name)
                                             <?php echo esc_html($company); ?>
                                         </button>
                                     </td>
-                                    <td data-order="<?php echo $group_companies[$company]['sqm']; ?>"><?php echo number_format($group_companies[$company]['sqm'], 2); ?> SQM</td>
-                                    <td><?php echo esc_html($ecowood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Ecowood'], 2); ?></td>
-                                    <td><?php echo esc_html($ecowoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['EcowoodPlus'], 2); ?></td>
-                                    <td><?php echo esc_html($biowood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Biowood'], 2); ?></td>
-                                    <td><?php echo esc_html($biowoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['BiowoodPlus'], 2); ?></td>
-                                    <td><?php echo esc_html($basswoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['BasswoodPlus'], 2); ?></td>
-                                    <td><?php echo esc_html($basswood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Basswood'], 2); ?></td>
-                                    <td><?php echo esc_html($earth); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Earth'], 2); ?></td>
-                                    <td><?php echo esc_html($green); ?></td>
-                                    <td><?php echo number_format((float)($group_companies[$company]['Green'] ?? 0), 2); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['awning_subtotal'], 2); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['awning_items'], 2); ?></td>
-                                    </tr>
-                                <?php
+                                    <td data-order="<?php echo $data['sqm']; ?>"><?php echo number_format($data['sqm'], 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['Ecowood'] ?? 0); ?>"><?php echo number_format((float)($data['Ecowood'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['EcowoodPlus'] ?? 0); ?>"><?php echo number_format((float)($data['EcowoodPlus'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['Biowood'] ?? 0); ?>"><?php echo number_format((float)($data['Biowood'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['BiowoodPlus'] ?? 0); ?>"><?php echo number_format((float)($data['BiowoodPlus'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['BasswoodPlus'] ?? 0); ?>"><?php echo number_format((float)($data['BasswoodPlus'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['Basswood'] ?? 0); ?>"><?php echo number_format((float)($data['Basswood'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['Earth'] ?? 0); ?>"><?php echo number_format((float)($data['Earth'] ?? 0), 2); ?></td>
+                                    <td data-order="<?php echo (float)($data['Green'] ?? 0); ?>"><?php echo number_format((float)($data['Green'] ?? 0), 2); ?></td>
+                                </tr>
+                            <?php
                                 $i++;
                             }
-                                ?>
+                            ?>
                         </tbody>
 
-                        <!-- Tabelul de totaluri (footer) -->
                         <tfoot>
                             <tr class="grup-table-totals">
                                 <td></td>
                                 <td>Totals</td>
-                                <td>Total SQM <?php echo number_format($total_sqm, 2); ?></td>
-                                <td></td>
+                                <td><?php echo number_format($total_sqm, 2); ?></td>
                                 <td><?php echo number_format($total_sqm_ecowood, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_ecowoodPlus, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_biowood, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_biowoodPlus, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_basswoodPlus, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_basswood, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_earth, 2); ?></td>
-                                <td></td>
                                 <td><?php echo number_format($total_sqm_green, 2); ?></td>
-                                <td><?php echo number_format($total_awning_subtotal, 2); ?></td>
-                                <td><?php echo number_format($total_awning_items, 2); ?></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
         </div>
-        <!-- *********************************************************************************************
-			End Total user sqm
-			*********************************************************************************************	-->
 
     </main>
-    <!-- #main -->
 </div>
-<!-- #primary -->
-
-<?php
-$months_cart = array();
-for ($i = 11; $i >= 0; $i--) {
-    $month = date('M y', mktime(0, 0, 0, date('m') - $i, 1, date('Y')));
-    $months_cart[] = $month;
-}
-?>
 
 <script>
     jQuery(document).ready(function() {
@@ -792,13 +664,12 @@ for ($i = 11; $i >= 0; $i--) {
             jQuery('#select-an-from').val(btn.data('fy'));
             jQuery('#select-luna-to').val(btn.data('tm'));
             jQuery('#select-an-to').val(btn.data('ty'));
-            // Highlight active preset
             jQuery('.date-preset').removeClass('btn-primary').addClass('btn-outline-secondary');
             btn.removeClass('btn-outline-secondary').addClass('btn-primary');
         });
 
         // Initialize DataTable with export buttons
-        jQuery('#grup-portfolio-table').DataTable({
+        jQuery('#grup-portfolio-sqm-table').DataTable({
             paging: false,
             dom: 'Bfrtip',
             buttons: ['copy', 'csv', 'excel', 'print'],
@@ -806,113 +677,120 @@ for ($i = 11; $i >= 0; $i--) {
                 [2, 'desc']
             ],
             columnDefs: [{
-                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10],
                 className: 'text-end'
             }]
         });
 
-        // Cache commonly used DOM elements to optimize performance
+        // Company filter: reload options when group changes
+        jQuery('#q_status_order_id_eq').on('change', function() {
+            var group_name = jQuery(this).val();
+            var userSelect = jQuery('#user-filter-select');
+
+            userSelect.html('<option>Loading...</option>').prop('disabled', true);
+
+            jQuery.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action: 'get_group_users',
+                    group_name: group_name,
+                    nonce: '<?php echo wp_create_nonce('grup_portfolio_sqm_nonce'); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var options = '';
+                        var seen = {};
+                        response.data.users.forEach(function(user) {
+                            if (!seen[user.company]) {
+                                seen[user.company] = true;
+                                options += '<option value="' + user.id + '">' + user.company + '</option>';
+                            }
+                        });
+                        userSelect.html(options).prop('disabled', false);
+                    } else {
+                        userSelect.html('<option>Error loading users</option>');
+                    }
+                },
+                error: function() {
+                    userSelect.html('<option>Error loading users</option>');
+                }
+            });
+        });
+
+        // Modal logic
         var exampleModal = jQuery('#exampleModal');
         var messageText = jQuery('#message-text');
         var dealerIdField = jQuery('#dealer-id');
 
-        // Event listener for when the modal is about to be shown
         jQuery('#exampleModal').on('show.bs.modal', function(event) {
-            // Button that triggered the modal
             var button = jQuery(event.relatedTarget);
+            var name = button.data('bs-name');
+            var phone = button.data('bs-phone');
+            var address = button.data('bs-address');
+            var dealerId = button.data('bs-dealer');
+            var postcode = button.data('bs-postcode');
 
-            // Extract info from data-bs-* attributes
-            var name = button.data('bs-name'); // Using jQuery's .data() method
-            var phone = button.data('bs-phone'); // Using jQuery's .data() method
-            var address = button.data('bs-address'); // Using jQuery's .data() method
-            var dealerId = button.data('bs-dealer'); // Using jQuery's .data() method
-            var postcode = button.data('bs-postcode'); // Using jQuery's .data() method
-            console.log('dealerId', dealerId);
-
-            // insert into span
             jQuery('.dealer-name').text(name);
             jQuery('.dealer-phone').text(phone);
             jQuery('.dealer-postcode').text(postcode);
             jQuery('.dealer-address').text(address);
 
-            // Update the modal's content.
             var modalTitle = jQuery(this).find('.modal-title');
-            var modalBodyInput = jQuery(this).find('.modal-body input#dealer-name');
-            var modalBodyInputPhone = jQuery(this).find('.modal-body input#dealer-phone');
-            var modalBodyInputPostcode = jQuery(this).find('.modal-body input#dealer-postcode');
-            var modalBodyInputAddress = jQuery(this).find('.modal-body input#dealer-address');
-            var modalBodyInputId = jQuery(this).find('.modal-body input#dealer-id');
+            jQuery(this).find('.modal-body input#dealer-name').val(name);
+            jQuery(this).find('.modal-body input#dealer-phone').val(phone);
+            jQuery(this).find('.modal-body input#dealer-postcode').val(postcode);
+            jQuery(this).find('.modal-body input#dealer-address').val(address);
+            jQuery(this).find('.modal-body input#dealer-id').val(dealerId);
+            modalTitle.text('Notes for ' + name);
 
-            modalTitle.text('Notes for ' + name); // Using .text() to update title
-            modalBodyInput.val(name); // Using .val() to update input's value
-            modalBodyInputPhone.val(phone); // Using .val() to update input's value
-            modalBodyInputPostcode.val(postcode); // Using .val() to update input's value
-            modalBodyInputAddress.val(address); // Using .val() to update input's value
-            modalBodyInputId.val(dealerId); // Using .val() to update input's value
-
-            // Clear any existing messages from previous uses of the modal and fetch new ones
             jQuery('.user-message').remove();
             fetchMessages(dealerId);
         });
 
-        // Event listener for when the 'Send Message' button is clicked
         jQuery('.btn-primary.send-notes').click(function() {
-            var message = messageText.val().trim(); // Get and trim the whitespace from the input message
+            var message = messageText.val().trim();
             if (message) {
-                sendMessage(dealerIdField.val(), message); // Send message if not empty
+                sendMessage(dealerIdField.val(), message);
             } else {
-                alert('Please enter a message.'); // Alert if message is empty
+                alert('Please enter a message.');
             }
         });
 
-        // Function to fetch messages for a given dealer and update the modal
         function fetchMessages(dealerId) {
             jQuery.ajax({
-                url: _wpUtilSettings.ajax.url, // URL from WP AJAX setup
+                url: _wpUtilSettings.ajax.url,
                 type: 'POST',
                 data: {
-                    action: 'get_user_messages', // WP AJAX action
-                    user_id: dealerId // User/dealer ID for whom messages are fetched
+                    action: 'get_user_messages',
+                    user_id: dealerId
                 },
                 success: function(response) {
                     if (response.success) {
-                        displayMessages(response.data); // Display messages if AJAX call was successful
-                    } else {
-                        console.error('Failed to retrieve messages: ', response.data); // Log errors to console
+                        displayMessages(response.data);
                     }
-                },
-                error: function() {
-                    console.error('Failed to retrieve messages.'); // Log AJAX errors to console
                 }
             });
         }
 
-        // Function to send a new message to the server
         function sendMessage(dealerId, message) {
             jQuery.ajax({
                 url: _wpUtilSettings.ajax.url,
                 type: 'POST',
                 data: {
-                    action: 'save_user_message', // WP AJAX action
-                    user_id: dealerId, // Dealer ID
-                    message: message // Message text
+                    action: 'save_user_message',
+                    user_id: dealerId,
+                    message: message
                 },
                 success: function(response) {
                     if (response.success) {
-                        messageText.val(''); // Clear the textarea after message is sent
+                        messageText.val('');
                         fetchMessages(dealerId);
-
-                    } else {
-                        console.error('Error saving message: ', response.data); // Log save errors to console
                     }
-                },
-                error: function() {
-                    console.error('Error saving message.'); // Log AJAX errors to console
                 }
             });
         }
 
-        // Function to append messages to the modal body just above the textarea
         function displayMessages(messages) {
             jQuery('.user-message').remove();
             messages.forEach(function(message) {
@@ -920,7 +798,6 @@ for ($i = 11; $i >= 0; $i--) {
                 messageText.before(div);
             });
         }
-
 
     });
 </script>
@@ -964,7 +841,6 @@ for ($i = 11; $i >= 0; $i--) {
                         <textarea class="form-control" id="message-text" style="height: 200px"></textarea>
                     </div>
                     <input type="hidden" class="form-control" id="dealer-id">
-
                 </form>
             </div>
             <div class="modal-footer bg-light">

@@ -394,17 +394,26 @@ for ($i = 11; $i >= 0; $i--) {
     jQuery(document).ready(function () {
 
 
+        // Form filter data to forward to AJAX-loaded tabs
+        var formData = {
+            group_name:  '<?php echo esc_js(isset($_POST["group_name"]) ? $_POST["group_name"] : ""); ?>',
+            luna_select: '<?php echo esc_js(isset($_POST["luna_select"]) ? $_POST["luna_select"] : date("m")); ?>',
+            an_select:   '<?php echo esc_js(isset($_POST["an_select"]) ? $_POST["an_select"] : date("Y")); ?>',
+            _grup_nonce: '<?php echo wp_create_nonce("grup_ajax_nonce"); ?>'
+        };
+
         // Function to handle AJAX request
-        function loadContent(url, contentDiv, timeDiv) {
+        function loadContent(url, contentDiv, postData) {
             var startTime = new Date().getTime();
             console.log(contentDiv + ' loading...');
 
             jQuery.ajax({
                 url: url,
-                type: 'GET',
+                type: 'POST',
+                data: postData,
                 success: function (response) {
                     var endTime = new Date().getTime();
-                    var loadingTime = (endTime - startTime) / 1000; // Convert to seconds
+                    var loadingTime = (endTime - startTime) / 1000;
 
                     jQuery(contentDiv).html(response);
                     console.log('Loaded in ' + loadingTime + ' seconds')
@@ -412,9 +421,8 @@ for ($i = 11; $i >= 0; $i--) {
                 error: function (xhr, status, error) {
                     console.log('AJAX error:', error);
                     var endTime = new Date().getTime();
-                    var loadingTime = (endTime - startTime) / 1000; // Convert to seconds
+                    var loadingTime = (endTime - startTime) / 1000;
                     console.log('Loaded in ' + loadingTime + ' seconds')
-
                 }
             });
         }
@@ -423,9 +431,9 @@ for ($i = 11; $i >= 0; $i--) {
         var urlGrupSqm = "/wp-content/themes/storefront-child/views/grup-users/grup-sqm.php";
         var urlGrupMonth = "/wp-content/themes/storefront-child/views/grup-users/grup-month.php";
 
-        // Load the content
-        loadContent(urlGrupSqm, '#content-grup-sqm', '#loading-time-sqm');
-        loadContent(urlGrupMonth, '#content-grup-month', '#loading-time-month');
+        // Load the content with filter data
+        loadContent(urlGrupSqm, '#content-grup-sqm', formData);
+        loadContent(urlGrupMonth, '#content-grup-month', formData);
 
 
         var firstTabEl = document.querySelector('#myTab li:first-child a')

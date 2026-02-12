@@ -56,44 +56,11 @@ function order_items_materials_sqm_perfect($order_id)
 }
 
 
-// print_r($group);
+// Use group filter from form instead of hardcoded user
+$group = get_user_group();
 
-// Query for users where the meta_key 'company_parrent' is equal to 274
-$user_query = new WP_User_Query(array(
-	'meta_key' => 'company_parent',
-	'meta_value' => 274,
-));
-
-$user_ids = array(274);
-// Check if we have users
-if (!empty($user_query->get_results())) {
-// We have users, let's get their IDs
-	foreach ($user_query->get_results() as $user) {
-		$user_ids[] = $user->ID;
-	}
-}
-
-//print_r($user_ids);
-
-// foreach ($group as $key => $user_id) {
-$args = array(
-	'customer_id' => $user_ids,
-	'limit' => -1,
-	'type' => 'shop_order',
-	'status' => array('wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing', 'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision'),
-	'orderby' => 'date',
-	'date_query' => array(
-		'after' => date('Y-m-d', mktime(0, 0, 0, $selected_month, 0, $selected_year)),
-//        'before' => date('Y-m-t', mktime(0, 0, 0, $selected_month, 1, $selected_year)),
-		'before' => date('Y-m-d', strtotime('+1 month', strtotime($selected_year . '-' . $selected_month . '-1'))),
-	),
-	'return' => 'ids',
-);
-
-//echo ' after: ' . date('Y-m-d', mktime(0, 0, 0, $selected_month, 0, $selected_year));
-//echo ' before: ' . date('Y-m-d', strtotime('+1 month', strtotime($selected_year . '-' . $selected_month . '-1')));
-
-$orders = wc_get_orders($args);
+// Fetch orders using shared function with month filter
+$orders = fetch_orders($group, $selected_year, 1, -1, false, $selected_month);
 // $orders = array_merge($orders, $orders_user);
 // }
 
@@ -126,10 +93,8 @@ foreach ($orders as $id_order) {
 //    print_r($items_material);
 //    echo '</pre>';
 	foreach ($items_material as $material => $material_sqm) {
-		$prev_sqm = $materials[$material];
-		$materials[$material] = $material_sqm + $prev_sqm;
-
-		$users_sqm[$user_id][$material] = $users_sqm[$user_id][$material] + $material_sqm + $prev_sqm;
+		$prev_user_sqm = isset($users_sqm[$user_id][$material]) ? floatval($users_sqm[$user_id][$material]) : 0;
+		$users_sqm[$user_id][$material] = $prev_user_sqm + floatval($material_sqm);
 	}
 
 	$i++;

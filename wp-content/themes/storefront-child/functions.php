@@ -93,6 +93,8 @@ function custom_matrix_scripts_admin($hook)
 	$datatable_pages = array(
 		'woocommerce_page_users-group-grafic',
 		'toplevel_page_frametype-statistics',
+		'toplevel_page_groups-portfolio',
+		'toplevel_page_groups-portfolio-sqm',
 	);
 	if (in_array($hook, $datatable_pages)) {
 		wp_enqueue_style('dev-style_custom', get_stylesheet_directory_uri() . '/style-custom.css');

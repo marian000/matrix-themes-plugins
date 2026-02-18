@@ -399,13 +399,13 @@ echo $table_class; ?>">
 					if ($view_price || current_user_can('administrator')) {
 						$batten_type = get_post_meta($product_id, 'batten_type', true);
 						if ($batten_type == 'custom') {
-							if (!empty(get_user_meta($user_id, 'BattenCustom', true)) || (get_user_meta($user_id, 'BattenCustom', true) > 0)) {
+							if (get_user_meta($user_id, 'BattenCustom', true) !== '') {
 								echo '£' . get_user_meta($user_id, 'BattenCustom', true);
 							} else {
 								echo '£' . get_post_meta(1, 'BattenCustom', true);
 							}
 						} elseif ($batten_type == 'standard') {
-							if (!empty(get_user_meta($user_id, 'BattenStandard', true)) || (get_user_meta($user_id, 'BattenStandard', true) > 0)) {
+							if (get_user_meta($user_id, 'BattenStandard', true) !== '') {
 								echo '£' . get_user_meta($user_id, 'BattenStandard', true);
 							} else {
 								echo '£' . get_post_meta(1, 'BattenStandard', true);
@@ -590,7 +590,7 @@ echo $table_class; ?>">
 								if ($property_style == 36) {
 									$user_Arched = get_user_meta($user_id, 'Arched', true);
 									$module_Arched = get_post_meta(1, 'Arched', true);
-									if ($user_Arched) {
+									if ($user_Arched !== '') {
 										echo ' (+' . $user_Arched . '%)';
 									} else {
 										echo ' (+' . $module_Arched . '%)';
@@ -598,7 +598,7 @@ echo $table_class; ?>">
 								} elseif ($property_style == 34) {
 									echo ' (+£125)';
 								} elseif ($property_style == 33) {
-									if (get_user_meta($user_id, 'Shaped', true)) {
+									if (get_user_meta($user_id, 'Shaped', true) !== '') {
 										$shaped_procent = get_user_meta($user_id, 'Shaped', true);
 									} else {
 										$shaped_procent = get_post_meta(1, 'Shaped', true);
@@ -680,7 +680,7 @@ echo $table_class; ?>">
 								echo 'Light Blocks: <strong>' . $property_lightblocks . '</strong><br>';
 							} else {
 								if ($property_fit == 56) {
-									if (get_user_meta($user_id, 'Inside', true)) {
+									if (get_user_meta($user_id, 'Inside', true) !== '') {
 										$measure_procent = get_user_meta($user_id, 'Inside', true);
 									} else {
 										$measure_procent = get_post_meta(1, 'Inside', true);
@@ -715,7 +715,7 @@ echo $table_class; ?>">
 							if (!empty($property_builtout)) {
 								$user_buildout = get_user_meta($user_id, 'Buildout', true);
 								$module_buildout = get_post_meta(1, 'Buildout', true);
-								if ($user_buildout) {
+								if ($user_buildout !== '') {
 									echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $user_buildout . '%)';
 								} else {
 									echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $module_buildout . '%)';
@@ -751,7 +751,7 @@ echo $table_class; ?>">
 								if ($atributes[$property_controltype] == 'Clearview' || $property_controltype == 403) {
 									$user_control = get_user_meta($user_id, 'Concealed_Rod', true);
 									$module_control = get_post_meta(1, 'Concealed_Rod', true);
-									if ($user_control) {
+									if ($user_control !== '') {
 										echo ' (+' . $user_control . '%)';
 									} else {
 										echo ' (+' . $module_control . '%)';
@@ -809,7 +809,7 @@ echo $table_class; ?>">
 											if ($cbuilout == 1) {
 												$user_c_build = get_user_meta($user_id, 'C_Buildout', true);
 												$module_c_build = get_post_meta(1, 'C_Buildout', true);
-												if ($user_c_build) {
+												if ($user_c_build !== '') {
 													echo ' (+' . $user_c_build . '%)';
 												} else {
 													echo ' (+' . $module_c_build . '%)';
@@ -826,7 +826,7 @@ echo $table_class; ?>">
 											if ($tbuilout == 1) {
 												$user_t_build = get_user_meta($user_id, 'T_Buildout', true);
 												$module_t_build = get_post_meta(1, 'T_Buildout', true);
-												if ($user_t_build) {
+												if ($user_t_build !== '') {
 													echo ' (+' . $user_t_build . '%)';
 												} else {
 													echo ' (+' . $module_t_build . '%)';
@@ -884,7 +884,7 @@ echo $table_class; ?>">
 							if ($property_locks == 'Yes' || $property_central_lock == "Yes") { ?> Locks:
                                 <strong>Yes</strong>
 								<?php
-								if (!empty(get_user_meta($user_id_customer, 'Lock', true)) || (get_user_meta($user_id_customer, 'Lock', true) > 0)) {
+								if (get_user_meta($user_id_customer, 'Lock', true) !== '') {
 									echo '(+' . get_user_meta($user_id_customer, 'Lock', true) . '£)';
 								} else {
 									echo '(+' . get_post_meta(1, 'Lock', true) . '£)';
@@ -955,7 +955,7 @@ echo $table_class; ?>">
 										if ($price_for_update == 'old') {
 											$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 										} else {
-											if (!empty(get_user_meta($user_id, $material, true)) || (get_user_meta($user_id, $material, true) > 0)) {
+											if (get_user_meta($user_id, $material, true) !== '') {
 												$material_price = get_user_meta($user_id, $material, true);
 											} else {
 												$material_price = get_post_meta(1, $material, true);
@@ -1157,7 +1157,7 @@ echo $table_class; ?>">
 							if ($property_style == 36) {
 								$user_Arched = get_user_meta($user_id, 'Arched', true);
 								$module_Arched = get_post_meta(1, 'Arched', true);
-								if ($user_Arched) {
+								if ($user_Arched !== '') {
 									echo ' (+' . $user_Arched . '%)';
 								} else {
 									echo ' (+' . $module_Arched . '%)';
@@ -1165,7 +1165,7 @@ echo $table_class; ?>">
 							} elseif ($property_style == 34) {
 								echo ' (+£125)';
 							} elseif ($property_style == 33) {
-								if (get_user_meta($user_id, 'Shaped', true)) {
+								if (get_user_meta($user_id, 'Shaped', true) !== '') {
 									$shaped_procent = get_user_meta($user_id, 'Shaped', true);
 								} else {
 									$shaped_procent = get_post_meta(1, 'Shaped', true);
@@ -1249,7 +1249,7 @@ echo $table_class; ?>">
 							echo 'Light Blocks: <strong>' . $property_lightblocks . '</strong><br>';
 						} else {
 							if ($property_fit == 56) {
-								if (get_user_meta($user_id, 'Inside', true)) {
+								if (get_user_meta($user_id, 'Inside', true) !== '') {
 									$measure_procent = get_user_meta($user_id, 'Inside', true);
 								} else {
 									$measure_procent = get_post_meta(1, 'Inside', true);
@@ -1284,7 +1284,7 @@ echo $table_class; ?>">
 						if (!empty($property_builtout)) {
 							$user_buildout = get_user_meta($user_id, 'Buildout', true);
 							$module_buildout = get_post_meta(1, 'Buildout', true);
-							if ($user_buildout) {
+							if ($user_buildout !== '') {
 								echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $user_buildout . '%)';
 							} else {
 								echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $module_buildout . '%)';
@@ -1320,7 +1320,7 @@ echo $table_class; ?>">
 							if ($atributes[$property_controltype] == 'Clearview' || $property_controltype == 403) {
 								$user_control = get_user_meta($user_id, 'Concealed_Rod', true);
 								$module_control = get_post_meta(1, 'Concealed_Rod', true);
-								if ($user_control) {
+								if ($user_control !== '') {
 									echo ' (+' . $user_control . '%)';
 								} else {
 									echo ' (+' . $module_control . '%)';
@@ -1399,7 +1399,7 @@ echo $table_class; ?>">
 												if ($bbuilout == 1) {
 													$user_b_build = get_user_meta($user_id, 'B_Buildout', true);
 													$module_b_build = get_post_meta(1, 'B_Buildout', true);
-													if ($user_b_build) {
+													if ($user_b_build !== '') {
 														echo ' (+' . $user_b_build . '%)';
 													} else {
 														echo ' (+' . $module_b_build . '%)';
@@ -1411,7 +1411,7 @@ echo $table_class; ?>">
 											if ($unghi == 1 && $bayposttype == 'normal') {
 												$user_b_angle = get_user_meta($user_id, 'Bay_Angle', true);
 												$module_b_angle = get_post_meta(1, 'Bay_Angle', true);
-												if ($user_b_angle) {
+												if ($user_b_angle !== '') {
 													echo ' (+' . $user_b_angle . '%)';
 												} else {
 													echo ' (+' . $module_b_angle . '%)';
@@ -1434,7 +1434,7 @@ echo $table_class; ?>">
 										if ($cbuilout == 1) {
 											$user_c_build = get_user_meta($user_id, 'C_Buildout', true);
 											$module_c_build = get_post_meta(1, 'C_Buildout', true);
-											if ($user_c_build) {
+											if ($user_c_build !== '') {
 												echo ' (+' . $user_c_build . '%)';
 											} else {
 												echo ' (+' . $module_c_build . '%)';
@@ -1452,7 +1452,7 @@ echo $table_class; ?>">
 										if ($tbuilout == 1) {
 											$user_t_build = get_user_meta($user_id, 'T_Buildout', true);
 											$module_t_build = get_post_meta(1, 'T_Buildout', true);
-											if ($user_t_build) {
+											if ($user_t_build !== '') {
 												echo ' (+' . $user_t_build . '%)';
 											} else {
 												echo ' (+' . $module_t_build . '%)';
@@ -1467,7 +1467,7 @@ echo $table_class; ?>">
 									}
 //                                        if (!empty(get_post_meta($product_id, 'property_g_buildout' . $i, true))) {
 //                                            echo 'GPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_g_buildout' . $i, true) . '</strong>';
-//                                            if (!empty(get_user_meta($user_id_customer, 'G_Buildout', true)) || (get_user_meta($user_id_customer, 'G_Buildout', true) > 0)) {
+//                                            if (get_user_meta($user_id_customer, 'G_Buildout', true) !== '') {
 //                                                echo '(+'/get_user_meta($user_id_customer, 'G_Buildout', true);
 //                                            } else {
 //                                                echo '(+'.get_post_meta(1, 'G_Buildout', true);
@@ -1481,7 +1481,7 @@ echo $table_class; ?>">
 						if ($bposttype == 0 && $bayposttype) {
 							echo 'B-post Type: <strong>' . $bayposttype;
 							if ($bayposttype == 'flexible') {
-								if (!empty(get_user_meta($user_id_customer, 'B_typeFlexible', true)) || (get_user_meta($user_id_customer, 'B_typeFlexible', true) > 0)) {
+								if (get_user_meta($user_id_customer, 'B_typeFlexible', true) !== '') {
 									echo '(+' . get_user_meta($user_id_customer, 'B_typeFlexible', true) . '%)';
 								} else {
 									echo '(+' . get_post_meta(1, 'B_typeFlexible', true) . '%)';
@@ -1494,7 +1494,7 @@ echo $table_class; ?>">
 						if ($tposttype_count == 0 && $tposttype) {
 							echo 'T-Post Style: <strong>' . $tposttype;
 							if ($tposttype == 'adjustable') {
-								if (!empty(get_user_meta($user_id_customer, 'T_typeAdjustable', true)) || (get_user_meta($user_id_customer, 'B_typeFlexible', true) > 0)) {
+								if (get_user_meta($user_id_customer, 'T_typeAdjustable', true) !== '') {
 									echo '(+' . get_user_meta($user_id_customer, 'T_typeAdjustable', true) . '%)';
 								} else {
 									echo '(+' . get_post_meta(1, 'T_typeAdjustable', true) . '%)';
@@ -1540,7 +1540,7 @@ echo $table_class; ?>">
 						if ($property_locks == 'Yes' || $property_central_lock == "Yes") { ?> Locks:
                             <strong>Yes</strong>
 							<?php
-							if (!empty(get_user_meta($user_id_customer, 'Lock', true)) || (get_user_meta($user_id_customer, 'Lock', true) > 0)) {
+							if (get_user_meta($user_id_customer, 'Lock', true) !== '') {
 								echo '(+' . get_user_meta($user_id_customer, 'Lock', true) . '£)';
 							} else {
 								echo '(+' . get_post_meta(1, 'Lock', true) . '£)';
@@ -1604,7 +1604,7 @@ echo $table_class; ?>">
 									if ($price_for_update == 'old') {
 										$material_price = get_post_meta($product_id, 'price_item_' . $material, true);
 									} else {
-										if (!empty(get_user_meta($user_id, $material, true)) || (get_user_meta($user_id, $material, true) > 0)) {
+										if (get_user_meta($user_id, $material, true) !== '') {
 											$material_price = get_user_meta($user_id, $material, true);
 										} else {
 											$material_price = get_post_meta(1, $material, true);
@@ -1935,7 +1935,7 @@ echo $table_class; ?>">
 //            if (!empty(get_post_meta($post_id, 'price_item_' . $material, true))) {
 //                $material_price = get_post_meta($post_id, 'price_item_' . $material, true);
 //            } else {
-//                if (!empty(get_user_meta($user_id, $material, true)) || (get_user_meta($user_id, $material, true) > 0)) {
+//                if (get_user_meta($user_id, $material, true) !== '') {
 //                    $material_price = get_user_meta($user_id, $material, true);
 //                } else {
 //                    $material_price = get_post_meta(1, $material, true);

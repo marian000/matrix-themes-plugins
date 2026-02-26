@@ -11,6 +11,13 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.3.1 - 2026-02-26 (~3h) =
+* Feature: Admin metabox "Send Repair Email" on order_repair for manual resend of notification emails
+* Feature: Email send history log with date/time, result, and user who sent
+* Feature: Physical image attachments on repair notification emails
+* Refactor: Extract repair email building logic into reusable matrix_build_repair_email_body() function
+* Refactor: Extract send logic into matrix_send_repair_notification() with send_mail_repair() integration
+
 = 1.3.0 - 2026-02-11 (~4h) =
 * Feature: Group Dashboard visual overhaul - gradient chart columns, card layout, styled headers and totals
 * Feature: DataTables with search, sorting and export buttons (Copy, CSV, Excel, Print) on admin Group pages

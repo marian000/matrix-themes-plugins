@@ -50,6 +50,7 @@ function matrix_all_meta_boxes()
 	add_meta_box('repair-order-status', esc_html__('Select Status Order Repair', 'text-domain'), 'repair_oder_status_content', 'order_repair', 'side', 'low');
 	add_meta_box('repair-order-deliveries', esc_html__('Deliveries Details And Comment', 'text-domain'), 'repair_oder_deliveries_render', 'order_repair', 'side', 'low');
 	add_meta_box('repair-order-repairpay', esc_html__('No warranty Cost', 'text-domain'), 'repair_oder_warranty_payment', 'order_repair', 'side', 'low');
+	add_meta_box('repair-order-email', __('Send Repair Email', 'textdomain'), 'repair_order_email_metabox_callback', 'order_repair', 'side', 'high');
 
 	// Ticket Meta Boxes
 	add_meta_box('dealer-notification', __('Dealer Notification', 'textdomain'), 'dealer_notification_callback', 'stgh_ticket', 'side', 'default');
@@ -101,6 +102,12 @@ function wpdocs_container_orders_prices_callback($post)
 function wpdocs_repair_order_details_callback($post)
 {
 	include_once(get_stylesheet_directory() . '/views/repair-order/repair-order-details.php');
+}
+
+
+function repair_order_email_metabox_callback($post)
+{
+	include_once(get_stylesheet_directory() . '/views/repair-order/repair-email-metabox.php');
 }
 
 

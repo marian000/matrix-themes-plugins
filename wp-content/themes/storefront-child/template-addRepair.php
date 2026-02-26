@@ -463,7 +463,7 @@ $repair_id = $_GET['order_number'];
                                         echo '<br>';
                                         if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
                                             echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                            if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
+                                            if (get_user_meta($user_id_customer, 'B_Buildout', true) !== '') {
                                                 echo get_user_meta($user_id_customer, 'B_Buildout', true);
                                             } else {
                                                 echo get_post_meta(1, 'B_Buildout', true);
@@ -478,7 +478,7 @@ $repair_id = $_GET['order_number'];
                                         echo '<br>';
                                         if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
                                             echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                            if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
+                                            if (get_user_meta($user_id_customer, 'B_Buildout', true) !== '') {
                                                 echo get_user_meta($user_id_customer, 'B_Buildout', true);
                                             } else {
                                                 echo get_post_meta(1, 'B_Buildout', true);
@@ -496,7 +496,7 @@ $repair_id = $_GET['order_number'];
                                 }
                                 if (!empty(get_post_meta($product_id, 'property_c_buildout' . $i, true))) {
                                     echo 'CPost Buildout: <strong>' . get_post_meta($product_id, 'property_c_buildout' . $i, true) . '</strong>(+';
-                                    if (!empty(get_user_meta($user_id_customer, 'C_Buildout', true)) || (get_user_meta($user_id_customer, 'C_Buildout', true) > 0)) {
+                                    if (get_user_meta($user_id_customer, 'C_Buildout', true) !== '') {
                                         echo get_user_meta($user_id_customer, 'C_Buildout', true);
                                     } else {
                                         echo get_post_meta(1, 'C_Buildout', true);
@@ -510,7 +510,7 @@ $repair_id = $_GET['order_number'];
                                 }
                                 if (!empty(get_post_meta($product_id, 'property_t_buildout' . $i, true))) {
                                     echo 'TPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_t_buildout' . $i, true) . '</strong>(+';
-                                    if (!empty(get_user_meta($user_id_customer, 'T_Buildout', true)) || (get_user_meta($user_id_customer, 'T_Buildout', true) > 0)) {
+                                    if (get_user_meta($user_id_customer, 'T_Buildout', true) !== '') {
                                         echo get_user_meta($user_id_customer, 'T_Buildout', true);
                                     } else {
                                         echo get_post_meta(1, 'T_Buildout', true);
@@ -525,7 +525,7 @@ $repair_id = $_GET['order_number'];
                                 }
                                 if (!empty(get_post_meta($product_id, 'property_g_buildout' . $i, true))) {
                                     echo 'GPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_g_buildout' . $i, true) . '</strong>(+';
-                                    if (!empty(get_user_meta($user_id_customer, 'G_Buildout', true)) || (get_user_meta($user_id_customer, 'G_Buildout', true) > 0)) {
+                                    if (get_user_meta($user_id_customer, 'G_Buildout', true) !== '') {
                                         echo get_user_meta($user_id_customer, 'G_Buildout', true);
                                     } else {
                                         echo get_post_meta(1, 'G_Buildout', true);
@@ -640,13 +640,17 @@ $repair_id = $_GET['order_number'];
                                     damage
                                 </label>
                                 <div id="shape-upload-container">
-                                    <!-- <input id="attachment" name="wp_custom_attachment" type="file" /> -->
-                                    <input id="frontend-button-<?php echo $item_id; ?>"
-                                           id-item="<?php echo $item_id; ?>"
-                                           type="button"
-                                           value="Select Images to Upload"
-                                           class="button upload-images"
-                                           style="position: relative; z-index: 1;">
+                                    <label class="button repair-file-label"
+                                           for="repair-file-input-<?php echo $item_id; ?>"
+                                           style="cursor:pointer; position: relative; z-index: 1;">Select Images to Upload</label>
+                                    <input type="file"
+                                           id="repair-file-input-<?php echo $item_id; ?>"
+                                           class="repair-file-input"
+                                           data-item-id="<?php echo $item_id; ?>"
+                                           accept="image/*"
+                                           multiple
+                                           style="display:none;">
+                                    <div class="repair-upload-status-<?php echo $item_id; ?>"></div>
 
                                     <input type="hidden"
                                            name="item-id[]"

@@ -11,6 +11,14 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.3.2 - 2026-02-26 (~3h) =
+* Feature: Client-side image compression for repair order uploads (Canvas API, max 1920px, JPEG 80%)
+* Feature: Native file picker replaces wp.media modal on repair form
+* Feature: Upload progress UI with compression/upload status and thumbnail previews
+* Feature: Submit guard prevents form submission while uploads are in progress
+* New file: ajax/repair-upload-image.php - wp_ajax_ handler with nonce verification and MIME validation
+* New file: js/repair-image-upload.js - client-side compression and async upload
+
 = 1.3.1 - 2026-02-26 (~3h) =
 * Feature: Admin metabox "Send Repair Email" on order_repair for manual resend of notification emails
 * Feature: Email send history log with date/time, result, and user who sent

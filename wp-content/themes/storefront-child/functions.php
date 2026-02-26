@@ -45,6 +45,21 @@ function theme_enqueue_styles()
 
 	wp_register_script('mediaelement', plugins_url('wp-mediaelement.min.js', __FILE__), array('jquery'), '4.8.2', true);
 	wp_enqueue_script('mediaelement');
+
+	// Repair image upload with client-side compression
+	if ( is_page_template( 'template-addRepair.php' ) ) {
+		wp_enqueue_script(
+			'repair-image-upload',
+			get_stylesheet_directory_uri() . '/js/repair-image-upload.js',
+			array( 'jquery' ),
+			'1.0.0',
+			true
+		);
+		wp_localize_script( 'repair-image-upload', 'repairUploadData', array(
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'repair_upload_image_nonce' ),
+		) );
+	}
 }
 
 
@@ -148,6 +163,9 @@ include_once(get_stylesheet_directory() . '/includes/shortcodes-my-orders.php');
 // În functions.php, adaugi linia:
 include_once(get_stylesheet_directory() . '/includes/custom-orders-functions.php');
 include_once(get_stylesheet_directory() . '/includes/orders-performance-optimizer.php');
+
+// Repair image upload AJAX handler
+include_once(get_stylesheet_directory() . '/ajax/repair-upload-image.php');
 
 //$customOrder = new OrdersCustom();
 // add_action('init', $customOrder->orderTablesCreate());

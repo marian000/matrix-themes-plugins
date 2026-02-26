@@ -1,48 +1,42 @@
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-
-<!-- jQuery library -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
-<!-- Latest compiled JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <?php
-$repair_id = get_the_id();
+if (!isset($repair_id)) {
+    $repair_id = get_the_id();
+}
 $order_id = get_post_meta($repair_id, 'order-id-original', true);
 $order_id_scv = get_post_meta($repair_id, 'order-id-scv', true);
 $description_damage = get_post_meta($repair_id, 'description-damage-error', true);
 $remedial_action = get_post_meta($repair_id, 'remedial-action-request', true);
 $warranty = get_post_meta($repair_id, 'warranty', true);
-$items_id = get_post_meta($repair_id, 'items-id', true);
 $attachment_id = get_post_meta($repair_id, 'attachment_id_array', true);
-$rep_order_date = get_the_date($post_id);
+$rep_order_date = get_the_date('', $repair_id);
 
 ?>
 
 <div>
 
     <?php
-    $user_id = get_the_author_meta('ID');
-    $post = get_post($order_id);
-
-    $order = new WC_Order($post->ID);
-    $order_data = $order->get_data();
+    $user_id = get_post_field('post_author', $repair_id);
+    $order = wc_get_order($order_id);
 
     $user_id_customer = $user_id;
-    //echo 'USER ID '.$user_id;
 
     $i = 0;
     $atributes = get_post_meta(1, 'attributes_array', true);
     $items = $order->get_items();
 
+    // Prime post object, meta, and term caches for all product IDs in bulk queries
+    // This eliminates N+1 queries from get_post_meta(), get_the_title(), and wp_get_post_terms()
+    $product_ids = array();
+    foreach ( $items as $item_data ) {
+        $product_ids[] = $item_data['product_id'];
+    }
+    if ( ! empty( $product_ids ) ) {
+        _prime_post_caches( $product_ids, true, true );
+    }
+
     $nr_code_prod = array();
-    // echo '<pre>';
-    // print_r(key($order_data['tax_lines']));
-    // echo '</pre>';
     foreach ($items as $item_id => $item_data) {
         $i++;
-        // $product = $item_data->get_product();
         $product_id = $item_data['product_id'];
 
         $nr_g = get_post_meta($product_id, 'counter_g', true);
@@ -64,6 +58,7 @@ $rep_order_date = get_the_date($post_id);
                 $nr_code_prod['c'] = $nr_c;
             }
         } else {
+            $nr_code_prod['g'] = $nr_g;
             $nr_code_prod['t'] = $nr_t;
             $nr_code_prod['b'] = $nr_b;
             $nr_code_prod['c'] = $nr_c;
@@ -81,11 +76,12 @@ $rep_order_date = get_the_date($post_id);
                 <thead>
                 <tr>
                     <th>Customer:</th>
-                    <th><?php echo $order_data['billing']['company'] ?></th>
+                    <th><?php echo $order->get_billing_company() ?></th>
                     <th>Client details:</th>
                     <th><?php echo get_post_meta($order_id, 'cart_name', true) ?></th>
                     <th>Order date:</th>
                     <th><?php echo $order->get_date_created()->format('Y-m-d') ?></th>
+                </tr>
                 <tr>
                     <th>Repair order no:</th>
                     <th>LFR<?php echo $order_id_scv ?></th>
@@ -101,10 +97,6 @@ $rep_order_date = get_the_date($post_id);
                    class="table table-striped">
                 <thead>
                 <tr>
-                </tr>
-                <tr>
-                    <!-- <th>item</th> -->
-
                     <th>
                         Item
                     </th>
@@ -124,29 +116,60 @@ $rep_order_date = get_the_date($post_id);
                 </thead>
                 <tbody>
                 <?php
-                $no_view_price = (get_user_meta($user_id_customer, 'view_price', true) == 'no') ? true : false;
-                $array_att = array();
-                $array_table = array();
-                foreach ($items as $item_id => $item_data) {
-                $j++;
-                //$product = $item_data->get_product();
-                $_product = apply_filters('woocommerce_cart_item_product', $item_data['data'], $item_data, $item_id);
-                //print_r($item_id);
-                $product_id = $item_data['product_id'];
+                // Pre-fetch post-1 global meta values (same for every item)
+                $global_shaped = get_post_meta(1, 'Shaped', true);
+                $global_stainless_steel = get_post_meta(1, 'Stainless_Steel', true);
+                $global_b_buildout = get_post_meta(1, 'B_Buildout', true);
+                $global_c_buildout = get_post_meta(1, 'C_Buildout', true);
+                $global_t_buildout = get_post_meta(1, 'T_Buildout', true);
+                $global_g_buildout = get_post_meta(1, 'G_Buildout', true);
 
+                // Pre-fetch user buildout metas (same for every item)
+                $user_b_buildout = get_user_meta($user_id_customer, 'B_Buildout', true);
+                $user_c_buildout = get_user_meta($user_id_customer, 'C_Buildout', true);
+                $user_t_buildout = get_user_meta($user_id_customer, 'T_Buildout', true);
+                $user_g_buildout = get_user_meta($user_id_customer, 'G_Buildout', true);
+
+                foreach ($items as $item_id => $item_data) {
+                $product_id = $item_data['product_id'];
                 $title = get_the_title($product_id);
 
+                // Early exit for special products — skip ~40 meta fetches
+                if ($product_id == 337 || $product_id == 72951){ ?>
+                    <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
+                        echo 'repaired';
+                    } ?>">
+                        <td>
+                            <?php echo $title; ?>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <?php
+                } else {
+                $term_list = wp_get_post_terms($product_id, 'product_cat', array("fields" => "all"));
+                if (!empty($term_list) && $term_list[0]->slug == 'pos') {
+                    ?>
+                    <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
+                        echo 'repaired';
+                    } ?>">
+                        <td>
+                            <?php echo $title; ?>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><?php echo $item_data['quantity']; ?></td>
+                    </tr>
+                    <?php
+                } else {
+                // Full meta fetch only for shutter/batten products that need it
                 $property_room_other = get_post_meta($product_id, 'property_room_other', true);
                 $property_style = get_post_meta($product_id, 'property_style', true);
                 $property_frametype = get_post_meta($product_id, 'property_frametype', true);
-
-                echo $attachment = get_post_meta($product_id, 'attachment', true);
-                $array_att[] = $attachment;
-
-                // test rename image
-
-                // end - test rename image
-
+                $attachment = get_post_meta($product_id, 'attachment', true);
                 $property_category = get_post_meta($product_id, 'shutter_category', true);
                 $property_material = get_post_meta($product_id, 'property_material', true);
                 $property_width = get_post_meta($product_id, 'property_width', true);
@@ -171,7 +194,6 @@ $rep_order_date = get_the_date($post_id);
                 $property_shuttercolour_other = get_post_meta($product_id, 'property_shuttercolour_other', true);
                 $property_controltype = get_post_meta($product_id, 'property_controltype', true);
                 $property_controlsplitheight = get_post_meta($product_id, 'property_controlsplitheight', true);
-                $property_controlsplitheight2 = get_post_meta($product_id, 'property_controlsplitheight2', true);
                 $property_layoutcode = get_post_meta($product_id, 'property_layoutcode', true);
                 $property_t1 = get_post_meta($product_id, 'property_t1', true);
                 $property_tposttype = get_post_meta($product_id, 'property_tposttype', true);
@@ -185,52 +207,9 @@ $rep_order_date = get_the_date($post_id);
                 $property_locks = get_post_meta($product_id, 'property_locks', true);
                 $property_ringpull_volume = get_post_meta($product_id, 'property_ringpull_volume', true);
                 $property_locks_volume = get_post_meta($product_id, 'property_locks_volume', true);
-                $price = get_post_meta($product_id, '_price', true);
-                $regular_price = get_post_meta($product_id, '_regular_price', true);
-                $sale_price = get_post_meta($product_id, '_sale_price', true);
-                // $svg_product = get_post_meta($product_id, 'svg_product', true);
                 $comments_customer = get_post_meta($product_id, 'comments_customer', true);
-                $term_list = wp_get_post_terms($product_id, 'product_cat', array("fields" => "all"));
 
-
-                if ($no_view_price) {
-                    $price = 0;
-                    $regular_price = 0;
-                    $sale_price = 0;
-                    $sections_price = 0;
-                }
-                // echo '<pre>';
-                // print_r($term_list->slug);
-                // echo '</pre>';
-
-                if ($product_id == 337 || $product_id == 72951){ ?>
-                    <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
-                        echo 'repaired';
-                    } ?>">
-                        <td>
-                            <?php echo get_the_title($product_id); ?>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <?php
-                } elseif ($term_list[0]->slug == 'pos') {
-                    ?>
-                    <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
-                        echo 'repaired';
-                    } ?>">
-                        <td>
-                            <?php echo get_the_title($product_id); ?>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td><?php echo $item_data['quantity']; ?></td>
-                    </tr>
-                    <?php
-                } elseif ($property_category === 'Batten') {
+                if ($property_category === 'Batten') {
                     $batten_qnt = get_post_meta($product_id, 'quantity', true);
                     ?>
                     <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
@@ -286,12 +265,9 @@ $rep_order_date = get_the_date($post_id);
                 <tr class="<?php if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '') {
                     echo 'repaired';
                 } ?>">
-                    <!-- <td><?php // echo $j;
-                    ?></td> -->
                     <td>
                         <?php
                         $pieces = explode("-", $title);
-                        $property_category;
                         if (($property_category === 'Shutter') || ($pieces[0] == 'Shutter')) {
                             ?>
                             <a
@@ -320,7 +296,7 @@ $rep_order_date = get_the_date($post_id);
                                 echo ' (+£125)';
                             }
                             if ($property_style == 33) {
-                                echo ' (+%' . get_post_meta(1, 'Shaped', true) . ')';
+                                echo ' (+%' . $global_shaped . ')';
                             }
                             ?></strong>
                         <br>
@@ -426,7 +402,7 @@ $rep_order_date = get_the_date($post_id);
                             echo $atributes[$property_hingecolour];
                             ?></strong>
                         <?php if ($property_hingecolour == 93) {
-                            echo ' (+' . get_post_meta(1, 'Stainless_Steel', true) . '%)';
+                            echo ' (+' . $global_stainless_steel . '%)';
                         } ?>
                         <br>
                         Shutter
@@ -456,7 +432,6 @@ $rep_order_date = get_the_date($post_id);
                             echo ' (+10%)';
                         }
                         ?>
-        </div>
 
         <?php if (!empty($atributes[$property_controlsplitheight])) { ?>
             <br> Control Split Height:
@@ -469,24 +444,20 @@ $rep_order_date = get_the_date($post_id);
             <?php echo $property_layoutcode; ?></strong>
         <br>
         <?php
-        $tbuilout = 0;
-        $cbuilout = 0;
-        $bbuilout = 0;
         $unghi = 0;
         foreach ($nr_code_prod as $key => $val) {
             for ($i = 1; $i < $val + 1; $i++) {
                 if ($key == 'b') {
-                    if (!empty(get_post_meta($product_id, 'property_bp' . $i, true))) {
-                        echo 'BPosts' . $i . ': <strong>' . get_post_meta($product_id, 'property_bp' . $i, true) . '/' . get_post_meta($product_id, 'property_ba' . $i, true) . '</strong>';
-                        if ((get_post_meta($product_id, 'property_ba' . $i, true) == 90) || (get_post_meta($product_id, 'property_ba' . $i, true) == 135)) {
+                    $bp_val = get_post_meta($product_id, 'property_bp' . $i, true);
+                    if (!empty($bp_val)) {
+                        $ba_val = get_post_meta($product_id, 'property_ba' . $i, true);
+                        echo 'BPosts' . $i . ': <strong>' . $bp_val . '/' . $ba_val . '</strong>';
+                        $b_buildout_val = get_post_meta($product_id, 'property_b_buildout' . $i, true);
+                        if (($ba_val == 90) || ($ba_val == 135)) {
                             echo '<br>';
-                            if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
-                                echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
-                                    echo get_user_meta($user_id_customer, 'B_Buildout', true);
-                                } else {
-                                    echo get_post_meta(1, 'B_Buildout', true);
-                                }
+                            if (!empty($b_buildout_val)) {
+                                echo 'BPosts Buildout: <strong>' . $b_buildout_val . '</strong>(+';
+                                echo ($user_b_buildout !== '') ? $user_b_buildout : $global_b_buildout;
                                 echo '%)<br />';
                             }
                         } else {
@@ -495,69 +466,52 @@ $rep_order_date = get_the_date($post_id);
                                 echo ' (+10%)';
                             }
                             echo '<br>';
-                            if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
-                                echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
-                                    echo get_user_meta($user_id_customer, 'B_Buildout', true);
-                                } else {
-                                    echo get_post_meta(1, 'B_Buildout', true);
-                                }
+                            if (!empty($b_buildout_val)) {
+                                echo 'BPosts Buildout: <strong>' . $b_buildout_val . '</strong>(+';
+                                echo ($user_b_buildout !== '') ? $user_b_buildout : $global_b_buildout;
                                 echo '%)<br />';
                             }
                         }
-
-//                                      echo '<br>';
                     }
                 }
                 if ($key == 'c') {
-                    if (!empty(get_post_meta($product_id, 'property_c' . $i, true))) {
-                        echo 'CPosts' . $i . ': <strong>' . get_post_meta($product_id, 'property_c' . $i, true) . '</strong><br>';
+                    $c_val = get_post_meta($product_id, 'property_c' . $i, true);
+                    if (!empty($c_val)) {
+                        echo 'CPosts' . $i . ': <strong>' . $c_val . '</strong><br>';
                     }
-                    if (!empty(get_post_meta($product_id, 'property_c_buildout' . $i, true))) {
-                        echo 'CPost Buildout: <strong>' . get_post_meta($product_id, 'property_c_buildout' . $i, true) . '</strong>(+';
-                        if (!empty(get_user_meta($user_id_customer, 'C_Buildout', true)) || (get_user_meta($user_id_customer, 'C_Buildout', true) > 0)) {
-                            echo get_user_meta($user_id_customer, 'C_Buildout', true);
-                        } else {
-                            echo get_post_meta(1, 'C_Buildout', true);
-                        }
+                    $c_buildout_val = get_post_meta($product_id, 'property_c_buildout' . $i, true);
+                    if (!empty($c_buildout_val)) {
+                        echo 'CPost Buildout: <strong>' . $c_buildout_val . '</strong>(+';
+                        echo ($user_c_buildout !== '') ? $user_c_buildout : $global_c_buildout;
                         echo '%)<br />';
                     }
-                    //echo 'c'.$i.': '.get_post_meta( $product_id, 'property_c'.$i, true ).'<br> ';
                 } elseif ($key == 't') {
-                    if (!empty(get_post_meta($product_id, 'property_t' . $i, true))) {
-                        echo 'TPosts' . $i . ': <strong>' . get_post_meta($product_id, 'property_t' . $i, true) . '</strong><br>';
+                    $t_val = get_post_meta($product_id, 'property_t' . $i, true);
+                    if (!empty($t_val)) {
+                        echo 'TPosts' . $i . ': <strong>' . $t_val . '</strong><br>';
                     }
-                    if (!empty(get_post_meta($product_id, 'property_t_buildout' . $i, true))) {
-                        echo 'TPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_t_buildout' . $i, true) . '</strong>(+';
-                        if (!empty(get_user_meta($user_id_customer, 'T_Buildout', true)) || (get_user_meta($user_id_customer, 'T_Buildout', true) > 0)) {
-                            echo get_user_meta($user_id_customer, 'T_Buildout', true);
-                        } else {
-                            echo get_post_meta(1, 'T_Buildout', true);
-                        }
+                    $t_buildout_val = get_post_meta($product_id, 'property_t_buildout' . $i, true);
+                    if (!empty($t_buildout_val)) {
+                        echo 'TPosts Buildout' . $i . ': <strong>' . $t_buildout_val . '</strong>(+';
+                        echo ($user_t_buildout !== '') ? $user_t_buildout : $global_t_buildout;
                         echo '%)<br />';
                     }
-
-                    //echo 't'.$i.': '.get_post_meta( $product_id, 'property_t'.$i, true ).'<br> ';
                 } elseif ($key == 'g') {
-                    if (!empty(get_post_meta($product_id, 'property_g' . $i, true))) {
-                        echo 'GPosts' . $i . ': <strong>' . get_post_meta($product_id, 'property_g' . $i, true) . '</strong><br>';
+                    $g_val = get_post_meta($product_id, 'property_g' . $i, true);
+                    if (!empty($g_val)) {
+                        echo 'GPosts' . $i . ': <strong>' . $g_val . '</strong><br>';
                     }
-                    if (!empty(get_post_meta($product_id, 'property_g_buildout' . $i, true))) {
-                        echo 'GPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_g_buildout' . $i, true) . '</strong>(+';
-                        if (!empty(get_user_meta($user_id_customer, 'G_Buildout', true)) || (get_user_meta($user_id_customer, 'G_Buildout', true) > 0)) {
-                            echo get_user_meta($user_id_customer, 'G_Buildout', true);
-                        } else {
-                            echo get_post_meta(1, 'G_Buildout', true);
-                        }
+                    $g_buildout_val = get_post_meta($product_id, 'property_g_buildout' . $i, true);
+                    if (!empty($g_buildout_val)) {
+                        echo 'GPosts Buildout' . $i . ': <strong>' . $g_buildout_val . '</strong>(+';
+                        echo ($user_g_buildout !== '') ? $user_g_buildout : $global_g_buildout;
                         echo '%)<br />';
                     }
-
-                    //echo 't'.$i.': '.get_post_meta( $product_id, 'property_t'.$i, true ).'<br> ';
                 }
             }
         } ?>
         <?php
-        if (!empty(get_post_meta($product_id, 'property_t1', true))) {
+        if (!empty($property_t1)) {
             if ($property_tposttype) { ?> T-Post Type:
                 <strong>
                     <?php echo $atributes[$property_tposttype]; ?></strong>
@@ -607,6 +561,8 @@ $rep_order_date = get_the_date($post_id);
         </td>
         </tr>
         <?php }
+        } // end else (POS check)
+        } // end else (special product check)
         if (isset($description_damage[$item_id]) && trim($description_damage[$item_id]) != '' || isset($remedial_action[$item_id]) && trim($remedial_action[$item_id]) != '' || isset($attachment_id[$item_id]) && trim($attachment_id[$item_id]) != '') {
             ?>
             <tr class="repaired">

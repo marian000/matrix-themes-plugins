@@ -11,6 +11,11 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.3.3 - 2026-02-27 =
+* Performance: AJAX lazy-load for Repair Order Details metabox (loads page instantly with spinner, fetches details in background)
+* Performance: Remove core "Custom Fields" metabox from order_repair and container post types (eliminates slow SELECT DISTINCT meta_key query on large wp_postmeta table)
+* New AJAX handler: wp_ajax_load_repair_order_details with nonce verification and post type validation
+
 = 1.3.2 - 2026-02-26 (~3h) =
 * Feature: Client-side image compression for repair order uploads (Canvas API, max 1920px, JPEG 80%)
 * Feature: Native file picker replaces wp.media modal on repair form

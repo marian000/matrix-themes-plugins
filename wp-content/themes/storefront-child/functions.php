@@ -68,14 +68,19 @@ function custom_matrix_scripts_admin($hook)
 {
 	wp_enqueue_style('bootstrap5-style', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css');
 
-	wp_enqueue_script(
-	  'wptuts53021_script', //unique handle
-	  get_stylesheet_directory_uri() . '/js/jspdf.min.js'
-	);
-	wp_enqueue_script(
-	  'wptuts53087654_script', //unique handle
-	  get_stylesheet_directory_uri() . '/js/html2canvas.min.js'
-	);
+	// Only load heavy PDF/screenshot libs on pages that need them (not order_repair, etc.)
+	$screen = get_current_screen();
+	$skip_pdf_screens = array( 'order_repair' );
+	if ( ! $screen || ! in_array( $screen->post_type, $skip_pdf_screens, true ) ) {
+		wp_enqueue_script(
+		  'wptuts53021_script', //unique handle
+		  get_stylesheet_directory_uri() . '/js/jspdf.min.js'
+		);
+		wp_enqueue_script(
+		  'wptuts53087654_script', //unique handle
+		  get_stylesheet_directory_uri() . '/js/html2canvas.min.js'
+		);
+	}
 	wp_enqueue_script(
 	  'custom_scripts_admin', //unique handle
 	  get_stylesheet_directory_uri() . '/js/custom_scripts_admin.js',
@@ -1659,6 +1664,29 @@ function get_user_addresses() {
 
 add_action('wp_ajax_get_user_addresses', 'get_user_addresses');
 add_action('wp_ajax_nopriv_get_user_addresses', 'get_user_addresses');
+
+
+add_action('wp_ajax_load_repair_order_details', 'matrix_load_repair_order_details');
+function matrix_load_repair_order_details() {
+	check_ajax_referer('repair_order_details_nonce', 'nonce');
+
+	$repair_id = isset($_POST['repair_id']) ? intval($_POST['repair_id']) : 0;
+	if (!$repair_id || get_post_type($repair_id) !== 'order_repair') {
+		wp_send_json_error(array('message' => 'Invalid repair order ID.'));
+	}
+
+	global $post;
+	$post = get_post($repair_id);
+	setup_postdata($post);
+
+	ob_start();
+	include(get_stylesheet_directory() . '/views/repair-order/repair-order-details.php');
+	$html = ob_get_clean();
+
+	wp_reset_postdata();
+
+	wp_send_json_success(array('html' => $html));
+}
 
 
 function get_lat_long($postcode)

@@ -44,6 +44,10 @@ function matrix_all_meta_boxes()
 	add_meta_box('cintainer-orders', __('Container Orders', 'textdomain'), 'wpdocs_container_orders_callback', 'container', 'normal', 'high');
 	add_meta_box('cintainer-orders-prices', __('Container Orders Prices', 'textdomain'), 'wpdocs_container_orders_prices_callback', 'container', 'normal', 'high');
 
+	// Remove the core "Custom Fields" metabox — its SELECT DISTINCT meta_key query is extremely slow on large wp_postmeta tables
+	remove_meta_box('postcustom', 'order_repair', 'normal');
+	remove_meta_box('postcustom', 'container', 'normal');
+
 	// Order Repair Meta Boxes
 	add_meta_box('repair-order', __('Repair Order Details', 'textdomain'), 'wpdocs_repair_order_details_callback', 'order_repair', 'normal', 'high');
 	add_meta_box('repair-order-container', esc_html__('Select Container for order repair', 'text-domain'), 'wpdocs_repair_order_container_callback', 'order_repair', 'side', 'low');
@@ -101,7 +105,40 @@ function wpdocs_container_orders_prices_callback($post)
 
 function wpdocs_repair_order_details_callback($post)
 {
-	include_once(get_stylesheet_directory() . '/views/repair-order/repair-order-details.php');
+	$repair_id = $post->ID;
+	?>
+	<div id="repair-order-details-container">
+		<div id="repair-order-details-loader" style="text-align:center; padding: 40px;">
+			<img src="/wp-content/themes/storefront-child/imgs/loading.svg" alt="Loading" style="width:50px;" />
+			<p>Loading repair order details...</p>
+		</div>
+		<div id="repair-order-details-content" style="display:none;"></div>
+	</div>
+	<script>
+	jQuery(document).ready(function($) {
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: {
+				action: 'load_repair_order_details',
+				repair_id: <?php echo (int)$repair_id; ?>,
+				nonce: '<?php echo wp_create_nonce('repair_order_details_nonce'); ?>'
+			},
+			success: function(response) {
+				if (response.success) {
+					$('#repair-order-details-content').html(response.data.html).show();
+					$('#repair-order-details-loader').hide();
+				} else {
+					$('#repair-order-details-loader').html('<p style="color:red;">Error loading repair details.</p>');
+				}
+			},
+			error: function() {
+				$('#repair-order-details-loader').html('<p style="color:red;">Failed to load repair details.</p>');
+			}
+		});
+	});
+	</script>
+	<?php
 }
 
 
@@ -128,20 +165,20 @@ function wpdocs_repair_order_container_callback($meta_id)
 		'posts_per_page' => 15,
 	));
 	if ($rand_posts) {
+		update_postmeta_cache( wp_list_pluck( $rand_posts, 'ID' ) );
 		echo '	<select name="container-repair">
 		<option value="" >Select container</option>
 	';
 		foreach ($rand_posts as $post) :
-			setup_postdata($post);
 			$container_orders = get_post_meta($post->ID, 'container_orders', true);
-			if (in_array($order_id, $container_orders)) {
-				echo '<option value="' . $post->ID . '" selected >' . get_the_title($post->ID) . '</option>';
+			$post_title = esc_html( $post->post_title );
+			if ( is_array( $container_orders ) && in_array($order_id, $container_orders)) {
+				echo '<option value="' . $post->ID . '" selected >' . $post_title . '</option>';
 			} else {
-				echo '<option value="' . $post->ID . '">' . get_the_title($post->ID) . '</option>';
+				echo '<option value="' . $post->ID . '">' . $post_title . '</option>';
 			}
 		endforeach;
 		echo '</select>';
-		wp_reset_postdata();
 	}
 }
 
@@ -786,17 +823,9 @@ function repair_oder_deliveries_render($meta_id)
 function repair_oder_warranty_payment($meta_id)
 {
 
-	$no_warranty = false;
-	$order_id = get_post_meta($meta_id->ID, 'order-id-original', true);
 	$warranty = get_post_meta($meta_id->ID, 'warranty', true);
 	$type_cost = get_post_meta($meta_id->ID, 'type_cost', true);
-	$order = new WC_Order($order_id);
-	$items = $order->get_items();
-	foreach ($items as $item_id => $item_data) {
-		if ($warranty[$item_id] == 'No') {
-			$no_warranty = true;
-		}
-	}
+	$no_warranty = is_array( $warranty ) && in_array( 'No', $warranty );
 
 //	if ($no_warranty) {
 	$sqm = ($type_cost == 'sqm') ? 'checked' : '';

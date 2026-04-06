@@ -199,7 +199,7 @@ function status_changed_processsing($order_id, $checkout = null)
 	if ($order->status == 'cancelled') {
 		$single_email = 'marian93nes@gmail.com';
 		$multiple_recipients = array(
-			'caroline@anyhooshutter.com',
+			'kevin@anyhooshutter.com',
 			'july@anyhooshutter.com',
 			'tudor@lifetimeshutters.com',
 		);
@@ -335,8 +335,9 @@ function matrix_status_pending($order_id)
 	$order = wc_get_order($order_id);
 	$order_number = $order->get_order_number(); //teo for Order id below
 
+	$tax_shipping_total = 0;
 	foreach ($order->get_items('tax') as $item_id => $item_tax) {
-		echo $tax_shipping_total = $item_tax->get_shipping_tax_total(); // Tax shipping total
+		$tax_shipping_total = $item_tax->get_shipping_tax_total(); // Tax shipping total
 	}
 
 	$order_shipping = get_post_meta($order_id, '_order_shipping', true);
@@ -441,6 +442,7 @@ function change_details_after_place_order($order_id)
 
 	if ($pos === false) {
 
+		$tax_shipping_total = 0;
 		foreach ($order->get_items('tax') as $item_id => $item_tax) {
 			// Tax shipping total
 			$tax_shipping_total = $item_tax->get_shipping_tax_total();

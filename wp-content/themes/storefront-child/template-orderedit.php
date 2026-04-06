@@ -8,7 +8,7 @@
 
 get_header();
 
-$view_id = $_GET['id'] / 1498765 / 33;
+$view_id = isset($_GET['id']) ? absint($_GET['id']) / 1498765 / 33 : 0;
 $order = wc_get_order($view_id);
 $order_number = $order->get_order_number(); //teo for Order id below
 
@@ -54,7 +54,8 @@ foreach ($items as $item_id => $item_data) {
 // Check if property total (sqm) is greater than 0
 		if ($sqm > 0) {
 			// Fetch train price for the current user, fallback to default if not set
-			$train_price = get_user_meta(get_current_user_id(), 'train_price', true);
+			$user_id_customer = get_post_meta($view_id, '_customer_user', true);
+			$train_price = get_user_meta($user_id_customer, 'train_price', true);
 					if ($train_price === null || $train_price === '') {
 				$train_price = get_post_meta(1, 'train_price', true); // Get default train price if user-specific price is not set
 			}
@@ -127,6 +128,7 @@ if ($order_train > 0) {
 	update_post_meta($view_id, 'order_train', $order_train);
 }
 
+$tax_shipping_total = 0;
 foreach ($order->get_items('tax') as $item_id => $item_tax) {
 	// Tax shipping total
 	$tax_shipping_total = $item_tax->get_shipping_tax_total();
@@ -149,7 +151,7 @@ $order_shipping_total = $order->shipping_total;
 global $wpdb;
 
 $idOrder = $view_id;
-$orderExist = $wpdb->get_var("SELECT COUNT(*) FROM `wp_custom_orders` WHERE `idOrder` = $idOrder");
+$orderExist = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM `wp_custom_orders` WHERE `idOrder` = %d", $idOrder));
 
 if ($orderExist != 0) {
 	/*

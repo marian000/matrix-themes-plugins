@@ -102,7 +102,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 // Calculate price
 
 //  if ($batten_type == 'custom') {
-	if (!empty(get_user_meta($user_id, 'BattenCustom', true)) || (get_user_meta($user_id, 'BattenCustom', true) > 0)) {
+	if (get_user_meta($user_id, 'BattenCustom', true) !== '') {
 		if ($user_id == 18) {
 			$sum = ($products['property_total'] * get_user_meta($user_id, 'BattenCustom', true)) + (($products['property_total'] * get_user_meta($user_id, 'Batten', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 			echo "\n SUM BattenCustom: " . $sum . "<br>";
@@ -126,7 +126,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 // Colors 20%
 	if ($user_id == 274 || $dealer_id == 274) {
 		if (($products['property_shuttercolour'] == 101) || ($products['property_shuttercolour'] == 103) || ($products['property_shuttercolour'] == 104) || ($products['property_shuttercolour'] == 105) || ($products['property_shuttercolour'] == 106) || ($products['property_shuttercolour'] == 107) || ($products['property_shuttercolour'] == 108) || ($products['property_shuttercolour'] == 109) || ($products['property_shuttercolour'] == 110) || ($products['property_shuttercolour'] == 111) || ($products['property_shuttercolour'] == 112) || ($products['property_shuttercolour'] == 113) || ($products['property_shuttercolour'] == 114) || ($products['property_shuttercolour'] == 115) || ($products['property_shuttercolour'] == 116) || ($products['property_shuttercolour'] == 117) || ($products['property_shuttercolour'] == 118) || ($products['property_shuttercolour'] == 119) || ($products['property_shuttercolour'] == 120) || ($products['property_shuttercolour'] == 121)) {
-			if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+			if (get_user_meta($user_id, 'Colors', true) !== '') {
 				$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 				echo 'SUM Colors: ' . $sum . "<br>";
 				echo 'BASIC 11: ' . $basic . "<br>";
@@ -141,7 +141,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 
 // Colors 20%
 	if (($products['property_shuttercolour'] == 264) || ($products['property_shuttercolour'] == 265) || ($products['property_shuttercolour'] == 266) || ($products['property_shuttercolour'] == 267) || ($products['property_shuttercolour'] == 268) || ($products['property_shuttercolour'] == 269) || ($products['property_shuttercolour'] == 270) || ($products['property_shuttercolour'] == 271) || ($products['property_shuttercolour'] == 272) || ($products['property_shuttercolour'] == 273) || ($products['property_shuttercolour'] == 128) || ($products['property_shuttercolour'] == 257) || ($products['property_shuttercolour'] == 127) || ($products['property_shuttercolour'] == 126) || ($products['property_shuttercolour'] == 220) || ($products['property_shuttercolour'] == 130) || ($products['property_shuttercolour'] == 253) || ($products['property_shuttercolour'] == 131) || ($products['property_shuttercolour'] == 129) || ($products['property_shuttercolour'] == 254) || ($products['property_shuttercolour'] == 132) || ($products['property_shuttercolour'] == 255) || ($products['property_shuttercolour'] == 134) || ($products['property_shuttercolour'] == 122) || ($products['property_shuttercolour'] == 123) || ($products['property_shuttercolour'] == 133) || ($products['property_shuttercolour'] == 256) || ($products['property_shuttercolour'] == 166) || ($products['property_shuttercolour'] == 124) || ($products['property_shuttercolour'] == 125) || ($products['property_shuttercolour'] == 111)) {
-		if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+		if (get_user_meta($user_id, 'Colors', true) !== '') {
 			$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 			echo 'SUM Colors: ' . $sum . "<br>";
 			echo 'BASIC 11: ' . $basic . "<br>";
@@ -160,7 +160,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 
 //    } elseif ($batten_type == 'standard') {
 //
-//        if (!empty(get_user_meta($user_id, 'BattenStandard', true)) || (get_user_meta($user_id, 'BattenStandard', true) > 0)) {
+//        if (get_user_meta($user_id, 'BattenStandard', true) !== '') {
 //            if ($user_id == 18) {
 //                $sum = ($products['property_total'] * get_user_meta($user_id, 'BattenStandard', true)) + (($products['property_total'] * get_user_meta($user_id, 'BattenStandard', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 //                echo 'SUM batten: ' . $sum . "<br>";
@@ -229,7 +229,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 				} else {
 					$product_attributes[$name_attr_string] = array(
 						'name' => wc_clean($name_attr_string),
-						'value' => $atribute[$id],
+						'value' => $atribute[$id] ?? '',
 						'position' => $i,
 						'is_visible' => 1,
 						'is_variation' => 0,
@@ -282,7 +282,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 	$discount_custom = get_user_meta($user_id, 'discount_custom', true);
 
 // Calculate price
-	if (!empty(get_user_meta($user_id, 'BattenStandard-dolar', true)) || (get_user_meta($user_id, 'BattenStandard-dolar', true) > 0)) {
+	if (get_user_meta($user_id, 'BattenStandard-dolar', true) !== '') {
 		if ($user_id == 18) {
 			$sum_dolar = ($products['property_total'] * get_user_meta($user_id, 'BattenStandard-dolar', true)) + (($products['property_total'] * get_user_meta($user_id, 'BattenStandard-dolar', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 			echo "\n SUM Earth: " . $sum_dolar . "<br>";
@@ -522,6 +522,7 @@ foreach ($_POST['prod'] as $product_serialize) {
 
 		if ($pos === false) {
 
+			$tax_shipping_total = 0;
 			foreach ($order->get_items('tax') as $item_id => $item_tax) {
 				// Tax shipping total
 				$tax_shipping_total = $item_tax->get_shipping_tax_total();

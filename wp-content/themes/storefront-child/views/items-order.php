@@ -6,13 +6,10 @@ $order_data = $order->get_data();
 $items = $order->get_items();
 
 $country_code = WC()->countries->countries[$order->get_shipping_country()];
-print_r($country_code);
 if ($country_code == 'United Kingdom (UK)' || $country_code == 'Ireland') {
 	$tax_rate = 20;
-	echo ' tax 20 ';
 } else {
-	$tax_rate = 1;
-	echo ' tax 1 ';
+	$tax_rate = 0;
 }
 
 echo number_format((double)$order->get_total(), 2);
@@ -25,12 +22,10 @@ if (current_user_can('administrator')) {
 
 	foreach ($items as $item_id => $item_data) {
 
-		$quantity = get_post_meta($item_data['product_id'], 'quantity', true);
-		$price = get_post_meta($item_data['product_id'], '_price', true);
-		//    echo '<br>Price: ' . $price;
-		$total = number_format($price, 2) * $quantity;
-		//   echo '<br>Total: ' . $total;
-		$tax = number_format(($tax_rate * $total) / 100, 2);
+		$quantity = (float) get_post_meta($item_data['product_id'], 'quantity', true);
+		$price = (float) get_post_meta($item_data['product_id'], '_price', true);
+		$total = $price * $quantity;
+		$tax = round(($tax_rate * $total) / 100, 2);
 		//  echo '<br>Tax: ' . $tax;
 
 		$line_tax_data = array
@@ -52,8 +47,9 @@ if (current_user_can('administrator')) {
 	//  echo '<br>New Total: ' . $new_total.'<br>';
 }
 
+$tax_shipping_total = 0;
 foreach ($order->get_items('tax') as $item_id => $item_tax) {
-	echo 'shipping_tax_total: ' . $tax_shipping_total = $item_tax->get_shipping_tax_total(); // Tax shipping total
+	$tax_shipping_total = $item_tax->get_shipping_tax_total();
 }
 
 $user_id_customer = get_post_meta(get_the_id(), '_customer_user', true);

@@ -220,7 +220,7 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
 		<?php if (wc_tax_enabled() && !WC()->cart->display_prices_including_tax()) : ?>
 			<?php if ('itemized' === get_option('woocommerce_tax_total_display')) : ?>
 				<?php foreach (WC()->cart->get_tax_totals() as $code => $tax) : ?>
-                    <tr class="tax-rate tax-rate-<?php echo sanitize_title($code); ?>" style="<?php echo 'display:' . $comp_visible; ?>"
+                    <tr class="tax-rate tax-rate-<?php echo sanitize_title($code); ?>" style="<?php echo 'display:' . $comp_visible; ?>">
                     <th><?php echo esc_html($tax->label); ?></th>
                     <td><?php echo wp_kses_post($tax->formatted_amount); ?></td>
                     </tr>
@@ -231,8 +231,10 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
                     <td>
                         <strong><?php
 
-							$tva_shipping = (WC()->cart->shipping_total * 20) / 100;
-							wc_cart_totals_taxes_total_html();
+							$tva_sea_freight = ($total_prods_delivery * 20) / 100;
+							$wc_tax = WC()->cart->get_taxes_total(true, true);
+							$total_vat = $wc_tax + $tva_sea_freight;
+							echo wc_price($total_vat);
 
 							//echo $tva_shipping + WC()->cart->get_taxes_total( true, true );
 							//wc_cart_totals_taxes_total_html_custom();
@@ -248,9 +250,15 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
             <th><?php _e('Gross Total', 'woocommerce'); ?></th>
             <td>
                 <strong><?php
-					// wc_cart_totals_order_total_html();
-					echo WC()->cart->get_total()
-					// wc_cart_totals_order_total_html_custom();
+					// Get cart total as float
+					$cart_total_raw = WC()->cart->get_total('edit');
+
+					// Add sea freight + VAT on sea freight (20%)
+					$sea_freight_with_vat = $total_prods_delivery * 1.20;
+					$adjusted_total = $cart_total_raw + $sea_freight_with_vat;
+
+					echo $fob_components ? '$' : '£';
+					echo number_format($adjusted_total, 2);
 					?></strong>
             </td>
         </tr>

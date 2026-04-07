@@ -1,0 +1,92 @@
+<?php
+/**
+ * Admin Order Number LF0 Prefix
+ * Replaces WooCommerce default '#' prefix with 'LF0' in admin areas
+ * So we don't need to modify WooCommerce core files
+ */
+
+if (!defined('ABSPATH')) exit;
+
+/**
+ * 1. Orders list table — output buffer pe coloana order_number
+ *    Replace '#' cu 'LF0' în output-ul generat de WooCommerce
+ */
+add_action('manage_shop_order_posts_custom_column', 'lf_order_number_ob_start', 1, 2);
+function lf_order_number_ob_start($column, $post_id) {
+    if ($column === 'order_number') {
+        ob_start();
+    }
+}
+
+add_action('manage_shop_order_posts_custom_column', 'lf_order_number_ob_end', 999, 2);
+function lf_order_number_ob_end($column, $post_id) {
+    if ($column === 'order_number') {
+        $output = ob_get_clean();
+        echo preg_replace('/#(\d)/', 'LF0$1', $output, 2);
+    }
+}
+
+/**
+ * 2. Order edit page heading + customer dropdown — gettext filter (doar pe ecranul shop_order)
+ */
+add_action('current_screen', 'lf_maybe_fix_order_translations');
+function lf_maybe_fix_order_translations($screen) {
+    if ($screen->id === 'shop_order') {
+        add_filter('gettext', 'lf_fix_order_heading_text', 10, 3);
+    }
+}
+
+function lf_fix_order_heading_text($translated, $text, $domain) {
+    if ($domain !== 'woocommerce') return $translated;
+
+    if ($text === '%1$s #%2$s details') {
+        return '%1$s LF0%2$s details';
+    }
+    if ($text === '%1$s (#%2$s &ndash; %3$s)') {
+        return '%1$s (LF0%2$s &ndash; %3$s)';
+    }
+    return $translated;
+}
+
+/**
+ * 3. Order preview modal header — JS fix
+ */
+add_action('admin_footer', 'lf_fix_order_preview_modal', 99);
+function lf_fix_order_preview_modal() {
+    $screen = get_current_screen();
+    if (!$screen || $screen->id !== 'edit-shop_order') return;
+    ?>
+    <script>
+    jQuery(function($) {
+        $(document.body).on('wc_backbone_modal_loaded', function() {
+            var $h1 = $('.wc-backbone-modal-header h1');
+            if ($h1.length) {
+                $h1.text($h1.text().replace(/#(\d)/, 'LF0$1'));
+            }
+        });
+    });
+    </script>
+    <?php
+}
+
+/**
+ * 4. Customer filter dropdown + preview modal template — gettext (doar pe edit-shop_order)
+ */
+add_action('current_screen', 'lf_maybe_fix_order_list_translations');
+function lf_maybe_fix_order_list_translations($screen) {
+    if ($screen->id === 'edit-shop_order') {
+        add_filter('gettext', 'lf_fix_order_list_text', 10, 3);
+    }
+}
+
+function lf_fix_order_list_text($translated, $text, $domain) {
+    if ($domain !== 'woocommerce') return $translated;
+
+    if ($text === '%1$s (#%2$s &ndash; %3$s)') {
+        return '%1$s (LF0%2$s &ndash; %3$s)';
+    }
+    if ($text === 'Order #%s') {
+        return 'Order LF0%s';
+    }
+    return $translated;
+}

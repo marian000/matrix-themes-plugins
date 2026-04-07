@@ -138,6 +138,8 @@ include_once(get_stylesheet_directory() . '/includes/filters-dashboard-lists.php
 include_once(get_stylesheet_directory() . '/includes/woocommerce-functions.php');
 include_once(get_stylesheet_directory() . '/includes/login_redirects.php');
 include_once(get_stylesheet_directory() . '/includes/add-meta-boxes.php');
+include_once(get_stylesheet_directory() . '/includes/material-pricing-keys.php');
+include_once(get_stylesheet_directory() . '/includes/pricing-meta-keys.php');
 include_once(get_stylesheet_directory() . '/includes/user-functions.php');
 include_once(get_stylesheet_directory() . '/includes/awning-functions.php');
 
@@ -145,6 +147,7 @@ include_once(get_stylesheet_directory() . '/includes/dashboard_footer.php');
 include_once(get_stylesheet_directory() . '/includes/class_quickbooks.php');
 include_once(get_stylesheet_directory() . '/includes/class-orders.php');
 include_once(get_stylesheet_directory() . '/includes/ajax.php');
+
 
 /**
  * Frame Type Statistics AJAX Handler
@@ -168,6 +171,7 @@ include_once(get_stylesheet_directory() . '/includes/shortcodes-my-orders.php');
 // În functions.php, adaugi linia:
 include_once(get_stylesheet_directory() . '/includes/custom-orders-functions.php');
 include_once(get_stylesheet_directory() . '/includes/orders-performance-optimizer.php');
+include_once(get_stylesheet_directory() . '/includes/admin-order-number-prefix.php');
 
 // Repair image upload AJAX handler
 include_once(get_stylesheet_directory() . '/ajax/repair-upload-image.php');
@@ -432,7 +436,7 @@ function save_order_post($post_id)
 
 			// $single_email = 'marian93nes@gmail.com';
 			$multiple_recipients = array(
-			  'caroline@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com',
+			  'kevin@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com',
 			);
 
 			$subject = 'ON-HOLD Order LF0' . $order->get_order_number() . ' - ' . $name . ' - for REVISION';
@@ -1104,8 +1108,6 @@ add_action('save_post', 'matrix_trigger_order_recalculation_on_save', 100, 1);
 
 function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 {
-	error_log("--- Starting Order Recalculation for Order ID: {$order_id} ---");
-
 	$order = wc_get_order($order_id);
 	if (!$order) {
 		error_log("Recalculation Error: Could not get order object for ID: {$order_id}");
@@ -1131,8 +1133,6 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 	if (in_array($shipping_country, ['GB', 'IE'])) {
 		$tax_rate_percent = 20;
 	}
-	error_log("Order {$order_id}: Shipping Country={$shipping_country}, Determined Tax Rate={$tax_rate_percent}%");
-
 	// --- Iterează prin itemii comenzii ---
 	foreach ($items as $item_id => $item_data) {
 		$product_id = $item_data['product_id'];
@@ -1147,7 +1147,6 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 		// @TODO: ID-urile categoriilor (20, 34, 26) ar trebui stocate în opțiuni/constante, nu hardcodate.
 		if (has_term([20, 34, 26], 'product_cat', $product_id)) {
 			$order_contains_pos = true;
-			error_log("Order {$order_id}: Item ID {$item_id} (Product ID {$product_id}) is a POS item. Skipping custom calculation for this item.");
 			// Poate ar trebui să adunăm totalurile existente ale acestor itemi la totalul final?
 			// Deocamdată, îi ignorăm complet în calculul custom, conform logicii originale.
 			continue; // Treci la următorul item
@@ -1171,32 +1170,18 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 		$item_train_price_total = 0;
 		if ($sqm > 0 && $user_id_customer > 0) { // Prețul tren se aplică doar dacă avem SQM și client logat?
 
-			// MODIFICARE: Verifică mai întâi dacă există preț train original salvat în primul produs
-			$original_train_price = null;
-			$first_item_processed = false;
-
-			// Caută în primul item al comenzii dacă există price_item_train
-			if (!$first_item_processed) {
-				$original_train_price = get_post_meta($product_id, 'price_item_train', true);
-				$first_item_processed = true;
-
-				if (!empty($original_train_price) && is_numeric($original_train_price)) {
-					error_log("Order {$order_id}: Found original train price in first item meta: {$original_train_price}");
-				}
-			}
+			// Verifică dacă există preț train original salvat pe produs
+			$original_train_price = get_post_meta($product_id, 'price_item_train', true);
 
 			// Folosește prețul original dacă există, altfel folosește logica actuală
-			if ($original_train_price !== null || $original_train_price !== '') {
+			if ($original_train_price !== '') {
 				$train_price_per_sqm = floatval($original_train_price);
-				error_log("Order {$order_id}: Using original train price from item meta: {$train_price_per_sqm}");
 			} else {
 				// Logica originală - folosește prețul curent din user_meta sau global
 				$train_price_user = get_user_meta($user_id_customer, 'train_price', true);
-				$train_price_per_sqm = ($train_price_user !== null && $train_price_user !== '')
+				$train_price_per_sqm = ($train_price_user !== '')
 				  ? floatval($train_price_user)
 				  : floatval(get_post_meta(1, 'train_price', true)); // Default global
-
-				error_log("Order {$order_id}: No original train price found, using current price: {$train_price_per_sqm}");
 			}
 
 			if ($train_price_per_sqm > 0) {
@@ -1236,8 +1221,6 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 		wc_update_order_item_meta($item_id, '_line_subtotal_tax', wc_format_decimal($line_tax_gbp));
 		wc_update_order_item_meta($item_id, '_line_tax_data', $line_tax_data_array); // Salvează array-ul cu ID-ul ratei de taxare
 
-		error_log("Order {$order_id}, Item ID {$item_id}: Qty={$item_quantity}, BasePrice={$base_price}, TrainPrice={$item_train_price_total}, SubtotalGBP={$line_subtotal_gbp}, TaxGBP={$line_tax_gbp}, TotalUSD={$line_total_usd}, TotalSQM={$line_total_sqm}");
-
 		// --- Adaugă la totalurile calculate ale comenzii ---
 		$calculated_subtotal_gbp += $line_subtotal_gbp;
 		$calculated_total_tax_gbp += $line_tax_gbp;
@@ -1247,12 +1230,9 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 
 	// --- Actualizează meta și totalurile comenzii (doar dacă nu conține POS) ---
 	if ($order_contains_pos === false) {
-		error_log("Order {$order_id} does not contain POS items. Proceeding with final total updates.");
-
 		// Salvează prețul total 'tren' pe meta comenzii
 		if ($calculated_order_train_price > 0) {
 			update_post_meta($order_id, 'order_train', number_format($calculated_order_train_price, 2, '.', ''));
-			error_log("Order {$order_id}: Updated 'order_train' meta: " . number_format($calculated_order_train_price, 2, '.', ''));
 		}
 
 		// Obține costul de transport și taxa pe transport din comandă
@@ -1278,7 +1258,6 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 					// 'subtotal' => wc_format_decimal($calculated_subtotal_gbp), // Comentat - lăsăm WC să gestioneze subtotalul pe cât posibil
 				]);
 				$order->save();
-				error_log("Order {$order_id}: Final totals updated. TotalGBP={$final_order_total_gbp}, TotalTaxGBP=" . wc_format_decimal($calculated_total_tax_gbp + $order_shipping_tax));
 			} catch (Exception $e) {
 				error_log("Order {$order_id}: Error saving final order totals: " . $e->getMessage());
 			}
@@ -1304,21 +1283,16 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 		  'status' => $order->get_status() ?: '',
 		];
 
-		error_log('Debug shipping_total: ' . var_export(number_format(floatval($order_shipping_total ?: 0), 2, '.', ''), true));
-
 		if ($order_exists_count > 0) {
 			// Update
 			$where = ['idOrder' => $idOrder];
 			$updated = $wpdb->update($table_name, $custom_data, $where);
 
-			if ($updated !== false) {
-				error_log("Order {$order_id}: Updated record in `{$table_name}`.");
-			} else {
+			if ($updated === false) {
 				error_log("Order {$order_id}: Failed to update record in `{$table_name}`. WPDB Error: " . $wpdb->last_error);
 			}
 		} else {
             $cart_name = get_post_meta($idOrder, 'cart_name', true);
-			error_log("Order {$order_id}: cart name is  `{$cart_name}`.");
 			if (!empty($cart_name)) {
 				// Insert
 				// Adaugă câmpurile specifice pentru insert
@@ -1329,17 +1303,12 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 
 				$inserted = $wpdb->insert($table_name, $custom_data);
 
-				if ($inserted) {
-					error_log("Order {$order_id}: Inserted new record into `{$table_name}`.");
-				} else {
+				if (!$inserted) {
 					error_log("Order {$order_id}: Failed to insert record into `{$table_name}`. WPDB Error: " . $wpdb->last_error);
 				}
 			}
 		}
-	} else {
-		error_log("Order {$order_id} contains POS items. Skipping final total update and custom table update.");
 	}
-	error_log("--- Finished Order Recalculation for Order ID: {$order_id} ---");
 }
 
 

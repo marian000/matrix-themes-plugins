@@ -331,6 +331,7 @@ if (!empty($products['order_edit']) && !empty($products['edit_customer'])) {
 	$sum_total_dolar = 0;
 	$totaly_sqm = 0;
 	$new_total = 0;
+	$sum_tax = 0;
 
 	$country_code = WC()->countries->countries[$order->get_shipping_country()];
 	if ($country_code == 'United Kingdom (UK)' || $country_code == 'Ireland') {
@@ -406,6 +407,7 @@ if (!empty($products['order_edit']) && !empty($products['edit_customer'])) {
 
 			## -- Make your checking and calculations -- ##
 			$new_total = $new_total + $total + $tax; // <== Fake calculation
+			$sum_tax = $sum_tax + floatval($tax);
 
 			$_product = wc_get_product($product_id);
 		}
@@ -423,6 +425,32 @@ if (!empty($products['order_edit']) && !empty($products['edit_customer'])) {
 		$order_status = $order_data['status'];
 		$total_price = $new_total + $order_data['shipping_total'] + $tax_shipping_total;
 		update_post_meta($order_id, '_order_total', $total_price);
+
+		// Seteaza cart_tax si total_tax pentru a include VAT pe sea freight
+		$order_fresh = wc_get_order($order_id);
+		if ($order_fresh) {
+			$order_fresh->set_cart_tax($sum_tax);
+			$order_fresh->set_total_tax($sum_tax + $tax_shipping_total);
+			$order_fresh->save();
+		}
+
+		// Log VAT + sea freight calculation
+		if (function_exists('my_custom_log')) {
+			$subtotal_no_tax = $new_total - $sum_tax;
+			my_custom_log(
+				'VAT Recalc [Batten]',
+				sprintf(
+					'Order #%d | Subtotal(+train): £%.2f | cart_tax: £%.2f | shipping_tax: £%.2f | total_tax: £%.2f | total: £%.2f | tax_rate: %s%%',
+					$order_id,
+					$subtotal_no_tax,
+					$sum_tax,
+					$tax_shipping_total,
+					$sum_tax + $tax_shipping_total,
+					$total_price,
+					$tax_rate
+				)
+			);
+		}
 
 		/*
 		 * UPDATE custom_orders table on each shop_order post update

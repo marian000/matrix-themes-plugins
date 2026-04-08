@@ -39,12 +39,12 @@ function lf_maybe_fix_order_translations($screen) {
 function lf_fix_order_heading_text($translated, $text, $domain) {
     if ($domain !== 'woocommerce') return $translated;
 
+    // Order edit page heading: "Order #24516 details" → "Order LF024516 details"
     if ($text === '%1$s #%2$s details') {
         return '%1$s LF0%2$s details';
     }
-    if ($text === '%1$s (#%2$s &ndash; %3$s)') {
-        return '%1$s (LF0%2$s &ndash; %3$s)';
-    }
+    // NOTE: Nu filtram '%1$s (#%2$s &ndash; %3$s)' pentru ca acel string e folosit
+    // pentru customer dropdown unde %2$s este user ID, nu order number.
     return $translated;
 }
 
@@ -82,11 +82,11 @@ function lf_maybe_fix_order_list_translations($screen) {
 function lf_fix_order_list_text($translated, $text, $domain) {
     if ($domain !== 'woocommerce') return $translated;
 
-    if ($text === '%1$s (#%2$s &ndash; %3$s)') {
-        return '%1$s (LF0%2$s &ndash; %3$s)';
-    }
+    // Order preview modal template: "Order #%s" → "Order LF0%s"
     if ($text === 'Order #%s') {
         return 'Order LF0%s';
     }
+    // NOTE: Nu filtram '%1$s (#%2$s &ndash; %3$s)' pentru customer filter dropdown
+    // pentru ca %2$s este user ID, nu order number.
     return $translated;
 }

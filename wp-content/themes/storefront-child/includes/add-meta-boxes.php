@@ -26,6 +26,7 @@ function matrix_all_meta_boxes()
 	add_meta_box('quickbooks-box-id', esc_html__('Select quickbooks status', 'text-domain'), 'quickbooks_render_menu_meta_box', 'shop_order', 'side', 'low');
 	add_meta_box('items-edit-box-id', esc_html__('Edit items by Customer', 'text-domain'), 'items_edit_render_menu_meta_box', 'shop_order', 'side', 'low');
 	add_meta_box('order-edit-price-old-new', esc_html__('Edit Order by Old or New price material', 'text-domain'), 'order_price_edit_render_menu_meta_box', 'shop_order', 'side', 'low');
+	add_meta_box('recalculate-order-box-id', esc_html__('Recalculate Order', 'text-domain'), 'recalculate_order_render_menu_meta_box', 'shop_order', 'side', 'low');
 
 	// Product Meta Boxes
 	add_meta_box('image-svg', __('Svg - Image', 'textdomain'), 'wpdocs_my_display_img', 'product');
@@ -105,40 +106,7 @@ function wpdocs_container_orders_prices_callback($post)
 
 function wpdocs_repair_order_details_callback($post)
 {
-	$repair_id = $post->ID;
-	?>
-	<div id="repair-order-details-container">
-		<div id="repair-order-details-loader" style="text-align:center; padding: 40px;">
-			<img src="/wp-content/themes/storefront-child/imgs/loading.svg" alt="Loading" style="width:50px;" />
-			<p>Loading repair order details...</p>
-		</div>
-		<div id="repair-order-details-content" style="display:none;"></div>
-	</div>
-	<script>
-	jQuery(document).ready(function($) {
-		$.ajax({
-			url: ajaxurl,
-			type: 'POST',
-			data: {
-				action: 'load_repair_order_details',
-				repair_id: <?php echo (int)$repair_id; ?>,
-				nonce: '<?php echo wp_create_nonce('repair_order_details_nonce'); ?>'
-			},
-			success: function(response) {
-				if (response.success) {
-					$('#repair-order-details-content').html(response.data.html).show();
-					$('#repair-order-details-loader').hide();
-				} else {
-					$('#repair-order-details-loader').html('<p style="color:red;">Error loading repair details.</p>');
-				}
-			},
-			error: function() {
-				$('#repair-order-details-loader').html('<p style="color:red;">Failed to load repair details.</p>');
-			}
-		});
-	});
-	</script>
-	<?php
+	include_once(get_stylesheet_directory() . '/views/repair-order/repair-order-details.php');
 }
 
 
@@ -165,20 +133,20 @@ function wpdocs_repair_order_container_callback($meta_id)
 		'posts_per_page' => 15,
 	));
 	if ($rand_posts) {
-		update_postmeta_cache( wp_list_pluck( $rand_posts, 'ID' ) );
 		echo '	<select name="container-repair">
 		<option value="" >Select container</option>
 	';
 		foreach ($rand_posts as $post) :
+			setup_postdata($post);
 			$container_orders = get_post_meta($post->ID, 'container_orders', true);
-			$post_title = esc_html( $post->post_title );
-			if ( is_array( $container_orders ) && in_array($order_id, $container_orders)) {
-				echo '<option value="' . $post->ID . '" selected >' . $post_title . '</option>';
+			if (in_array($order_id, $container_orders)) {
+				echo '<option value="' . $post->ID . '" selected >' . get_the_title($post->ID) . '</option>';
 			} else {
-				echo '<option value="' . $post->ID . '">' . $post_title . '</option>';
+				echo '<option value="' . $post->ID . '">' . get_the_title($post->ID) . '</option>';
 			}
 		endforeach;
 		echo '</select>';
+		wp_reset_postdata();
 	}
 }
 
@@ -823,9 +791,17 @@ function repair_oder_deliveries_render($meta_id)
 function repair_oder_warranty_payment($meta_id)
 {
 
+	$no_warranty = false;
+	$order_id = get_post_meta($meta_id->ID, 'order-id-original', true);
 	$warranty = get_post_meta($meta_id->ID, 'warranty', true);
 	$type_cost = get_post_meta($meta_id->ID, 'type_cost', true);
-	$no_warranty = is_array( $warranty ) && in_array( 'No', $warranty );
+	$order = new WC_Order($order_id);
+	$items = $order->get_items();
+	foreach ($items as $item_id => $item_data) {
+		if ($warranty[$item_id] == 'No') {
+			$no_warranty = true;
+		}
+	}
 
 //	if ($no_warranty) {
 	$sqm = ($type_cost == 'sqm') ? 'checked' : '';
@@ -1031,3 +1007,135 @@ function display_product_videos()
 
 
 add_action('woocommerce_after_single_product_summary', 'display_product_videos', 25);
+
+
+/**
+ * Render the Recalculate Order meta box in the WooCommerce admin order sidebar.
+ *
+ * Displays current order totals and a button to trigger manual recalculation via AJAX.
+ *
+ * @since 1.0.0
+ * @return void
+ */
+function recalculate_order_render_menu_meta_box()
+{
+	$order_id = get_the_id();
+	$order = wc_get_order($order_id);
+
+	if (!$order) {
+		echo '<p>Order not found.</p>';
+		return;
+	}
+
+	$sea_freight = get_post_meta($order_id, 'order_train', true);
+	$subtotal = $order->get_subtotal();
+	$vat = $order->get_total_tax();
+	$shipping = $order->get_shipping_total();
+	$total = $order->get_total();
+
+	// Get current train price per sqm from first product with price_item_train
+	$train_price_per_sqm = 0;
+	$items = $order->get_items();
+	foreach ($items as $item_data) {
+		$pid = $item_data['product_id'];
+		$tp = get_post_meta($pid, 'price_item_train', true);
+		if ($tp > 0) {
+			$train_price_per_sqm = floatval($tp);
+			break;
+		}
+	}
+	if ($train_price_per_sqm == 0) {
+		$customer_id = $order->get_customer_id();
+		$train_price_per_sqm = floatval(get_user_meta($customer_id, 'train_price', true));
+		if ($train_price_per_sqm == 0) {
+			$train_price_per_sqm = floatval(get_post_meta(1, 'train_price', true));
+		}
+	}
+
+	ob_start();
+	?>
+  <div class="recalculate-order-box">
+    <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+      <tr>
+        <td style="padding:4px 0;"><strong>Subtotal:</strong></td>
+        <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($subtotal), 2)); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;"><strong>Sea Freight:</strong></td>
+        <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($sea_freight), 2)); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;"><strong>Train £/sqm:</strong></td>
+        <td style="padding:4px 0; text-align:right;">
+          <input type="number" id="recalculate-train-price" value="<?php echo esc_attr(number_format($train_price_per_sqm, 2, '.', '')); ?>" step="0.01" min="0" style="width:80px; text-align:right;">
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;"><strong>VAT:</strong></td>
+        <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($vat), 2)); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;"><strong>Shipping:</strong></td>
+        <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($shipping), 2)); ?></td>
+      </tr>
+      <tr style="border-top:1px solid #ccc;">
+        <td style="padding:6px 0;"><strong>Total:</strong></td>
+        <td style="padding:6px 0; text-align:right;"><strong>&pound;<?php echo esc_html(number_format(floatval($total), 2)); ?></strong></td>
+      </tr>
+    </table>
+    <input type="hidden" id="recalculate-order-id" value="<?php echo esc_attr($order_id); ?>">
+    <input type="hidden" id="recalculate-order-nonce" value="<?php echo esc_attr(wp_create_nonce('matrix_recalculate_order_nonce')); ?>">
+    <button type="button" class="button button-primary button-large" id="recalculate-order-btn" style="width:100%;">Recalculate Order</button>
+  </div>
+
+  <script>
+      jQuery(document).ready(function ($) {
+          $('#recalculate-order-btn').on('click', function (e) {
+              e.preventDefault();
+
+              var order_id = $('#recalculate-order-id').val();
+              var nonce = $('#recalculate-order-nonce').val();
+              var train_price = $('#recalculate-train-price').val();
+
+              $.ajax({
+                  method: "POST",
+                  url: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
+                  data: {
+                      action: 'matrix_recalculate_order',
+                      order_id: order_id,
+                      nonce: nonce,
+                      train_price: train_price
+                  },
+                  beforeSend: function () {
+                      $("body .spinner-modal").show();
+                  },
+                  complete: function () {
+                      $("body .spinner-modal").hide();
+                  },
+                  success: function (response) {
+                      try {
+                          var data = (typeof response === 'string') ? JSON.parse(response) : response;
+                          if (data.success) {
+                              alert('Order recalculated successfully!');
+                              location.reload();
+                          } else {
+                              alert('Error: ' + (data.message || 'Recalculation failed.'));
+                          }
+                      } catch (err) {
+                          alert('Error parsing response.');
+                      }
+                  },
+                  error: function (xhr, textStatus, errorThrown) {
+                      alert('AJAX Error: ' + errorThrown);
+                  }
+              });
+          });
+      });
+  </script>
+	<?php
+
+	$out = ob_get_contents();
+	ob_end_clean();
+
+	echo $out;
+}

@@ -20,8 +20,16 @@ if (!defined('ABSPATH')) {
 class QuickBooks_Config {
     
     /**
-     * Email Configuration
+     * Get Billing BCC Email from settings
      */
+    public static function get_billing_bcc_email() {
+        if (function_exists('get_matrix_email')) {
+            return get_matrix_email('accounts_bcc');
+        }
+        return 'accounts@lifetimeshutters.com'; // Fallback
+    }
+
+    // Legacy constant for backwards compatibility
     const BILLING_BCC_EMAIL = 'accounts@lifetimeshutters.com';
     
     /**
@@ -37,7 +45,8 @@ class QuickBooks_Config {
         return array(
             '137' => 24,  // Green
             '138' => 8,   // BiowoodPlus  
-            '139' => 13,  // Supreme
+            '139' => 98,  // SupremePlus
+            '147' => 13,  // Supreme
             '187' => 71,  // Earth
             '188' => 67,  // Ecowood
             '5' => 93,    // EcowoodPlus

@@ -10,6 +10,9 @@ get_header();
 
 $view_id = isset($_GET['id']) ? absint($_GET['id']) / 1498765 / 33 : 0;
 $order = wc_get_order($view_id);
+if (!$order) {
+	wp_die('Order not found.');
+}
 $order_number = $order->get_order_number(); //teo for Order id below
 
 $order_data = $order->get_data(); // The Order data

@@ -1,29 +1,46 @@
 <?php
 
+/**
+ * create-csv-admin.php
+ *
+ * Versiunea ADMIN a scriptului de generare CSV/PDF si trimitere emailuri.
+ * Diferente fata de createcsv.php (versiunea dealer):
+ *   - Nu are protectie anti-spam (mail_send) — adminul poate retrimite oricand
+ *   - Subiectul emailului contine sufixul "Resent" pentru a distinge retrimiterea
+ *   - Internul (order@, accounts@) primeste CSV + PDF + imagini (nu doar CSV)
+ *   - Emailul de confirmare catre dealer/client NU se trimite din aceasta versiune
+ *   - Trimiterea catre Anyhoo este comentata (dezactivata intentionat)
+ *
+ * Apelat manual de admin din interfata de administrare a comenzilor.
+ */
+
 $path = preg_replace('/wp-content(?!.*wp-content).*/', '', __DIR__);
 include($path . 'wp-load.php');
 include('simple_html_domv2.php');
 
 require_once WP_CONTENT_DIR . '/themes/storefront-child/csvs/mpdf/vendor/autoload.php';
-//include( '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php' );
-
-//    $_POST['table'];
 
 $order_id = $_POST['id_ord_original'];
 
+// mail_send este citit dar NU blocheaza trimiterea — adminul poate retrimite oricand
 $mail_send = get_post_meta($order_id, 'mail_send', true);
 $customer_id = get_post_meta($order_id, '_customer_user', true);
+
+// favorite_user = 'yes' inseamna client Anyhoo (kevin@, july@)
+// In aceasta versiune admin, trimiterea catre Anyhoo este dezactivata (vezi mai jos)
 $favorite = get_user_meta($customer_id, 'favorite_user', true);
 
+// Adrese de test — folosite in dezvoltare in loc de destinatarii reali
 $multiple_test_mails = array(
 	'teopro@gmail.com', 'marian93nes@gmail.com',
 );
 
+// Marcheaza comanda ca avand emailul trimis (chiar daca era deja marcat)
 update_post_meta($order_id, 'mail_send', 1);
 
 $billing_company = get_user_meta($customer_id, 'shipping_company', true);
 
-$pos = $_POST['pos'];
+$pos = isset($_POST['pos']) ? intval($_POST['pos']) : 0;
 $name = $_POST['name'];
 //$vowels = array(" ", ".", "#");
 $vowels = array(" ", ".", "#", "'", "\"", "`", "/", "\\", ":", ";", "|", "?", "*", "<", ">");
@@ -83,7 +100,7 @@ $pdf_content .= '</html>';
 //MAKE PDF ORDER
 
 //OLD VERSION
-require_once($_SERVER['DOCUMENT_ROOT'] . '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php');
+//require_once($_SERVER['DOCUMENT_ROOT'] . '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php');
 //        exit($content);
 //        $pdf = new HTML2FPDF('P', 'mm', 'Letter');
 //        $pdf->AddPage();
@@ -134,52 +151,71 @@ $mpdf->SetHTMLFooter('
 $mpdf->WriteHTML($pdf_content);
 $mpdf->Output(WP_CONTENT_DIR . '/uploads/csv-pdf/' . 'LF0' . $_POST['id'] . '.pdf');
 
-if ($_POST['pos'] == 0) {
-	$attachment1 = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $fileName;
+// CSV-ul se genereaza doar daca pos == 0 (nu e comanda POS)
+$csv_file = '';
+if ($pos == 0) {
+	$csv_file = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $fileName;
 }
-$attachment2 = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $pdfName;
-//teo   $attachment2china = '';
+$pdf_file = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $pdfName;
 
-$attachments = array();
-$attachments_summary = array();
-$attachments[0] = '';
-$attachments[1] = $attachment2;
-$attachments_summary[] = $attachment2;
-
-$attachments_china = array();
-$attachments_china[0] = $attachment1;
-$attachments_china[1] = '';
-
-//get an instance of the WC_Order object
 $order = wc_get_order($order_id);
-
 $items = $order->get_items();
-$at = 2;
-foreach ($items as $item_id => $item_data) {
 
+// Colecteaza caile locale ale imaginilor produselor din comanda
+// (attachment = imagine produs, attachmentDraw = desen tehnic)
+$product_images = array();
+foreach ($items as $item_id => $item_data) {
 	$product_id = $item_data['product_id'];
 	$attachment_img = get_post_meta($product_id, 'attachment', true);
 	$attachmentDraw = get_post_meta($product_id, 'attachmentDraw', true);
 
-	$img = $attachment_img;
-	$pieces = explode(get_home_url() . '/wp-content', $img);
-	$pieces[0];
-	$pieces[1];
-
-	$attachments[$at] = WP_CONTENT_DIR . $pieces[1];
-	$attachments_china[$at] = WP_CONTENT_DIR . $pieces[1];
+	if (!empty($attachment_img)) {
+		$pieces = explode(get_home_url() . '/wp-content', $attachment_img);
+		if (!empty($pieces[1])) {
+			$product_images[] = WP_CONTENT_DIR . $pieces[1];
+		}
+	}
 	if (!empty($attachmentDraw)) {
 		$piecesDraw = explode(get_home_url() . '/wp-content', $attachmentDraw);
-		$at++;
-		$attachments[$at] = WP_CONTENT_DIR . $piecesDraw[1];
-		$attachments_china[$at] = WP_CONTENT_DIR . $piecesDraw[1];
+		if (!empty($piecesDraw[1])) {
+			$product_images[] = WP_CONTENT_DIR . $piecesDraw[1];
+		}
 	}
-	$at++;
 }
 
+// Tipuri de atasamente folosite in emailuri:
+//   $attach_csv_pdf_images — CSV + PDF + imagini (pentru intern: order@, accounts@)
+//   $attach_pdf_images     — PDF + imagini (pentru Mike)
+//   $attach_csv_only       — doar CSV (pentru Anyhoo — dezactivat momentan)
+//   $attach_csv_images     — CSV + imagini fara PDF (pentru ramura China)
+$attach_csv_pdf_images = array();
+if (!empty($csv_file)) {
+	$attach_csv_pdf_images[] = $csv_file;
+}
+$attach_csv_pdf_images[] = $pdf_file;
+$attach_csv_pdf_images = array_merge($attach_csv_pdf_images, $product_images);
+
+$attach_pdf_images = array();
+$attach_pdf_images[] = $pdf_file;
+$attach_pdf_images = array_merge($attach_pdf_images, $product_images);
+
+$attach_csv_only = array();
+if (!empty($csv_file)) {
+	$attach_csv_only[] = $csv_file;
+}
+
+$attach_csv_images = array();
+if (!empty($csv_file)) {
+	$attach_csv_images[] = $csv_file;
+}
+$attach_csv_images = array_merge($attach_csv_images, $product_images);
+
+// -------------------------------------------------------------------------
+// RAMURA CHINA: comanda marcata ca "china" → trimite CSV+imagini la Tudor
+// Subiectul contine "Resent" pentru a distinge retrimiterea admin de trimiterea initiala
+// -------------------------------------------------------------------------
 if (!empty($_POST['china']) && $_POST['table']) {
 
-	// $to = 'marian93nes@gmail.com';
 	$multiple_recipients = array(
 		'tudor@fiqs.ro', 'tudor@lifetimeshutters.com',
 	);
@@ -199,26 +235,26 @@ if (!empty($_POST['china']) && $_POST['table']) {
 	}
 	$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
-		wp_mail($multiple_recipients, $subject, $body, $headers, $attachments_china);
-//	wp_mail($multiple_test_mails, $subject, $body, $headers, $attachments_china);
+	wp_mail($multiple_recipients, $subject, $body, $headers, $attach_csv_images);
+	// wp_mail($multiple_test_mails, $subject, $body, $headers, $attach_csv_images); // linie de test
+
 } else {
 
-	// $to = 'marian93nes@gmail.com';
-	// $multiple_recipients = array(
-	//     'order@lifetimeshutters.com'
-	// );
-	if ($favorite == 'yes') {
-		$multiple_recipients = array(
-			'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com', 'caroline@anyhooshutter.com', 'july@anyhooshutter.com',
-		);
-	} else {
-		$multiple_recipients = array(
-			'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com',
-		);
-	}
+	// -------------------------------------------------------------------------
+	// RAMURA NORMALA (admin resend)
+	//
+	// Email 1: Intern (order@, accounts@) → CSV + PDF + imagini
+	//   Diferenta fata de versiunea dealer: internul primeste si PDF-ul, nu doar CSV
+	//
+	// Email 2: Mike (mike@) → PDF + imagini
+	//
+	// Email 3: Anyhoo → DEZACTIVAT intentionat in versiunea admin
+	//   Motivul: adminul retrimite doar intern, nu vrea sa spam-uiasca Anyhoo
+	//   Daca trebuie reactivat, decomentati blocul de mai jos
+	// -------------------------------------------------------------------------
 
 	$subject = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Matrix Order Attached - Resent';
-	$body = 'Hi July, Kevin<br><br>New order. See Order Attached <br>';
+	$body = 'Hi,<br><br>New order. See Order Attached <br>';
 	foreach ($items as $item_id => $item_data) {
 
 		$product_id = $item_data['product_id'];
@@ -233,8 +269,15 @@ if (!empty($_POST['china']) && $_POST['table']) {
 	}
 	$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
-		wp_mail($multiple_recipients, $subject, $body, $headers, $attachments_china);
-//	wp_mail($multiple_test_mails, $subject, $body, $headers, $attachments_china);
-//		wp_mail('mike@lifetimeshutters.com', $subject, $body, $headers, $attachments);
+	// Email 1: Intern primeste CSV + PDF + imagini (in versiunea dealer primeste doar CSV)
+	$internal_recipients = array('order@lifetimeshutters.com', 'accounts@lifetimeshutters.com');
+	wp_mail($internal_recipients, $subject, $body, $headers, $attach_csv_pdf_images);
+
+	// Email 2: Mike primeste PDF + imagini
+	wp_mail('mike@lifetimeshutters.com', $subject, $body, $headers, $attach_pdf_images);
+
+	// Email 3: Anyhoo — dezactivat in versiunea admin (decomentati daca e necesar)
+	// $anyhoo_recipients = array('kevin@anyhooshutter.com', 'july@anyhooshutter.com');
+	// wp_mail($anyhoo_recipients, $subject, $body, $headers, $attach_csv_only);
 }
 

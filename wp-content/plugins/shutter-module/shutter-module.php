@@ -233,6 +233,10 @@ function wpse_load_plugin_css()
 	wp_enqueue_script('jquery-fancybox', $plugin_url . 'js/jquery.fancybox.min.js', array(), '1.0.1', true);
 	wp_enqueue_script('jquery-masonry', $plugin_url . 'js/jquery.masonry.min.js', array(), '1.0.1', true);
 	wp_enqueue_script('shutter-modul-custom-scripts-js', $plugin_url . 'js/custom-scripts.js', array(), '1.4.6', true);
+	// Localize nonce for pricing AJAX security (Task #002)
+	wp_localize_script('shutter-modul-custom-scripts-js', 'shutter_ajax_obj', array(
+		'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
+	));
 	wp_enqueue_script('update-item-scripts-js', $plugin_url . 'js/update-item-scripts.js', array(), '1.0.1', true);
 
 	if (in_array('prod1', $classes)) {
@@ -241,6 +245,7 @@ function wpse_load_plugin_css()
 		wp_localize_script('product-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
 			'showBasswood' => $show_basswood,
+			'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
 		));
 	}
 	if (in_array('prodIndividual', $classes)) {
@@ -249,6 +254,7 @@ function wpse_load_plugin_css()
 		wp_localize_script('product-script-individual', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
 			'showBasswood' => $show_basswood,
+			'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
 		));
 	}
 
@@ -259,6 +265,7 @@ function wpse_load_plugin_css()
 		wp_localize_script('product3-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
 			'showBasswood' => $show_basswood,
+			'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
 		));
 	}
 
@@ -268,6 +275,7 @@ function wpse_load_plugin_css()
 		wp_localize_script('product5-script-custom', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
 			'showBasswood' => $show_basswood,
+			'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
 		));
 	}
 
@@ -276,6 +284,7 @@ function wpse_load_plugin_css()
 		wp_localize_script('product5-script-custom-edit', 'my_showBiowood_object', array(
 			'showBiowood' => $show_biowood,
 			'showBBasswood' => $show_basswood,
+			'pricing_nonce' => wp_create_nonce( 'shutter_pricing_action' ),
 		));
 	}
 }

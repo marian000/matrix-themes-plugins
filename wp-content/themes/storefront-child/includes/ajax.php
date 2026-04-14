@@ -624,3 +624,74 @@ function get_user_messages_callback() {
 
 	wp_send_json_success($messages);
 }
+
+
+add_action('wp_ajax_matrix_recalculate_order', 'matrix_recalculate_order_ajax_handler');
+
+/**
+ * AJAX handler for manual order recalculation from the admin sidebar meta box.
+ *
+ * Validates nonce and capabilities, then calls the existing recalculation function
+ * and returns updated order totals as JSON.
+ *
+ * @since 1.0.0
+ * @return void
+ */
+function matrix_recalculate_order_ajax_handler()
+{
+	if (!check_ajax_referer('matrix_recalculate_order_nonce', 'nonce', false)) {
+		echo json_encode(array(
+			'success' => false,
+			'message' => 'Security check failed.',
+		));
+		wp_die();
+	}
+
+	if (!current_user_can('edit_shop_orders')) {
+		echo json_encode(array(
+			'success' => false,
+			'message' => 'You do not have permission to perform this action.',
+		));
+		wp_die();
+	}
+
+	$order_id = intval($_POST['order_id']);
+
+	$order = wc_get_order($order_id);
+	if (!$order) {
+		echo json_encode(array(
+			'success' => false,
+			'message' => 'Order not found.',
+		));
+		wp_die();
+	}
+
+	// If a new train price per sqm was provided, update all order products
+	if (isset($_POST['train_price']) && is_numeric($_POST['train_price'])) {
+		$new_train_price = floatval($_POST['train_price']);
+		$items = $order->get_items();
+		foreach ($items as $item_data) {
+			$product_id = $item_data['product_id'];
+			update_post_meta($product_id, 'price_item_train', $new_train_price);
+		}
+	}
+
+	matrix_recalculate_order_totals_and_update_custom_table($order_id);
+
+	// Re-read the order after recalculation to get updated values
+	$order = wc_get_order($order_id);
+
+	echo json_encode(array(
+		'success' => true,
+		'message' => 'Order recalculated successfully',
+		'data'    => array(
+			'subtotal'    => $order->get_subtotal(),
+			'sea_freight' => get_post_meta($order_id, 'order_train', true),
+			'vat'         => $order->get_total_tax(),
+			'shipping'    => $order->get_shipping_total(),
+			'total'       => $order->get_total(),
+		),
+	));
+
+	wp_die();
+}

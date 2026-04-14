@@ -40,9 +40,7 @@ $rep_order_date = get_the_date($post_id);
                 
                 <?php
                     $user_id = get_the_author_meta('ID');
-                    $post = get_post($order_id);
-                    
-                    $order = new WC_Order($post->ID);
+                    $order = wc_get_order($order_id);
                     $order_data = $order->get_data();
                     
                     $user_id_customer = $user_id;
@@ -51,7 +49,16 @@ $rep_order_date = get_the_date($post_id);
                     $i = 0;
                     $atributes = get_post_meta(1, 'attributes_array', true);
                     $items = $order->get_items();
-                    
+
+                    // Prime post object, meta, and term caches for all product IDs in bulk
+                    $product_ids = array();
+                    foreach ( $items as $item_data ) {
+                        $product_ids[] = $item_data['product_id'];
+                    }
+                    if ( ! empty( $product_ids ) ) {
+                        _prime_post_caches( $product_ids, true, true );
+                    }
+
                     $nr_code_prod = array();
                     // echo '<pre>';
                     // print_r(key($order_data['tax_lines']));
@@ -144,8 +151,6 @@ $rep_order_date = get_the_date($post_id);
                                     as $item_id => $item_data) {
                                     $j++;
                                     //$product = $item_data->get_product();
-                                    $_product = apply_filters('woocommerce_cart_item_product', $item_data['data'], $item_data, $item_id);
-                                    //print_r($item_id);
                                     $product_id = $item_data['product_id'];
                                     
                                     $title = get_the_title($product_id);
@@ -154,7 +159,7 @@ $rep_order_date = get_the_date($post_id);
                                     $property_style = get_post_meta($product_id, 'property_style', true);
                                     $property_frametype = get_post_meta($product_id, 'property_frametype', true);
                                     
-                                    echo $attachment = get_post_meta($product_id, 'attachment', true);
+                                    $attachment = get_post_meta($product_id, 'attachment', true);
                                     $array_att[] = $attachment;
                                     
                                     // test rename image
@@ -481,7 +486,7 @@ $rep_order_date = get_the_date($post_id);
                                             echo '<br>';
                                             if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
                                                 echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                                if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
+                                                if (get_user_meta($user_id_customer, 'B_Buildout', true) !== '') {
                                                     echo get_user_meta($user_id_customer, 'B_Buildout', true);
                                                 } else {
                                                     echo get_post_meta(1, 'B_Buildout', true);
@@ -496,7 +501,7 @@ $rep_order_date = get_the_date($post_id);
                                             echo '<br>';
                                             if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
                                                 echo 'BPosts Buildout: <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>(+';
-                                                if (!empty(get_user_meta($user_id_customer, 'B_Buildout', true)) || (get_user_meta($user_id_customer, 'B_Buildout', true) > 0)) {
+                                                if (get_user_meta($user_id_customer, 'B_Buildout', true) !== '') {
                                                     echo get_user_meta($user_id_customer, 'B_Buildout', true);
                                                 } else {
                                                     echo get_post_meta(1, 'B_Buildout', true);
@@ -514,7 +519,7 @@ $rep_order_date = get_the_date($post_id);
                                     }
                                     if (!empty(get_post_meta($product_id, 'property_c_buildout' . $i, true))) {
                                         echo 'CPost Buildout: <strong>' . get_post_meta($product_id, 'property_c_buildout' . $i, true) . '</strong>(+';
-                                        if (!empty(get_user_meta($user_id_customer, 'C_Buildout', true)) || (get_user_meta($user_id_customer, 'C_Buildout', true) > 0)) {
+                                        if (get_user_meta($user_id_customer, 'C_Buildout', true) !== '') {
                                             echo get_user_meta($user_id_customer, 'C_Buildout', true);
                                         } else {
                                             echo get_post_meta(1, 'C_Buildout', true);
@@ -528,7 +533,7 @@ $rep_order_date = get_the_date($post_id);
                                     }
                                     if (!empty(get_post_meta($product_id, 'property_t_buildout' . $i, true))) {
                                         echo 'TPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_t_buildout' . $i, true) . '</strong>(+';
-                                        if (!empty(get_user_meta($user_id_customer, 'T_Buildout', true)) || (get_user_meta($user_id_customer, 'T_Buildout', true) > 0)) {
+                                        if (get_user_meta($user_id_customer, 'T_Buildout', true) !== '') {
                                             echo get_user_meta($user_id_customer, 'T_Buildout', true);
                                         } else {
                                             echo get_post_meta(1, 'T_Buildout', true);

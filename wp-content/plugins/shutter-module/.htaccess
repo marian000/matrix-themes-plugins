@@ -1,0 +1,5 @@
+# Prevent direct HTTP access to log and backup files
+<FilesMatch "\.(txt|log|bak)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

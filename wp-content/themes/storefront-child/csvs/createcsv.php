@@ -1,22 +1,43 @@
 <?php
 
+/**
+ * createcsv.php
+ *
+ * Genereaza CSV si PDF pentru o comanda si trimite emailuri catre:
+ *   - Intern (order@, accounts@)
+ *   - Manager (mike@) — primeste intotdeauna PDF + imagini
+ *   - Anyhoo (kevin@, july@) — doar daca clientul/dealerul are favorite_user = 'yes'
+ *   - Dealer/client — primeste PDF (Order Summary - Proforma Invoice)
+ *
+ * Protectie anti-spam: mail_send meta pe order — emailul se trimite o singura data.
+ *
+ * Apelat via AJAX din interfata de trimitere comanda.
+ */
+
 $path = preg_replace('/wp-content(?!.*wp-content).*/', '', __DIR__);
 include($path . 'wp-load.php');
 include('simple_html_domv2.php');
 
 require_once WP_CONTENT_DIR . '/themes/storefront-child/csvs/mpdf/vendor/autoload.php';
-//include( '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php' );
-
-//    $_POST['table'];
 
 $order_id = $_POST['id_ord_original'];
 
+// Verifica daca emailul a fost deja trimis pentru aceasta comanda (evita duplicatele)
 $mail_send = get_post_meta($order_id, 'mail_send', true);
-$customer_id = get_post_meta($order_id, '_customer_user', true);
-$favorite = get_user_meta($customer_id, 'favorite_user', true);
+$wc_order   = wc_get_order($order_id);
+$customer_id = $wc_order ? $wc_order->get_customer_id() : '';
 
+// Daca userul este sub-dealer (view_price=no), folosim ID-ul parintelui (dealerul principal)
+$dealer_id = get_user_meta($customer_id, 'company_parent', true);
+
+// favorite_user = 'yes' inseamna ca Anyhoo (kevin@, july@) trebuie sa primeasca comanda
+$favorite = get_user_meta(!empty($dealer_id) ? $dealer_id : $customer_id, 'favorite_user', true);
+error_log('[FAVORITE DEBUG] order_id=' . $order_id . ' customer_id=' . $customer_id . ' dealer_id=' . $dealer_id . ' favorite=' . $favorite . ' mail_send=' . $mail_send);
+
+// Ruleaza doar o singura data per comanda
 if (empty($mail_send)) {
 
+	// Marcheaza imediat ca trimis pentru a evita apeluri duble
 	update_post_meta($order_id, 'mail_send', 1);
 
 	$billing_company = get_user_meta($customer_id, 'shipping_company', true);
@@ -128,51 +149,47 @@ if (empty($mail_send)) {
 	$mpdf->Output(WP_CONTENT_DIR . '/uploads/csv-pdf/' . 'LF0' . $_POST['id'] . '.pdf');
 
 	if ($_POST['pos'] == 0) {
-		$attachment1 = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $fileName;
+		$csv_file = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $fileName;
 	}
-	$attachment2 = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $pdfName;
-//teo   $attachment2china = '';
-
-	$attachments = array();
-	$attachments_summary = array();
-	$attachments[0] = '';
-	$attachments[1] = $attachment2;
-	$attachments_summary[] = $attachment2;
-
-	$attachments_china = array();
-	$attachments_china[0] = $attachment1;
-	$attachments_china[1] = '';
+	$pdf_file = WP_CONTENT_DIR . '/uploads/csv-pdf/' . $pdfName;
 
 	//get an instance of the WC_Order object
 	$order = wc_get_order($order_id);
-
 	$items = $order->get_items();
-	$at = 2;
-	foreach ($items as $item_id => $item_data) {
 
+	// Collect product images
+	$product_images = array();
+	foreach ($items as $item_id => $item_data) {
 		$product_id = $item_data['product_id'];
 		$attachment_img = get_post_meta($product_id, 'attachment', true);
 		$attachmentDraw = get_post_meta($product_id, 'attachmentDraw', true);
 
 		$img = $attachment_img;
 		$pieces = explode(get_home_url() . '/wp-content', $img);
-		$pieces[0];
-		$pieces[1];
 
-		$attachments[$at] = WP_CONTENT_DIR . $pieces[1];
-		$attachments_china[$at] = WP_CONTENT_DIR . $pieces[1];
+		$product_images[] = WP_CONTENT_DIR . $pieces[1];
 		if (!empty($attachmentDraw)) {
 			$piecesDraw = explode(get_home_url() . '/wp-content', $attachmentDraw);
-			$at++;
-			$attachments[$at] = WP_CONTENT_DIR . $piecesDraw[1];
-			$attachments_china[$at] = WP_CONTENT_DIR . $piecesDraw[1];
+			$product_images[] = WP_CONTENT_DIR . $piecesDraw[1];
 		}
-		$at++;
 	}
 
+	// Tipuri de atasamente folosite in emailuri:
+	//   $attach_pdf_images  — PDF-ul comenzii + imagini produs (pentru Mike)
+	//   $attach_csv_images  — CSV-ul comenzii + imagini produs (pentru intern / Anyhoo)
+	//   $attach_csv_only    — doar CSV, fara imagini (nefolosit activ, pastrat ca referinta)
+	//   $attachments_summary — doar PDF (pentru emailul de confirmare catre dealer/client)
+	$attach_pdf_images = array_merge(array($pdf_file), $product_images);
+	$attach_csv_images = array_merge(array($csv_file), $product_images);
+	$attach_csv_only   = array($csv_file);
+	$attachments_summary = array($pdf_file);
+
+	// -------------------------------------------------------------------------
+	// RAMURA CHINA: comanda marcata ca "china" → trimite CSV+imagini la Tudor
+	// Aceasta ramura e separata si nu implica Mike sau Anyhoo.
+	// -------------------------------------------------------------------------
 	if (!empty($_POST['china']) && $_POST['table']) {
 
-		// $to = 'marian93nes@gmail.com';
 		$multiple_recipients = array(
 			'tudor@fiqs.ro', 'tudor@lifetimeshutters.com',
 		);
@@ -192,22 +209,29 @@ if (empty($mail_send)) {
 		}
 		$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
-		wp_mail($multiple_recipients, $subject, $body, $headers, $attachments_china);
+		wp_mail($multiple_recipients, $subject, $body, $headers, $attach_csv_images);
+
 	} else {
 
-		// $to = 'marian93nes@gmail.com';
-		// $multiple_recipients = array(
-		//     'order@lifetimeshutters.com'
-		// );
-		if ($favorite == 'yes') {
-			$multiple_recipients = array(
-				'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com', 'caroline@anyhooshutter.com', 'july@anyhooshutter.com',
-			);
-		} else {
-			$multiple_recipients = array(
-				'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com',
-			);
-		}
+		// -------------------------------------------------------------------------
+		// RAMURA NORMALA: comanda standard (non-china)
+		//
+		// Destinatari interni (primesc CSV + imagini):
+		//   - order@lifetimeshutters.com
+		//   - accounts@lifetimeshutters.com
+		//
+		// Mike (primeste intotdeauna PDF + imagini, indiferent de favorite):
+		//   - mike@lifetimeshutters.com
+		//
+		// Anyhoo (doar daca favorite_user = 'yes' pe contul dealerului):
+		//   - kevin@anyhooshutter.com
+		//   - july@anyhooshutter.com
+		//   Anyhoo primesc CSV impreuna cu order@ si accounts@
+		// -------------------------------------------------------------------------
+
+		$multiple_recipients = array(
+			'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com',
+		);
 
 		$subject = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Matrix Order Attached';
 		$body = 'Hi July, Kevin<br><br>New order. See Order Attached <br>';
@@ -225,9 +249,25 @@ if (empty($mail_send)) {
 		}
 		$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
-		wp_mail($multiple_recipients, $subject, $body, $headers, $attachments_china);
+		// Email 1: Mike primeste PDF + imagini (intotdeauna, indiferent de favorite)
+		$mike = array('mike@lifetimeshutters.com');
+		wp_mail($mike, $subject, $body, $headers, $attach_pdf_images);
 
-		wp_mail('mike@lifetimeshutters.com', $subject, $body, $headers, $attachments);
+		if ($favorite == 'yes') {
+			// Email 2 (favorite=yes): CSV + imagini merge la order@, accounts@, kevin@, july@
+			// Anyhoo sunt inclusi in acelasi email cu intern ca sa vada toti ca au primit
+			$anyhoo_recipients = array(
+				'kevin@anyhooshutter.com', 'july@anyhooshutter.com'
+			);
+			$manager_recipients = array_merge(
+				$multiple_recipients,  // order@, accounts@
+				$anyhoo_recipients     // kevin@, july@
+			);
+			wp_mail($manager_recipients, $subject, $body, $headers, $attach_csv_images);
+		} else {
+			// Email 2 (favorite=no): CSV + imagini merge doar la order@ si accounts@
+			wp_mail($multiple_recipients, $subject, $body, $headers, $attach_csv_images);
+		}
 	}
 
 	$order_id = wc_sequential_order_numbers()->find_order_by_order_number($_POST['id']);
@@ -267,10 +307,25 @@ if (empty($mail_send)) {
         <br />
         ';
 
+	// -------------------------------------------------------------------------
+	// EMAIL CONFIRMARE CATRE DEALER / CLIENT
+	// Subiect diferit: "Order Summary - Proforma Invoice"
+	// Atasament: doar PDF (fara CSV, fara imagini produs)
+	//
+	// Logica destinatari:
+	//   - Daca userul e sub-dealer (view_price=no): emailul merge la dealerul parinte
+	//     (billing_email + email_contabil de pe contul parintelui, NU al sub-dealerului)
+	//   - Altfel: emailul merge la userul curent (user_mail + billing_email + email_contabil)
+	//
+	// Exceptie: daca user_mail == billing_email SI nu exista email_contabil SI nu e sub-dealer
+	//   → se trimite un singur email (evita duplicatele in inbox)
+	// -------------------------------------------------------------------------
+
 	$user_id = get_current_user_id();
 	$no_view_price = (get_user_meta($user_id, 'view_price', true) == 'no') ? true : false;
 
 	if ($no_view_price) {
+		// Sub-dealer: folosim datele dealerului parinte
 		$deler_id = get_user_meta($user_id, 'company_parent', true);
 		$billing_email = get_user_meta($deler_id, 'billing_email', true);
 		$email_contabil = get_user_meta($deler_id, 'email_contabil', true);
@@ -280,6 +335,7 @@ if (empty($mail_send)) {
 			$billing_email, $email_contabil,
 		);
 	} else {
+		// Dealer/client normal: folosim datele userului curent
 		$billing_email = get_user_meta($user_id, 'billing_email', true);
 		$email_contabil = get_user_meta($user_id, 'email_contabil', true);
 		$user_info = get_userdata($user_id);
@@ -289,8 +345,6 @@ if (empty($mail_send)) {
 		);
 	}
 
-	//print_r($user_mail);
-
 	$order_id = wc_sequential_order_numbers()->find_order_by_order_number($_POST['id']);
 	$name = get_post_meta($order_id, 'cart_name', true);
 
@@ -298,11 +352,11 @@ if (empty($mail_send)) {
 	$subject2 = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Order Summary - Proforma Invoice';
 	$headers2 = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
-	// wp_mail( $single_email, $subject2, $mess, $headers2, $attachments ); //temporary disabled attachments by Teo
-
 	if ($user_mail == $billing_email && empty($email_contabil) && !$no_view_price) {
+		// Toate adresele sunt identice — trimite un singur email
 		wp_mail($single_email, $subject2, $mess, $headers2, $attachments_summary);
 	} else {
+		// Adrese diferite — trimite la toate
 		wp_mail($multiple_recipients, $subject2, $mess, $headers2, $attachments_summary);
 	}
 }

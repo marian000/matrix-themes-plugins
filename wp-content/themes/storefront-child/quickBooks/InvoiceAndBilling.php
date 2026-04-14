@@ -172,11 +172,19 @@ if ($QB_invoice == true) {
 			$biowood_array[$product_id] = $item_data;
 		}
 		if ($property_material == 139) {
+			if (!empty(get_user_meta($user_id, 'SupremePlus', true)) || (get_user_meta($user_id, 'SupremePlus', true) > 0)) {
+				$material_price = get_user_meta($user_id, 'SupremePlus', true);
+			} else {
+				$material_price = get_post_meta(1, 'SupremePlus', true);
+			} /*teo SupremePlus price*/
+			$supreme_array[$product_id] = $item_data;
+		}
+		if ($property_material == 147) {
 			if (!empty(get_user_meta($user_id, 'Supreme', true)) || (get_user_meta($user_id, 'Supreme', true) > 0)) {
 				$material_price = get_user_meta($user_id, 'Supreme', true);
 			} else {
 				$material_price = get_post_meta(1, 'Supreme', true);
-			} /*teo Earth price*/
+			} /*teo Supreme price*/
 			$supreme_array[$product_id] = $item_data;
 		}
 		if ($property_material == 188) {
@@ -250,8 +258,7 @@ if ($QB_invoice == true) {
 
 	// sandbox 4620816365021649600
 	$array_materials = QuickBooks_Config::get_material_names();
-	//        green 137 - biowoodPlus 138 - supreme 139 - earth 187 - ecowood 188  ecowoodPlus - 5 biowood - 6
-	//$qb_materials = array('137' => 35, '138' => 31, '139' => 36, '187' => 33, '188' => 34, '3098' => 37, '1020' => 38, '1026' => 39, '1032' => 40, '1030' => 41, '337'=>42);
+	//        green 137 - biowoodPlus 138 - supremePlus 147 - supreme 139 - earth 187 - ecowood 188  ecowoodPlus - 5 biowood - 6
 	$qb_materials = QuickBooks_Config::get_materials_mapping();
 	foreach ($materials_array as $material_items) {
 		$amount = 0;
@@ -445,7 +452,7 @@ if ($QB_invoice == true) {
 	$billing_email = QuickBooks_Config::get_customer_billing_email($customer_id, $user_email);
 
 	$json['BillEmail'] = array("Address" => $billing_email);
-	$json['BillEmailBcc'] = array("Address" => QuickBooks_Config::BILLING_BCC_EMAIL);
+	$json['BillEmailBcc'] = array("Address" => QuickBooks_Config::get_billing_bcc_email());
 
 	print_r($json);
 

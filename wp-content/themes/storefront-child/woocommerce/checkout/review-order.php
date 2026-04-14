@@ -68,11 +68,11 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
 	$other_color = 0;
 
 	$products_cart = array();
+	$fob_components = false;
 	foreach ($items as $item => $value) {
 		//print_r($value['product_id']);
 		$term_slug = '';
 		$other_color_earth = 0;
-		$fob_components = false;
 		$prod_id = $value['product_id'];
 		$products_cart[] = $prod_id;
 
@@ -231,8 +231,8 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
                     <td>
                         <strong><?php
 
-							$tva_sea_freight = ($total_prods_delivery * 20) / 100;
 							$wc_tax = WC()->cart->get_taxes_total(true, true);
+							$tva_sea_freight = ($wc_tax > 0) ? ($total_prods_delivery * 20) / 100 : 0;
 							$total_vat = $wc_tax + $tva_sea_freight;
 							echo wc_price($total_vat);
 
@@ -253,8 +253,9 @@ $cart_type = $my_session['carts'][$cart_id]['type'];
 					// Get cart total as float
 					$cart_total_raw = WC()->cart->get_total('edit');
 
-					// Add sea freight + VAT on sea freight (20%)
-					$sea_freight_with_vat = $total_prods_delivery * 1.20;
+					// Add sea freight + VAT on sea freight (20%) only for UK/IE
+					$vat_multiplier = (WC()->cart->get_taxes_total(true, true) > 0) ? 1.20 : 1.0;
+					$sea_freight_with_vat = $total_prods_delivery * $vat_multiplier;
 					$adjusted_total = $cart_total_raw + $sea_freight_with_vat;
 
 					echo $fob_components ? '$' : '£';

@@ -48,7 +48,7 @@ if (empty($order_finish) || $order_finish == 0) {
 
     $single_email = 'marian93nes@gmail.com';
     $multiple_recipients = array(
-        'caroline@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com'
+        'kevin@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com'
     );
 
     $subject = 'ON-HOLD Order LF0' . $order->get_order_number() . ' - ' . $name . ' - for REVISION';

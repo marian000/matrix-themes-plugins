@@ -26,14 +26,13 @@ if (!defined('MATERIAL_GREEN')) {
 
 // ==== MAPPING DIV NAME -> MATERIAL ID pentru checked verification ====
 $STILE_DIV_CONFIG = [
-    'earth' => MATERIAL_EARTH,           // 187
-    'ecowood' => MATERIAL_ECOWOOD,       // 188
+    'ecowood' => MATERIAL_ECOWOOD,           // 188
+    'ecowoodPlus' => MATERIAL_ECOWOOD_PLUS,  // 5
+    'biowood' => MATERIAL_BIOWOOD,           // 6
+    'biowoodPlus' => MATERIAL_BIOWOOD_PLUS,  // 138
+    'basswood' => MATERIAL_BASSWOOD,         // 147
     'basswoodPlus' => MATERIAL_BASSWOOD_PLUS, // 139
-    'basswood' => MATERIAL_BASSWOOD,        // 147
-    'biowood' => MATERIAL_BIOWOOD,        // 6
-    'biowoodPlus' => MATERIAL_BIOWOOD_PLUS, // 138
-    'green' => MATERIAL_GREEN,            // 137
-    'ecowoodPlus' => MATERIAL_ECOWOOD_PLUS, // 5
+    'earth' => MATERIAL_EARTH,              // 187
 ];
 
 // ==== Panel position prefixes for loops ====
@@ -75,6 +74,7 @@ $FRAMETYPE_OPTIONS = [
     ['value' => 330, 'title' => 'P4008S', 'code' => 'F70', 'img' => 'P4008S.png', 'prefix' => 'PVC'],
     ['value' => 322, 'title' => 'P4008T', 'code' => 'F90', 'img' => 'P4008T.png', 'prefix' => 'PVC'],
     ['value' => 319, 'title' => 'P4008W', 'code' => 'F90', 'img' => 'P4008W.png', 'prefix' => 'PVC'],
+    ['value' => 462, 'title' => 'P4008R', 'code' => 'F90', 'img' => 'P4008R.png', 'prefix' => 'PVC'],
     ['value' => 331, 'title' => 'P4007A', 'code' => 'F50', 'img' => 'P4007A.png', 'prefix' => 'PVC'],
     ['value' => 320, 'title' => 'P4001N', 'code' => 'L50', 'img' => 'P4001N.png', 'prefix' => 'PVC'],
     // ALU (fără prefix în label)

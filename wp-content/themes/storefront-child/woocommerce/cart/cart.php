@@ -816,13 +816,13 @@ if (strpos($mystring, $findme) !== false) { ?>
 			}if ($property_material == 6) {
 				echo get_post_meta(1, 'Biowood', true); /*teo Biowood price*/
 			}
-			if ($property_material == 139) {
-				echo get_post_meta(1, 'Supreme', true); /*teo Supreme price*/
+			if ($property_material == 139 || $property_material == 147) {
+				echo get_post_meta(1, 'Basswood', true); /*teo Basswood price*/
 			}
 			if ($property_material == 188) {
-				echo get_post_meta(1, 'Ecowood', true); /*teo Supreme price*/
+				echo get_post_meta(1, 'Ecowood', true); /*teo Basswood price*/
 			}if ($property_material == 5) {
-				echo get_post_meta(1, 'EcowoodPlus', true); /*teo Supreme price*/
+				echo get_post_meta(1, 'EcowoodPlus', true); /*teo Basswood price*/
 			}
 			?>
 

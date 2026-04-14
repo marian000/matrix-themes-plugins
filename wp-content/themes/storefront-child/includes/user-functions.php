@@ -20,297 +20,184 @@ function new_contact_registerdate($contactmethods)
 
 add_filter('user_contactmethods', 'new_contact_registerdate', 10, 1);
 
-add_action('personal_options_update', 'my_user_profile_update_action');
-add_action('edit_user_profile_update', 'my_user_profile_update_action');
-function my_user_profile_update_action($user_id)
-{
-	//selected_group
-	$selected_group = $_POST['selected_group'];
-	if ($_POST['group_added'] == 'yes') {
-		// old is user old group
-		$old_group_name = get_user_meta($user_id, 'current_selected_group', true);
-		$old_group = get_post_meta(1, $old_group_name, true);
-		$new_group = get_post_meta(1, $selected_group, true);
-		$new_group_name = $selected_group;
-		if ($old_group_name != $new_group_name) {
-			$key = array_search($user_id, $old_group);
-			unset($old_group[$key]);
-			update_post_meta(1, $old_group_name, $old_group);
+/**
+ * Handles group add/remove logic for a user.
+ *
+ * Reads 'selected_group' and 'group_added' from $_POST. Manages
+ * group membership arrays stored as post meta on post ID 1.
+ *
+ * @since 1.0.0
+ * @param int $user_id The user being updated.
+ */
+function matrix_save_group_membership( $user_id ) {
+	$selected_group  = isset( $_POST['selected_group'] ) ? sanitize_text_field( wp_unslash( $_POST['selected_group'] ) ) : '';
+	$group_added_val = isset( $_POST['group_added'] ) ? sanitize_key( wp_unslash( $_POST['group_added'] ) ) : '';
 
-			if (!in_array($user_id, $new_group)) {
+	if ( $group_added_val == 'yes' ) {
+		$old_group_name = get_user_meta( $user_id, 'current_selected_group', true );
+		$old_group      = get_post_meta( 1, $old_group_name, true );
+		$new_group      = get_post_meta( 1, $selected_group, true );
+		if ( ! is_array( $old_group ) ) { $old_group = array(); }
+		if ( ! is_array( $new_group ) ) { $new_group = array(); }
+
+		if ( $old_group_name != $selected_group ) {
+			$key = array_search( $user_id, $old_group );
+			if ( $key !== false ) {
+				unset( $old_group[ $key ] );
+				update_post_meta( 1, $old_group_name, $old_group );
+			}
+			if ( ! in_array( $user_id, $new_group ) ) {
 				$new_group[] = $user_id;
-				update_post_meta(1, $new_group_name, $new_group);
+				update_post_meta( 1, $selected_group, $new_group );
 			}
 		} else {
-			if (!in_array($user_id, $new_group)) {
+			if ( ! in_array( $user_id, $new_group ) ) {
 				$new_group[] = $user_id;
-				update_post_meta(1, $new_group_name, $new_group);
+				update_post_meta( 1, $selected_group, $new_group );
 			}
 		}
-	} elseif ($_POST['group_added'] == 'no') {
-		$old_group_name = get_user_meta($user_id, 'current_selected_group', true);
-		$old_group = get_post_meta(1, $old_group_name, true);
-		if ($old_group_name) {
-			$key = array_search($user_id, $old_group);
-			unset($old_group[$key]);
-			update_post_meta(1, $old_group_name, $old_group);
+	} elseif ( $group_added_val == 'no' ) {
+		$old_group_name = get_user_meta( $user_id, 'current_selected_group', true );
+		$old_group      = get_post_meta( 1, $old_group_name, true );
+		if ( $old_group_name && is_array( $old_group ) ) {
+			$key = array_search( $user_id, $old_group );
+			if ( $key !== false ) {
+				unset( $old_group[ $key ] );
+				update_post_meta( 1, $old_group_name, $old_group );
+			}
 		}
 	}
+}
 
-	// Get the user object.
-	$user = get_userdata($user_id);
+/**
+ * Saves boolean/simple meta fields from $_POST for non-employee users.
+ *
+ * Includes group-related meta (current_selected_group, group_added)
+ * and general settings (max_nr_employees, suspended, view_price, etc.).
+ *
+ * @since 1.0.0
+ * @param int $user_id The user being updated.
+ */
+function matrix_save_general_user_settings( $user_id ) {
+	$fields = array(
+		'max_nr_employees'     => 'absint',
+		'suspended_user'       => 'sanitize_key',
+		'view_price'           => 'sanitize_key',
+		'show_biowood'         => 'sanitize_key',
+		'favorite_user'        => 'sanitize_key',
+		'remember_session'     => 'sanitize_key',
+		'app_access'           => 'sanitize_key',
+		'current_selected_group' => 'sanitize_text_field',
+		'group_added'          => 'sanitize_key',
+	);
+	foreach ( $fields as $meta_key => $sanitize_fn ) {
+		$post_key = ( $meta_key === 'current_selected_group' ) ? 'selected_group' : $meta_key;
+		if ( isset( $_POST[ $post_key ] ) ) {
+			$value = ( $sanitize_fn === 'absint' )
+				? absint( $_POST[ $post_key ] )
+				: call_user_func( $sanitize_fn, wp_unslash( $_POST[ $post_key ] ) );
+			update_user_meta( $user_id, $meta_key, $value );
+		}
+	}
+}
 
-	update_user_meta($user_id, 'show_basswood', $_POST['show_basswood']);
-
-	if (!in_array('senior_salesman', $user->roles) || !in_array('salesman', $user->roles) || !in_array('employe', $user->roles)) {
-		update_user_meta($user_id, 'max_nr_employees', $_POST['max_nr_employees']);
-		update_user_meta($user_id, 'suspended_user', $_POST['suspended_user']);
-		update_user_meta($user_id, 'view_price', $_POST['view_price']);
-		update_user_meta($user_id, 'show_biowood', $_POST['show_biowood']);
-		update_user_meta($user_id, 'favorite_user', $_POST['favorite_user']);
-		update_user_meta($user_id, 'remember_session', $_POST['remember_session']);
-		update_user_meta($user_id, 'app_access', $_POST['app_access']);
-		update_user_meta($user_id, 'current_selected_group', $_POST['selected_group']);
-		update_user_meta($user_id, 'group_added', $_POST['group_added']);
-		update_user_meta($user_id, 'vat_number_custom', $_POST['vat_number_custom']);
-		update_user_meta($user_id, 'email_contabil', $_POST['email_contabil']);
-		update_user_meta($user_id, 'discount_custom', $_POST['discount_custom']);
-		update_user_meta($user_id, 'train_price', $_POST['train_price']);
-		update_user_meta($user_id, 'discount_components', $_POST['discount_components']);
-
-		update_user_meta($user_id, 'BattenStandard', $_POST['price-BattenStandard']);
-		update_user_meta($user_id, 'BattenCustom', $_POST['price-BattenCustom']);
-		update_user_meta($user_id, 'Earth', $_POST['price-Earth']);
-		update_user_meta($user_id, 'Ecowood', $_POST['price-Ecowood']);
-		update_user_meta($user_id, 'EcowoodPlus', $_POST['price-EcowoodPlus']);
-		update_user_meta($user_id, 'Green', $_POST['price-Green']);
-		update_user_meta($user_id, 'Biowood', $_POST['price-Biowood']);
-		update_user_meta($user_id, 'BiowoodPlus', $_POST['price-BiowoodPlus']);
-		update_user_meta($user_id, 'Basswood', $_POST['price-Basswood']);
-		update_user_meta($user_id, 'BasswoodPlus', $_POST['price-BasswoodPlus']);
-		update_user_meta($user_id, 'Solid', $_POST['price-Solid']);
-		update_user_meta($user_id, 'Shaped', $_POST['price-Shaped']);
-		update_user_meta($user_id, 'Tracked', $_POST['price-Tracked']);
-		update_user_meta($user_id, 'TrackedByPass', $_POST['price-TrackedByPass']);
-		update_user_meta($user_id, 'Arched', $_POST['price-Arched']);
-		update_user_meta($user_id, 'Inside', $_POST['price-Inside']);
-		update_user_meta($user_id, 'Buildout', $_POST['price-Buildout']);
-		update_user_meta($user_id, 'Stainless_Steel', $_POST['price-Stainless_Steel']);
-		update_user_meta($user_id, 'Hidden', $_POST['price-Hidden']);
-		update_user_meta($user_id, 'Concealed_Rod', $_POST['price-Concealed_Rod']);
-		update_user_meta($user_id, 'Bay_Angle', $_POST['price-Bay_Angle']);
-		update_user_meta($user_id, 'Colors', $_POST['price-Colors']);
-		update_user_meta($user_id, 'Ringpull', $_POST['price-Ringpull']);
-		update_user_meta($user_id, 'Spare_Louvres', $_POST['price-Spare_Louvres']);
-		update_user_meta($user_id, 'T_Buildout', $_POST['price-T_Buildout']);
-		update_user_meta($user_id, 'B_Buildout', $_POST['price-B_Buildout']);
-		update_user_meta($user_id, 'C_Buildout', $_POST['price-C_Buildout']);
-		update_user_meta($user_id, 'B_typeFlexible', $_POST['price-B_typeFlexible']);
-		update_user_meta($user_id, 'blackoutblind', $_POST['price-blackoutblind']);
-		update_user_meta($user_id, 'T_typeAdjustable', $_POST['price-T_typeAdjustable']);
-		update_user_meta($user_id, 'tposttype_blackout', $_POST['price-tposttype_blackout']);
-		update_user_meta($user_id, 'bposttype_blackout', $_POST['price-bposttype_blackout']);
-
-		update_user_meta($user_id, 'Lock', $_POST['price-Lock']);
-		update_user_meta($user_id, 'P4028X', $_POST['price-P4028X']);
-		update_user_meta($user_id, 'P4008T', $_POST['price-P4008T']);
-		update_user_meta($user_id, 'P4008W', $_POST['price-P4008W']);
-		update_user_meta($user_id, '4008T', $_POST['price-4008T']);
-		update_user_meta($user_id, 'Combi', $_POST['price-Combi']);
-		update_user_meta($user_id, 'French_Door', $_POST['price-French_Door']);
-		update_user_meta($user_id, 'G_post', $_POST['price-G_post']);
-		update_user_meta($user_id, 'Flat_Louver', $_POST['price-Flat_Louver']);
-		// Tax for MikeR
-		update_user_meta($user_id, 'BattenStandard_tax', $_POST['price-Batten_tax']);
-		update_user_meta($user_id, 'BattenCustom_tax', $_POST['price-BattenCustom_tax']);
-		update_user_meta($user_id, 'Earth_tax', $_POST['price-Earth_tax']);
-		update_user_meta($user_id, 'Ecowood_tax', $_POST['price-Ecowood_tax']);
-		update_user_meta($user_id, 'EcowoodPlus_tax', $_POST['price-EcowoodPlus_tax']);
-		update_user_meta($user_id, 'Green_tax', $_POST['price-Green_tax']);
-		update_user_meta($user_id, 'Biowood_tax', $_POST['price-Biowood_tax']);
-		update_user_meta($user_id, 'BiowoodPlus_tax', $_POST['price-BiowoodPlus_tax']);
-		update_user_meta($user_id, 'Basswood_tax', $_POST['price-Basswood_tax']);
-		update_user_meta($user_id, 'BasswoodPlus_tax', $_POST['price-BasswoodPlus_tax']);
-		update_user_meta($user_id, 'SeaDelivery', $_POST['price-SeaDelivery']);
-
-		// Dolar Prices
-		update_user_meta($user_id, 'BattenStandard-dolar', $_POST['price-dolar-BattenStandard']);
-		update_user_meta($user_id, 'BattenCustom-dolar', $_POST['price-dolar-BattenCustom']);
-		update_user_meta($user_id, 'Earth-dolar', $_POST['price-dolar-Earth']);
-		update_user_meta($user_id, 'Ecowood-dolar', $_POST['price-dolar-Ecowood']);
-		update_user_meta($user_id, 'EcowoodPlus-dolar', $_POST['price-dolar-EcowoodPlus']);
-		update_user_meta($user_id, 'Green-dolar', $_POST['price-dolar-Green']);
-		update_user_meta($user_id, 'Biowood-dolar', $_POST['price-dolar-Biowood']);
-		update_user_meta($user_id, 'BiowoodPlus-dolar', $_POST['price-dolar-BiowoodPlus']);
-		update_user_meta($user_id, 'Basswood-dolar', $_POST['price-dolar-Basswood']);
-		update_user_meta($user_id, 'BasswoodPlus-dolar', $_POST['price-dolar-BasswoodPlus']);
-		update_user_meta($user_id, 'Solid-dolar', $_POST['price-dolar-Solid']);
-		update_user_meta($user_id, 'Shaped-dolar', $_POST['price-dolar-Shaped']);
-		update_user_meta($user_id, 'Tracked-dolar', $_POST['price-dolar-Tracked']);
-		update_user_meta($user_id, 'TrackedByPass-dolar', $_POST['price-dolar-TrackedByPass']);
-		update_user_meta($user_id, 'Arched-dolar', $_POST['price-dolar-Arched']);
-		update_user_meta($user_id, 'Inside-dolar', $_POST['price-dolar-Inside']);
-		update_user_meta($user_id, 'Buildout-dolar', $_POST['price-dolar-Buildout']);
-		update_user_meta($user_id, 'Stainless_Steel-dolar', $_POST['price-dolar-Stainless_Steel']);
-		update_user_meta($user_id, 'Hidden-dolar', $_POST['price-dolar-Hidden']);
-		update_user_meta($user_id, 'Concealed_Rod-dolar', $_POST['price-dolar-Concealed_Rod']);
-		update_user_meta($user_id, 'Bay_Angle-dolar', $_POST['price-dolar-Bay_Angle']);
-		update_user_meta($user_id, 'Colors-dolar', $_POST['price-dolar-Colors']);
-		update_user_meta($user_id, 'Ringpull-dolar', $_POST['price-dolar-Ringpull']);
-		update_user_meta($user_id, 'Spare_Louvres-dolar', $_POST['price-dolar-Spare_Louvres']);
-		update_user_meta($user_id, 'T_Buildout-dolar', $_POST['price-dolar-T_Buildout']);
-		update_user_meta($user_id, 'B_Buildout-dolar', $_POST['price-dolar-B_Buildout']);
-		update_user_meta($user_id, 'C_Buildout-dolar', $_POST['price-dolar-C_Buildout']);
-		update_user_meta($user_id, 'B_typeFlexible-dolar', $_POST['price-dolar-B_typeFlexible']);
-		update_user_meta($user_id, 'blackoutblind-dolar', $_POST['price-dolar-blackoutblind']);
-		update_user_meta($user_id, 'Lock-dolar', $_POST['price-dolar-Lock']);
-		update_user_meta($user_id, 'P4028X-dolar', $_POST['price-dolar-P4028X']);
-		update_user_meta($user_id, 'P4008T-dolar', $_POST['price-dolar-P4008T']);
-		update_user_meta($user_id, 'P4008W-dolar', $_POST['price-dolar-P4008W']);
-		update_user_meta($user_id, 'Combi-dolar', $_POST['price-dolar-Combi']);
-		update_user_meta($user_id, 'French_Door-dolar', $_POST['price-dolar-French_Door']);
-		update_user_meta($user_id, 'G_post-dolar', $_POST['price-dolar-G_post']);
-		update_user_meta($user_id, 'Flat_Louver-dolar', $_POST['price-dolar-Flat_Louver']);
+/**
+ * For employee/salesman roles: saves the company_parent, adds to dealer's
+ * employee list, and syncs pricing from the parent dealer.
+ *
+ * @since 1.0.0
+ * @param int      $user_id The user being updated.
+ * @param WP_User  $user    The user object.
+ */
+function matrix_save_employee_parent_and_sync( $user_id, $user ) {
+	if ( ! in_array( 'senior_salesman', $user->roles ) && ! in_array( 'salesman', $user->roles ) && ! in_array( 'employe', $user->roles ) ) {
+		return;
 	}
 
-	if (in_array('senior_salesman', $user->roles) || in_array('salesman', $user->roles) || in_array('employe', $user->roles)) {
-		update_user_meta($user_id, 'company_parent', $_POST['company_parent']);
+	$master_dealer_id = isset( $_POST['company_parent'] ) ? absint( $_POST['company_parent'] ) : 0;
+	update_user_meta( $user_id, 'company_parent', $master_dealer_id );
 
-		$master_dealer_id = $_POST['company_parent'];
-
-		$employees = get_user_meta($master_dealer_id, 'employees', true);
-		if (!empty($employees)) {
-			if (!in_array($user_id, $employees)) {
+	if ( $master_dealer_id > 0 ) {
+		$employees = get_user_meta( $master_dealer_id, 'employees', true );
+		if ( ! empty( $employees ) ) {
+			if ( ! in_array( $user_id, $employees ) ) {
 				$employees[] = $user_id;
 			}
 		} else {
-			$employees = array($user_id);
+			$employees = array( $user_id );
 		}
-		update_user_meta($master_dealer_id, 'employees', $employees);
+		update_user_meta( $master_dealer_id, 'employees', $employees );
 
-		update_user_meta($user_id, 'vat_number_custom', get_user_meta($master_dealer_id, 'vat_number_custom', true));
-		update_user_meta($user_id, 'email_contabil', get_user_meta($master_dealer_id, 'email_contabil', true));
-		update_user_meta($user_id, 'discount_custom', get_user_meta($master_dealer_id, 'discount_custom', true));
-		update_user_meta($user_id, 'train_price', get_user_meta($master_dealer_id, 'train_price', true));
-		update_user_meta($user_id, 'discount_components', get_user_meta($master_dealer_id, 'discount_components', true));
-
-		update_user_meta($user_id, 'BattenStandard', get_user_meta($master_dealer_id, 'BattenStandard', true));
-		update_user_meta($user_id, 'BattenCustom', get_user_meta($master_dealer_id, 'BattenCustom', true));
-		update_user_meta($user_id, 'Earth', get_user_meta($master_dealer_id, 'Earth', true));
-		update_user_meta($user_id, 'Ecowood', get_user_meta($master_dealer_id, 'Ecowood', true));
-		update_user_meta($user_id, 'EcowoodPlus', get_user_meta($master_dealer_id, 'EcowoodPlus', true));
-		update_user_meta($user_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
-		update_user_meta($user_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
-		update_user_meta($user_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-		update_user_meta($user_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
-		update_user_meta($user_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
-		update_user_meta($user_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
-		update_user_meta($user_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
-		update_user_meta($user_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
-		update_user_meta($user_id, 'TrackedByPass', get_user_meta($master_dealer_id, 'TrackedByPass', true));
-		update_user_meta($user_id, 'Arched', get_user_meta($master_dealer_id, 'Arched', true));
-		update_user_meta($user_id, 'Inside', get_user_meta($master_dealer_id, 'Inside', true));
-		update_user_meta($user_id, 'Buildout', get_user_meta($master_dealer_id, 'Buildout', true));
-		update_user_meta($user_id, 'Stainless_Steel', get_user_meta($master_dealer_id, 'Stainless_Steel', true));
-		update_user_meta($user_id, 'Hidden', get_user_meta($master_dealer_id, 'Hidden', true));
-		update_user_meta($user_id, 'Concealed_Rod', get_user_meta($master_dealer_id, 'Concealed_Rod', true));
-		update_user_meta($user_id, 'Bay_Angle', get_user_meta($master_dealer_id, 'Bay_Angle', true));
-		update_user_meta($user_id, 'Colors', get_user_meta($master_dealer_id, 'Colors', true));
-		update_user_meta($user_id, 'Ringpull', get_user_meta($master_dealer_id, 'Ringpull', true));
-		update_user_meta($user_id, 'Spare_Louvres', get_user_meta($master_dealer_id, 'Spare_Louvres', true));
-		update_user_meta($user_id, 'T_Buildout', get_user_meta($master_dealer_id, 'T_Buildout', true));
-		update_user_meta($user_id, 'B_Buildout', get_user_meta($master_dealer_id, 'B_Buildout', true));
-		update_user_meta($user_id, 'C_Buildout', get_user_meta($master_dealer_id, 'C_Buildout', true));
-		update_user_meta($user_id, 'B_typeFlexible', get_user_meta($master_dealer_id, 'B_typeFlexible', true));
-		update_user_meta($user_id, 'blackoutblind', get_user_meta($master_dealer_id, 'blackoutblind', true));
-		update_user_meta($user_id, 'Lock', get_user_meta($master_dealer_id, 'Lock', true));
-		update_user_meta($user_id, 'P4028X', get_user_meta($master_dealer_id, 'P4028X', true));
-		update_user_meta($user_id, 'P4008T', get_user_meta($master_dealer_id, 'P4008T', true));
-		update_user_meta($user_id, 'P4008W', get_user_meta($master_dealer_id, 'P4008W', true));
-		update_user_meta($user_id, 'Combi', get_user_meta($master_dealer_id, 'Combi', true));
-		update_user_meta($user_id, 'French_Door', get_user_meta($master_dealer_id, 'French_Door', true));
-		update_user_meta($user_id, 'G_post', get_user_meta($master_dealer_id, 'G_post', true));
-		update_user_meta($user_id, 'Flat_Louver', get_user_meta($master_dealer_id, 'Flat_Louver', true));
-		// Tax for MikeR
-		update_user_meta($user_id, 'BattenStandard_tax', get_user_meta($master_dealer_id, 'BattenStandard_tax', true));
-		update_user_meta($user_id, 'BattenCustom_tax', get_user_meta($master_dealer_id, 'BattenCustom_tax', true));
-		update_user_meta($user_id, 'Earth_tax', get_user_meta($master_dealer_id, 'Earth_tax', true));
-		update_user_meta($user_id, 'Ecowood_tax', get_user_meta($master_dealer_id, 'Ecowood_tax', true));
-		update_user_meta($user_id, 'EcowoodPLus_tax', get_user_meta($master_dealer_id, 'EcowoodPLus_tax', true));
-		update_user_meta($user_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
-		update_user_meta($user_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
-		update_user_meta($user_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-		update_user_meta($user_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
-		update_user_meta($user_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
-		update_user_meta($user_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
+		// Copy all pricing from parent dealer to this employee
+		matrix_copy_pricing_meta( $master_dealer_id, $user_id );
 	}
+}
 
-	if (in_array('dealer', $user->roles)) {
-
-		$employees = get_user_meta($master_dealer_id, 'employees', true);
-		if (!empty($employees)) {
-			$master_dealer_id = $user_id;
-
-			foreach ($employees as $employe_id) {
-
-				update_user_meta($employe_id, 'vat_number_custom', get_user_meta($master_dealer_id, 'vat_number_custom', true));
-				update_user_meta($employe_id, 'email_contabil', get_user_meta($master_dealer_id, 'email_contabil', true));
-				update_user_meta($employe_id, 'discount_custom', get_user_meta($master_dealer_id, 'discount_custom', true));
-				update_user_meta($employe_id, 'train_price', get_user_meta($master_dealer_id, 'train_price', true));
-				update_user_meta($employe_id, 'discount_components', get_user_meta($master_dealer_id, 'discount_components', true));
-
-				update_user_meta($employe_id, 'BattenStandard', get_user_meta($master_dealer_id, 'BattenStandard', true));
-				update_user_meta($employe_id, 'BattenCustom', get_user_meta($master_dealer_id, 'BattenCustom', true));
-				update_user_meta($employe_id, 'Earth', get_user_meta($master_dealer_id, 'Earth', true));
-				update_user_meta($employe_id, 'Ecowood', get_user_meta($master_dealer_id, 'Ecowood', true));
-				update_user_meta($employe_id, 'EcowoodPlus', get_user_meta($master_dealer_id, 'EcowoodPlus', true));
-				update_user_meta($employe_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
-				update_user_meta($employe_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
-				update_user_meta($employe_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-				update_user_meta($employe_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
-				update_user_meta($employe_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
-				update_user_meta($employe_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
-				update_user_meta($employe_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
-				update_user_meta($employe_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
-				update_user_meta($employe_id, 'TrackedByPass', get_user_meta($master_dealer_id, 'TrackedByPass', true));
-				update_user_meta($employe_id, 'Arched', get_user_meta($master_dealer_id, 'Arched', true));
-				update_user_meta($employe_id, 'Inside', get_user_meta($master_dealer_id, 'Inside', true));
-				update_user_meta($employe_id, 'Buildout', get_user_meta($master_dealer_id, 'Buildout', true));
-				update_user_meta($employe_id, 'Stainless_Steel', get_user_meta($master_dealer_id, 'Stainless_Steel', true));
-				update_user_meta($employe_id, 'Hidden', get_user_meta($master_dealer_id, 'Hidden', true));
-				update_user_meta($employe_id, 'Concealed_Rod', get_user_meta($master_dealer_id, 'Concealed_Rod', true));
-				update_user_meta($employe_id, 'Bay_Angle', get_user_meta($master_dealer_id, 'Bay_Angle', true));
-				update_user_meta($employe_id, 'Colors', get_user_meta($master_dealer_id, 'Colors', true));
-				update_user_meta($employe_id, 'Ringpull', get_user_meta($master_dealer_id, 'Ringpull', true));
-				update_user_meta($employe_id, 'Spare_Louvres', get_user_meta($master_dealer_id, 'Spare_Louvres', true));
-				update_user_meta($employe_id, 'T_Buildout', get_user_meta($master_dealer_id, 'T_Buildout', true));
-				update_user_meta($employe_id, 'B_Buildout', get_user_meta($master_dealer_id, 'B_Buildout', true));
-				update_user_meta($employe_id, 'C_Buildout', get_user_meta($master_dealer_id, 'C_Buildout', true));
-				update_user_meta($employe_id, 'B_typeFlexible', get_user_meta($master_dealer_id, 'B_typeFlexible', true));
-				update_user_meta($employe_id, 'blackoutblind', get_user_meta($master_dealer_id, 'blackoutblind', true));
-				update_user_meta($employe_id, 'Lock', get_user_meta($master_dealer_id, 'Lock', true));
-				update_user_meta($employe_id, 'P4028X', get_user_meta($master_dealer_id, 'P4028X', true));
-				update_user_meta($employe_id, 'P4008T', get_user_meta($master_dealer_id, 'P4008T', true));
-				update_user_meta($employe_id, 'P4008W', get_user_meta($master_dealer_id, 'P4008W', true));
-				update_user_meta($employe_id, 'Combi', get_user_meta($master_dealer_id, 'Combi', true));
-				update_user_meta($employe_id, 'French_Door', get_user_meta($master_dealer_id, 'French_Door', true));
-				update_user_meta($employe_id, 'G_post', get_user_meta($master_dealer_id, 'G_post', true));
-				update_user_meta($employe_id, 'Flat_Louver', get_user_meta($master_dealer_id, 'Flat_Louver', true));
-				// Tax for MikeR
-				update_user_meta($employe_id, 'BattenStandard_tax', get_user_meta($master_dealer_id, 'BattenStandard_tax', true));
-				update_user_meta($employe_id, 'BattenCustom_tax', get_user_meta($master_dealer_id, 'BattenCustom_tax', true));
-				update_user_meta($employe_id, 'Earth_tax', get_user_meta($master_dealer_id, 'Earth_tax', true));
-				update_user_meta($employe_id, 'Ecowood_tax', get_user_meta($master_dealer_id, 'Ecowood_tax', true));
-				update_user_meta($employe_id, 'EcowoodPlus_tax', get_user_meta($master_dealer_id, 'EcowoodPlus_tax', true));
-				update_user_meta($employe_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
-				update_user_meta($employe_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
-				update_user_meta($employe_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-				update_user_meta($employe_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
-				update_user_meta($employe_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
-				update_user_meta($employe_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
-			}
+/**
+ * For dealer role: propagates pricing to all employees.
+ *
+ * @since 1.0.0
+ * @param int      $user_id The user being updated.
+ * @param WP_User  $user    The user object.
+ */
+function matrix_cascade_pricing_to_employees( $user_id, $user ) {
+	if ( ! in_array( 'dealer', $user->roles ) ) {
+		return;
+	}
+	$employees = get_user_meta( $user_id, 'employees', true );
+	if ( ! empty( $employees ) && is_array( $employees ) ) {
+		foreach ( $employees as $employe_id ) {
+			matrix_copy_pricing_meta( $user_id, $employe_id );
 		}
 	}
+}
+
+add_action('personal_options_update', 'my_user_profile_update_action');
+add_action('edit_user_profile_update', 'my_user_profile_update_action');
+/**
+ * Main user profile update handler (orchestrator).
+ *
+ * Delegates to focused functions for each responsibility:
+ * group membership, general settings, pricing, employee sync, dealer cascade.
+ *
+ * @since 1.0.0
+ * @param int $user_id The user being updated.
+ */
+function my_user_profile_update_action( $user_id ) {
+	// Security: verify nonce to prevent CSRF
+	check_admin_referer( 'update-user_' . $user_id );
+
+	// Security: verify the current user can edit this user
+	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		return;
+	}
+
+	$user = get_userdata( $user_id );
+
+	// Group membership (all users)
+	matrix_save_group_membership( $user_id );
+
+	// show_basswood is saved for ALL users including employees
+	if ( isset( $_POST['show_basswood'] ) ) {
+		update_user_meta( $user_id, 'show_basswood', sanitize_key( wp_unslash( $_POST['show_basswood'] ) ) );
+	}
+
+	// General settings and pricing (non-employee only)
+	$is_employee = in_array( 'senior_salesman', $user->roles )
+		|| in_array( 'salesman', $user->roles )
+		|| in_array( 'employe', $user->roles );
+
+	if ( ! $is_employee ) {
+		matrix_save_general_user_settings( $user_id );
+		matrix_save_pricing_from_post( $user_id );
+		matrix_save_per_material_pricing( $user_id );
+	}
+
+	// Employee pricing sync from parent dealer
+	matrix_save_employee_parent_and_sync( $user_id, $user );
+
+	// Dealer cascade to all employees
+	matrix_cascade_pricing_to_employees( $user_id, $user );
 }
 
 
@@ -329,58 +216,8 @@ function sthc_salesman_registration_imports($user_id)
 
 		$master_dealer_id = get_user_meta($user_id, 'company_parent', true);
 		if (!empty($master_dealer_id)) {
-			update_user_meta($user_id, 'vat_number_custom', get_user_meta($master_dealer_id, 'vat_number_custom', true));
-			update_user_meta($user_id, 'email_contabil', get_user_meta($master_dealer_id, 'email_contabil', true));
-			update_user_meta($user_id, 'discount_custom', get_user_meta($master_dealer_id, 'discount_custom', true));
-			update_user_meta($user_id, 'train_price', get_user_meta($master_dealer_id, 'train_price', true));
-			update_user_meta($user_id, 'discount_components', get_user_meta($master_dealer_id, 'discount_components', true));
-
-			update_user_meta($user_id, 'BattenStandard', get_user_meta($master_dealer_id, 'BattenStandard', true));
-			update_user_meta($user_id, 'BattenCustom', get_user_meta($master_dealer_id, 'BattenCustom', true));
-			update_user_meta($user_id, 'Earth', get_user_meta($master_dealer_id, 'Earth', true));
-			update_user_meta($user_id, 'Ecowood', get_user_meta($master_dealer_id, 'Ecowood', true));
-			update_user_meta($user_id, 'EcowoodPlus', get_user_meta($master_dealer_id, 'EcowoodPlus', true));
-			update_user_meta($user_id, 'Green', get_user_meta($master_dealer_id, 'Green', true));
-			update_user_meta($user_id, 'Biowood', get_user_meta($master_dealer_id, 'Biowood', true));
-			update_user_meta($user_id, 'BiowoodPlus', get_user_meta($master_dealer_id, 'BiowoodPlus', true));
-			update_user_meta($user_id, 'Basswood', get_user_meta($master_dealer_id, 'Basswood', true));
-			update_user_meta($user_id, 'BasswoodPlus', get_user_meta($master_dealer_id, 'BasswoodPlus', true));
-			update_user_meta($user_id, 'Solid', get_user_meta($master_dealer_id, 'Solid', true));
-			update_user_meta($user_id, 'Shaped', get_user_meta($master_dealer_id, 'Shaped', true));
-			update_user_meta($user_id, 'Tracked', get_user_meta($master_dealer_id, 'Tracked', true));
-			update_user_meta($user_id, 'Buildout', get_user_meta($master_dealer_id, 'Buildout', true));
-			update_user_meta($user_id, 'Stainless_Steel', get_user_meta($master_dealer_id, 'Stainless_Steel', true));
-			update_user_meta($user_id, 'Hidden', get_user_meta($master_dealer_id, 'Hidden', true));
-			update_user_meta($user_id, 'Concealed_Rod', get_user_meta($master_dealer_id, 'Concealed_Rod', true));
-			update_user_meta($user_id, 'Bay_Angle', get_user_meta($master_dealer_id, 'Bay_Angle', true));
-			update_user_meta($user_id, 'Colors', get_user_meta($master_dealer_id, 'Colors', true));
-			update_user_meta($user_id, 'Ringpull', get_user_meta($master_dealer_id, 'Ringpull', true));
-			update_user_meta($user_id, 'Spare_Louvres', get_user_meta($master_dealer_id, 'Spare_Louvres', true));
-			update_user_meta($user_id, 'T_Buildout', get_user_meta($master_dealer_id, 'T_Buildout', true));
-			update_user_meta($user_id, 'B_Buildout', get_user_meta($master_dealer_id, 'B_Buildout', true));
-			update_user_meta($user_id, 'C_Buildout', get_user_meta($master_dealer_id, 'C_Buildout', true));
-			update_user_meta($user_id, 'B_typeFlexible', get_user_meta($master_dealer_id, 'B_typeFlexible', true));
-			update_user_meta($user_id, 'blackoutblind', get_user_meta($master_dealer_id, 'blackoutblind', true));
-			update_user_meta($user_id, 'Lock', get_user_meta($master_dealer_id, 'Lock', true));
-			update_user_meta($user_id, 'P4028X', get_user_meta($master_dealer_id, 'P4028X', true));
-			update_user_meta($user_id, 'P4008T', get_user_meta($master_dealer_id, 'P4008T', true));
-			update_user_meta($user_id, 'P4008W', get_user_meta($master_dealer_id, 'P4008W', true));
-			update_user_meta($user_id, 'Combi', get_user_meta($master_dealer_id, 'Combi', true));
-			update_user_meta($user_id, 'French_Door', get_user_meta($master_dealer_id, 'French_Door', true));
-			update_user_meta($user_id, 'G_post', get_user_meta($master_dealer_id, 'G_post', true));
-			update_user_meta($user_id, 'Flat_Louver', get_user_meta($master_dealer_id, 'Flat_Louver', true));
-			// Tax for MikeR
-			update_user_meta($user_id, 'BattenStandard_tax', get_user_meta($master_dealer_id, 'BattenStandard_tax', true));
-			update_user_meta($user_id, 'BattenCustom_tax', get_user_meta($master_dealer_id, 'BattenCustom_tax', true));
-			update_user_meta($user_id, 'Earth_tax', get_user_meta($master_dealer_id, 'Earth_tax', true));
-			update_user_meta($user_id, 'Ecowood_tax', get_user_meta($master_dealer_id, 'Ecowood_tax', true));
-			update_user_meta($user_id, 'EcowoodPlus_tax', get_user_meta($master_dealer_id, 'EcowoodPlus_tax', true));
-			update_user_meta($user_id, 'Green_tax', get_user_meta($master_dealer_id, 'Green_tax', true));
-			update_user_meta($user_id, 'Biowood_tax', get_user_meta($master_dealer_id, 'Biowood_tax', true));
-			update_user_meta($user_id, 'BiowoodPlus_tax', get_user_meta($master_dealer_id, 'BiowoodPlus_tax', true));
-			update_user_meta($user_id, 'Basswood_tax', get_user_meta($master_dealer_id, 'Basswood_tax', true));
-			update_user_meta($user_id, 'BasswoodPlus_tax', get_user_meta($master_dealer_id, 'BasswoodPlus_tax', true));
-			update_user_meta($user_id, 'SeaDelivery', get_user_meta($master_dealer_id, 'SeaDelivery', true));
+			// Copy all pricing from parent dealer to new salesman
+			matrix_copy_pricing_meta( $master_dealer_id, $user_id );
 
 			// update billing
 			update_user_meta($user_id, 'billing_first_name', get_user_meta($master_dealer_id, 'billing_first_name', true));
@@ -422,16 +259,16 @@ function my_show_user_registration_date( $user ) {
 	$registered_date = $user->user_registered;
 
 	// You can format the date/time to your liking
-	// e.g., date( 'F j, Y H:i', strtotime( $registered_date ) );
-	$formatted_date = date( 'F j, Y H:i', strtotime( $registered_date ) );
+	// e.g., wp_date( 'F j, Y H:i', strtotime( $registered_date ) );
+	$formatted_date = wp_date( 'F j, Y H:i', strtotime( $registered_date ) );
 	?>
-	<h3><?php esc_html_e( 'Date Creation', 'textdomain' ); ?></h3>
+	<h3><?php esc_html_e( 'Date Creation', 'storefront-child' ); ?></h3>
 	<table class="form-table">
 		<tr>
-			<th><label for="user_registered"><?php esc_html_e( 'Date Creation', 'textdomain' ); ?></label></th>
+			<th><label for="user_registered"><?php esc_html_e( 'Date Creation', 'storefront-child' ); ?></label></th>
 			<td>
 				<input type="text" disabled="disabled" value="<?php echo esc_attr( $formatted_date ); ?>" class="regular-text" />
-				<p class="description"><?php esc_html_e( 'This is the date the user account was created.', 'textdomain' ); ?></p>
+				<p class="description"><?php esc_html_e( 'This is the date the user account was created.', 'storefront-child' ); ?></p>
 			</td>
 		</tr>
 	</table>
@@ -440,15 +277,18 @@ function my_show_user_registration_date( $user ) {
 add_action( 'show_user_profile', 'my_show_user_registration_date' );
 add_action( 'edit_user_profile', 'my_show_user_registration_date' );
 
-function my_fill_datecreation_field_via_js( $user ) {
+function my_fill_datecreation_field_via_js() {
 
 	// Retrieve the user_id parameter from the URL and sanitize it as an integer
-	$user_id = isset($_GET['user_id']) ? absint($_GET['user_id']) : 0;
+	$user_id = isset($_GET['user_id']) ? absint($_GET['user_id']) : get_current_user_id();
 
-	$user = get_userdata($user_id);
+	$user_data = get_userdata($user_id);
+	if ( ! $user_data ) {
+		return;
+	}
 
 	// Format user_registered just like in my_show_user_columns_data
-	$formatted_date = date( 'F j, Y H:i', strtotime( $user->user_registered ) );
+	$formatted_date = wp_date( 'F j, Y H:i', strtotime( $user_data->user_registered ) );
 	?>
 	<script>
         (function(){

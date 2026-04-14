@@ -1826,6 +1826,7 @@ jQuery(document).on('click', '#add-product-single-form .btn-success', function (
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
@@ -2003,6 +2004,7 @@ jQuery(document).on('click', '#add-product-single-form .btn-success', function (
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
@@ -2044,7 +2046,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
     e.preventDefault();
     resetErrors();
 
-
+    console.log('[UPDATE-BTN] click inregistrat');
     debugLog('in update cusrom-script');
 
     jQuery(document).ajaxStart(function () {
@@ -3434,6 +3436,7 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
 
         }
 
+        console.log('[UPDATE-BTN] errors=' + errors + ' errors_no_warranty=' + errors_no_warranty);
         debugLog('errors_no_warranty ' + errors_no_warranty);
         if (errors === 0 && errors_no_warranty === 0) {
 
@@ -3450,17 +3453,21 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update-individual.php";
             }
 
+            console.log('[UPDATE-BTN] AJAX -> ' + url_ajax);
+            console.log('[UPDATE-BTN] shutter_ajax_obj:', typeof shutter_ajax_obj !== 'undefined' ? shutter_ajax_obj : 'UNDEFINED');
 
             $.ajax({
                 method: "POST",
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
                 .done(function (data) {
                     //e.preventDefault();
+                    console.log('[UPDATE-BTN] .done() raspuns:', data);
                     debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
@@ -3474,6 +3481,9 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                             window.location.replace("/checkout");
                         }
                     }, 500);
+                })
+                .fail(function (jqXHR) {
+                    console.log('[UPDATE-BTN] .fail() status=' + jqXHR.status + ' response=' + jqXHR.responseText.substring(0, 500));
                 });
 
         }
@@ -3610,12 +3620,13 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
                 .done(function (data) {
                     // json encode data
-
+                    console.log('[UPDATE-BTN nowarranty] .done() raspuns:', data);
                     debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
@@ -3629,6 +3640,9 @@ jQuery('#add-product-single-form .update-btn').on('click', function (e) {
                             window.location.replace("/checkout");
                         }
                     }, 500);
+                })
+                .fail(function (jqXHR) {
+                    console.log('[UPDATE-BTN nowarranty] .fail() status=' + jqXHR.status + ' response=' + jqXHR.responseText.substring(0, 500));
                 });
         }
     }
@@ -3688,6 +3702,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
     e.preventDefault();
     resetErrors();
+    console.log('[UPDATE-BTN-ADMIN] click inregistrat');
 
 
     jQuery(document).ajaxStart(function () {
@@ -5076,6 +5091,7 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
 
         }
 
+        console.log('[UPDATE-BTN-ADMIN] errors=' + errors + ' errors_no_warranty=' + errors_no_warranty);
         debugLog('errors_no_warranty ' + errors_no_warranty);
         if (errors === 0 && errors_no_warranty === 0) {
 
@@ -5091,21 +5107,28 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 url_ajax = "/wp-content/plugins/shutter-module/ajax/ajax-prod-update-individual.php";
             }
 
+            console.log('[UPDATE-BTN-ADMIN] AJAX -> ' + url_ajax);
+            console.log('[UPDATE-BTN-ADMIN] shutter_ajax_obj:', typeof shutter_ajax_obj !== 'undefined' ? shutter_ajax_obj : 'UNDEFINED');
 
             $.ajax({
                 method: "POST",
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
                 .done(function (data) {
+                    console.log('[UPDATE-BTN-ADMIN] .done() raspuns:', data);
                     debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
                     // location.reload();
                     window.location.replace(document.referrer);
+                })
+                .fail(function (jqXHR) {
+                    console.log('[UPDATE-BTN-ADMIN] .fail() status=' + jqXHR.status + ' response=' + jqXHR.responseText.substring(0, 500));
                 });
 
         }
@@ -5236,10 +5259,12 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                 url: url_ajax,
                 data: {
                     prod: formser,
+                    pricing_nonce: shutter_ajax_obj.pricing_nonce,
                     // svg: svg
                 }
             })
                 .done(function (data) {
+                    console.log('[UPDATE-BTN-ADMIN nowarranty] .done() raspuns:', data);
                     debugLog(data);
                     alert('Shutter updated to order!');
                     //jQuery('.show-prod-info').html(data);
@@ -5247,6 +5272,9 @@ jQuery('#add-product-single-form .update-btn-admin').on('click', function (e) {
                         //location.reload(true);
                         window.location.replace(document.referrer);
                     }, 500);
+                })
+                .fail(function (jqXHR) {
+                    console.log('[UPDATE-BTN-ADMIN nowarranty] .fail() status=' + jqXHR.status + ' response=' + jqXHR.responseText.substring(0, 500));
                 });
         }
     }

@@ -255,7 +255,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 	$property_builtout = get_post_meta($product_id, 'property_builtout', true);
 	$property_stile = get_post_meta($product_id, 'property_stile', true);
 	$property_hingecolour = get_post_meta($product_id, 'property_hingecolour', true);
-	print_r($atributes[$property_hingecolour]);
+
 
 	$property_shuttercolour = get_post_meta($product_id, 'property_shuttercolour', true);
 	$property_blackoutblindcolour = get_post_meta($product_id, 'property_blackoutblindcolour', true);
@@ -316,6 +316,39 @@ foreach ($order->get_items() as $prod => $item_data) {
 
 	if ($product_id == 337 || $product_id == 72951) {
 	} elseif ($term_slug == 'pos') {
+		$pos_qnt = get_post_meta($product_id, 'quantity', true);
+		if (empty($pos_qnt)) {
+			$pos_qnt = $item_quantity;
+		}
+		$pos_price = get_post_meta($product_id, '_price', true);
+		$email_body .= '<tr>
+					<td>' . $k . '</td>
+					<td></td>
+					<td>' . get_the_title($product_id) . '</td>
+					<td>POS</td>
+					<td></td>
+					<td></td>
+					<td>' . $pos_qnt . '</td>
+					<td>' . number_format((float)$pos_price, 2) . '</td>';
+		// Empty columns: width through Open first (37 columns)
+		for ($empty_col = 0; $empty_col < 37; $empty_col++) {
+			$email_body .= '<td></td>';
+		}
+		// Dynamic columns (b/t/c/g)
+		foreach ($nr_code_prod as $key => $val) {
+			for ($i = 1; $i < $val + 1; $i++) {
+				if ($key == 'b') {
+					$email_body .= '<td></td><td></td>';
+				} else {
+					$email_body .= '<td></td>';
+				}
+			}
+		}
+		// Empty columns: B-post Type through notes (14 columns)
+		for ($empty_col = 0; $empty_col < 14; $empty_col++) {
+			$email_body .= '<td></td>';
+		}
+		$email_body .= '</tr>';
 	} elseif ($property_category === 'Batten') {
 		$batten_qnt = get_post_meta($product_id, 'quantity', true);
 		$email_body .= '<tr>
@@ -773,17 +806,16 @@ $email_body .= '
           console.log(filename);
       }
 
-      jQuery("button.download").on("click", function (e) {
-          e.preventDefault();
-          var html = document.querySelector("#external-csv.show_tabble > table#example").outerHTML;
-          export_table_to_csv(html, "table-order.csv");
-
-          //console.log(html);
-
-      });
-
-
       jQuery(document).ready(function () {
+
+          jQuery("button.download").on("click", function (e) {
+              e.preventDefault();
+              var html = document.querySelector("#external-csv.show_tabble > table#example").outerHTML;
+              export_table_to_csv(html, "table-order.csv");
+
+              //console.log(html);
+
+          });
 
 
           jQuery('#send_mail.send-m').on('click', function (e) {

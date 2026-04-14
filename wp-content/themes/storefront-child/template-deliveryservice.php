@@ -241,7 +241,7 @@ $container_id = (isset($_GET['container_id'])) ? $_GET['container_id'] : '';
 													if ($property_material == 138) {
 //                                                                $weight_final = $weight_final + $sqm_total*11;
 														$weight_final = $weight_final + ($property_total * $item_data['quantity'] * 11);
-													} elseif ($property_material == 139) {
+													} elseif ($property_material == 139 || $property_material == 147) {
 //                                                                $weight_final = $weight_final + $sqm_total*12;
 														$weight_final = $weight_final + ($property_total * $item_data['quantity'] * 12);
 													} elseif ($property_material == 137) {

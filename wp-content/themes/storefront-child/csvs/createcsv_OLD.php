@@ -201,15 +201,15 @@
             
             // $to = 'marianputirac@thecon.ro';
             // $multiple_recipients = array(
-            //     'order@lifetimeshutters.com'
+            //     'tudor@lifetimeshutters.com'
             // );
             if ($favorite == 'yes') {
                 $multiple_recipients = array(
-                    'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com', 'caroline@anyhooshutter.com', 'july@anyhooshutter.com'
+                    'tudor@lifetimeshutters.com', 'marian93nes@gmail.com'
                 );
             } else {
                 $multiple_recipients = array(
-                    'order@lifetimeshutters.com', 'accounts@lifetimeshutters.com'
+                    'tudor@lifetimeshutters.com', 'marian93nes@gmail.com'
                 );
             }
             

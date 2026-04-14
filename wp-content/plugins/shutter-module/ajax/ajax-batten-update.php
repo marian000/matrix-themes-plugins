@@ -42,7 +42,7 @@ echo '$batten_type 1: ' . $batten_type . '<br>';
 
 //    if ($batten_type == 'custom') {
 
-if (!empty(get_user_meta($user_id, 'BattenCustom', true)) || (get_user_meta($user_id, 'BattenCustom', true) > 0)) {
+if (get_user_meta($user_id, 'BattenCustom', true) !== '') {
 	if ($user_id == 18) {
 		$sum = ($products['property_total'] * get_user_meta($user_id, 'BattenCustom', true)) + (($products['property_total'] * get_user_meta($user_id, 'Batten', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 		echo 'SUM Earth: ' . $sum . '<br>';
@@ -68,7 +68,7 @@ if ($user_id == 274 || $dealer_id == 274) {
 	// green colors
 	if ($products['property_material'] == 137) {
 		if (($products['property_shuttercolour'] == 101) || ($products['property_shuttercolour'] == 103) || ($products['property_shuttercolour'] == 104) || ($products['property_shuttercolour'] == 105) || ($products['property_shuttercolour'] == 106) || ($products['property_shuttercolour'] == 107) || ($products['property_shuttercolour'] == 108) || ($products['property_shuttercolour'] == 109) || ($products['property_shuttercolour'] == 110) || ($products['property_shuttercolour'] == 111) || ($products['property_shuttercolour'] == 112) || ($products['property_shuttercolour'] == 113) || ($products['property_shuttercolour'] == 114) || ($products['property_shuttercolour'] == 115) || ($products['property_shuttercolour'] == 116) || ($products['property_shuttercolour'] == 117) || ($products['property_shuttercolour'] == 118) || ($products['property_shuttercolour'] == 119) || ($products['property_shuttercolour'] == 120) || ($products['property_shuttercolour'] == 121)) {
-			if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+			if (get_user_meta($user_id, 'Colors', true) !== '') {
 				$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 				echo 'SUM Colors: ' . $sum . '<br>';
 				echo 'BASIC 11: ' . $basic . '<br>';
@@ -84,7 +84,7 @@ if ($user_id == 274 || $dealer_id == 274) {
 
 // Colors 20%
 if (($products['property_shuttercolour'] == 264) || ($products['property_shuttercolour'] == 265) || ($products['property_shuttercolour'] == 266) || ($products['property_shuttercolour'] == 267) || ($products['property_shuttercolour'] == 268) || ($products['property_shuttercolour'] == 269) || ($products['property_shuttercolour'] == 270) || ($products['property_shuttercolour'] == 271) || ($products['property_shuttercolour'] == 272) || ($products['property_shuttercolour'] == 273) || ($products['property_shuttercolour'] == 128) || ($products['property_shuttercolour'] == 257) || ($products['property_shuttercolour'] == 127) || ($products['property_shuttercolour'] == 126) || ($products['property_shuttercolour'] == 220) || ($products['property_shuttercolour'] == 130) || ($products['property_shuttercolour'] == 253) || ($products['property_shuttercolour'] == 131) || ($products['property_shuttercolour'] == 129) || ($products['property_shuttercolour'] == 254) || ($products['property_shuttercolour'] == 132) || ($products['property_shuttercolour'] == 255) || ($products['property_shuttercolour'] == 134) || ($products['property_shuttercolour'] == 122) || ($products['property_shuttercolour'] == 123) || ($products['property_shuttercolour'] == 133) || ($products['property_shuttercolour'] == 256) || ($products['property_shuttercolour'] == 166) || ($products['property_shuttercolour'] == 124) || ($products['property_shuttercolour'] == 125) || ($products['property_shuttercolour'] == 111)) {
-	if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+	if (get_user_meta($user_id, 'Colors', true) !== '') {
 		$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 		echo 'SUM Colors: ' . $sum . '<br>';
 		echo 'BASIC 11: ' . $basic . '<br>';
@@ -103,7 +103,7 @@ if (($products['property_shuttercolour'] == 262) || ($products['property_shutter
 
 //    } elseif( $batten_type == 'standard') {
 //
-//        if (!empty(get_user_meta($user_id, 'BattenStandard', true)) || (get_user_meta($user_id, 'BattenStandard', true) > 0)) {
+//        if (get_user_meta($user_id, 'BattenStandard', true) !== '') {
 //            if ($user_id == 18) {
 //                $sum = ($products['property_total'] * get_user_meta($user_id, 'BattenStandard', true)) + (($products['property_total'] * get_user_meta($user_id, 'BattenStandard', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 //                echo 'SUM Earth: ' . $sum . '<br>';
@@ -171,7 +171,7 @@ foreach ($products as $name_attr => $id) {
 				$name_attr = explode("_", $name_attr);
 				$product_attributes[($name_attr[0] . ' ' . $name_attr[1] . ' ' . $name_attr[2])] = array(
 					'name' => wc_clean($name_attr[0] . ' ' . $name_attr[1] . ' ' . $name_attr[2]), // set attribute name
-					'value' => $atribute[$id], // set attribute value
+					'value' => $atribute[$id] ?? '', // set attribute value
 					'position' => $i,
 					'is_visible' => 1,
 					'is_variation' => 0,
@@ -225,7 +225,7 @@ $i = 0;
 $discount_custom = get_user_meta($user_id, 'discount_custom', true);
 
 // Calculate price
-if (!empty(get_user_meta($user_id, 'BattenStandard-dolar', true)) || (get_user_meta($user_id, 'BattenStandard-dolar', true) > 0)) {
+if (get_user_meta($user_id, 'BattenStandard-dolar', true) !== '') {
 	if ($user_id == 18) {
 		$sum_dolar = ($products['property_total'] * get_user_meta($user_id, 'BattenStandard-dolar', true)) + (($products['property_total'] * get_user_meta($user_id, 'BattenStandard-dolar', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 		echo 'SUM Earth: ' . $sum_dolar . '<br>';

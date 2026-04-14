@@ -96,14 +96,13 @@ $STILE_OPTIONS_CONFIG = [
 // ==== MAPPING DIV NAME -> MATERIAL ID pentru checked verification ====
 // Aceste nume trebuie să corespundă cu ce așteaptă JavaScript-ul în product-script-custom.js
 $STILE_DIV_CONFIG = [
-    'earth' => MATERIAL_EARTH,           // 187
-    'ecowood' => MATERIAL_ECOWOOD,       // 188
+    'ecowood' => MATERIAL_ECOWOOD,           // 188
+    'ecowoodPlus' => MATERIAL_ECOWOOD_PLUS,  // 5
+    'biowood' => MATERIAL_BIOWOOD,           // 6
+    'biowoodPlus' => MATERIAL_BIOWOOD_PLUS,  // 138
+    'basswood' => MATERIAL_BASSWOOD,         // 147
     'basswoodPlus' => MATERIAL_BASSWOOD_PLUS, // 139
-    'basswood' => MATERIAL_BASSWOOD,        // 147
-    'biowood' => MATERIAL_BIOWOOD,        // 6
-    'biowoodPlus' => MATERIAL_BIOWOOD_PLUS, // 138
-    'green' => MATERIAL_GREEN,            // 137 - ADĂUGAT
-    'ecowoodPlus' => MATERIAL_ECOWOOD_PLUS, // 5 - CORECTAT (era 137)
+    'earth' => MATERIAL_EARTH,              // 187
 ];
 
 // ==== CONFIGURARE STYLE OPTIONS (property_style) ====
@@ -182,6 +181,7 @@ $FRAMETYPE_OPTIONS = [
     ['value' => 330, 'title' => 'P4008S', 'code' => 'F70', 'img' => 'P4008S.png', 'prefix' => 'PVC'],
     ['value' => 322, 'title' => 'P4008T', 'code' => 'F90', 'img' => 'P4008T.png', 'prefix' => 'PVC'],
     ['value' => 319, 'title' => 'P4008W', 'code' => 'F90', 'img' => 'P4008W.png', 'prefix' => 'PVC'],
+    ['value' => 462, 'title' => 'P4008R', 'code' => 'F90', 'img' => 'P4008R.png', 'prefix' => 'PVC'],
     ['value' => 331, 'title' => 'P4007A', 'code' => 'F50', 'img' => 'P4007A.png', 'prefix' => 'PVC'],
     ['value' => 320, 'title' => 'P4001N', 'code' => 'L50', 'img' => 'P4001N.png', 'prefix' => 'PVC'],
     // ALU (fără prefix în label)
@@ -1970,7 +1970,7 @@ if ($raw_product_id > 0) {
                                                         <div>
                                                             <label>
 																<?php
-																if (!empty(get_user_meta($user_id, 'Spare_Louvres', true)) || (get_user_meta($user_id, 'Spare_Louvres', true) > 0)) {
+																if (get_user_meta($user_id, 'Spare_Louvres', true) !== '') {
 																	$adaos_spare = get_user_meta($user_id, 'Spare_Louvres', true);
 																} else {
 																	$adaos_spare = get_post_meta(1, 'Spare_Louvres', true);

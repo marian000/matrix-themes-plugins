@@ -1819,17 +1819,25 @@
         $.ajax({
             method: "POST",
             url: "/wp-content/plugins/shutter-module/ajax/ajax-prod-update.php",
+            dataType: 'json',
             data: {
-                prod: formser
+                prod: formser,
+                pricing_nonce: shutter_ajax_obj.pricing_nonce
             }
         })
-            .done(function (data) {
-                console.log(data);
-                // alert('Shutter Updated!');
-                //jQuery('.show-prod-info').html(data);
-                setTimeout(function () {
-                    location.reload();
-                }, 500);
+            .done(function (response) {
+                if (response.success) {
+                    console.log(response.data);
+                    setTimeout(function () {
+                        location.reload();
+                    }, 500);
+                } else {
+                    alert('Error: ' + (response.data || 'Unknown error'));
+                }
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                console.log('AJAX error: ' + textStatus + ' ' + errorThrown);
+                alert('Server error. Please try again.');
             });
 
     });

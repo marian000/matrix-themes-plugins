@@ -3,10 +3,7 @@ $path = preg_replace('/wp-content(?!.*wp-content).*/', '', __DIR__);
 include($path .
 	'wp-load.php');
 
-// $atributezzz = include(__DIR__ . '/atributes_array.php');
-
 $atribute = get_post_meta(1, 'attributes_array', true);
-//update_post_meta( 1,'attributes_array',$atributezzz );
 
 $headerMatch = [
 	"Location" => 'property_room_other',

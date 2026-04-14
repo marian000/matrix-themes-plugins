@@ -1471,6 +1471,8 @@ jQuery.noConflict();
             "product_type": "Shutter",
             "vat_class_id": 1
         }];
+
+        
         var property_values = [{
             "id": 165,
             "property_id": 8,
@@ -2608,36 +2610,7 @@ jQuery.noConflict();
                     "help_text": "",
                     "input_type": "select"
                 }
-            }, {
-                "id": 186,
-                "property_id": 15,
-                "value": "Hidden",
-                "created_at": "2016-08-04T12:37:29.000+01:00",
-                "updated_at": "2016-08-04T12:37:29.000+01:00",
-                "code": "hidden",
-                "uplift": "0.0",
-                "color": "",
-                "all_products": true,
-                "selected_products": "{\"product_ids\":null}",
-                "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"292\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
-                "graphic": "none",
-                "image_file_name": null,
-                "image_content_type": null,
-                "image_file_size": null,
-                "image_updated_at": null,
-                "is_active": true,
-                "property": {
-                    "id": 15,
-                    "name": "Hinge Color",
-                    "created_at": "2015-09-07T23:00:03.000+01:00",
-                    "updated_at": "2015-09-07T23:01:58.000+01:00",
-                    "code": "hingecolour",
-                    "sort": null,
-                    "help_text": "",
-                    "input_type": "select"
-                }
-            }, {
+            },  {
                 "id": 168,
                 "property_id": 15,
                 "value": "Brushed Nickel",
@@ -2666,7 +2639,68 @@ jQuery.noConflict();
                     "help_text": "",
                     "input_type": "select"
                 }
-            }, {
+            },
+            {
+                "id": 172,
+                "property_id": 15,
+                "value": "Sea Mist",
+                "created_at": "2016-02-25T09:16:36.000+00:00",
+                "updated_at": "2016-04-01T23:26:38.000+01:00",
+                "code": "",
+                "uplift": "0.0",
+                "color": "",
+                "all_products": true,
+                "selected_products": "{\"product_ids\":null}",
+                "all_property_values": false,
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"6\",\"139\",\"147\",\"187\",\"188\",\"137\",\"5\"]}",
+                "graphic": "none",
+                "image_file_name": null,
+                "image_content_type": null,
+                "image_file_size": null,
+                "image_updated_at": null,
+                "is_active": true,
+                "property": {
+                    "id": 15,
+                    "name": "Hinge Color",
+                    "created_at": "2015-09-07T23:00:03.000+01:00",
+                    "updated_at": "2015-09-07T23:01:58.000+01:00",
+                    "code": "hingecolour",
+                    "sort": null,
+                    "help_text": "",
+                    "input_type": "select"
+                }
+            },
+            {
+                "id": 186,
+                "property_id": 15,
+                "value": "Hidden",
+                "created_at": "2016-08-04T12:37:29.000+01:00",
+                "updated_at": "2016-08-04T12:37:29.000+01:00",
+                "code": "hidden",
+                "uplift": "0.0",
+                "color": "",
+                "all_products": true,
+                "selected_products": "{\"product_ids\":null}",
+                "all_property_values": false,
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"292\",\"138\",\"6\",\"139\",\"147\",\"187\",\"188\"]}",
+                "graphic": "none",
+                "image_file_name": null,
+                "image_content_type": null,
+                "image_file_size": null,
+                "image_updated_at": null,
+                "is_active": true,
+                "property": {
+                    "id": 15,
+                    "name": "Hinge Color",
+                    "created_at": "2015-09-07T23:00:03.000+01:00",
+                    "updated_at": "2015-09-07T23:01:58.000+01:00",
+                    "code": "hingecolour",
+                    "sort": null,
+                    "help_text": "",
+                    "input_type": "select"
+                }
+            },
+            {
                 "id": 93,
                 "property_id": 15,
                 "value": "Stainless Steel (+10%)",
@@ -2707,8 +2741,8 @@ jQuery.noConflict();
                 "color": "",
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
-                "all_property_values": true,
-                "selected_property_values": "{\"property_field\":null,\"property_value_ids\":[\"187\"]}",
+                "all_property_values": false,
+                "selected_property_values": "{\"property_field\":18,\"property_value_ids\":[\"187\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2726,7 +2760,6 @@ jQuery.noConflict();
                     "input_type": "select"
                 }
             },
-
             {
                 "id": 188,
                 "property_id": 18,
@@ -2893,36 +2926,6 @@ jQuery.noConflict();
             //     }
             // },
             {
-                "id": 172,
-                "property_id": 15,
-                "value": "Sea Mist",
-                "created_at": "2016-02-25T09:16:36.000+00:00",
-                "updated_at": "2016-04-01T23:26:38.000+01:00",
-                "code": "",
-                "uplift": "0.0",
-                "color": "",
-                "all_products": true,
-                "selected_products": "{\"product_ids\":null}",
-                "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"6\",\"139\",\"147\",\"187\",\"188\",\"137\",\"5\"]}",
-                "graphic": "none",
-                "image_file_name": null,
-                "image_content_type": null,
-                "image_file_size": null,
-                "image_updated_at": null,
-                "is_active": true,
-                "property": {
-                    "id": 15,
-                    "name": "Hinge Color",
-                    "created_at": "2015-09-07T23:00:03.000+01:00",
-                    "updated_at": "2015-09-07T23:01:58.000+01:00",
-                    "code": "hingecolour",
-                    "sort": null,
-                    "help_text": "",
-                    "input_type": "select"
-                }
-            },
-            {
                 "id": 170,
                 "property_id": 20,
                 "value": "No",
@@ -3044,6 +3047,37 @@ jQuery.noConflict();
                 "id": 411,
                 "property_id": 17,
                 "value": "Frosted White",
+                "created_at": "2015-09-26T01:28:40.000+01:00",
+                "updated_at": "2015-09-26T01:28:40.000+01:00",
+                "code": "",
+                "uplift": "0.0",
+                "color": "",
+                "all_products": true,
+                "selected_products": "{\"product_ids\":null}",
+                "all_property_values": false,
+                "selected_property_values": selectedPropertyValuesEcowood,
+                //"selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\"]}",
+                "graphic": "none",
+                "image_file_name": null,
+                "image_content_type": null,
+                "image_file_size": null,
+                "image_updated_at": null,
+                "is_active": true,
+                "property": {
+                    "id": 16,
+                    "name": "Control Type",
+                    "created_at": "2015-09-26T01:25:55.000+01:00",
+                    "updated_at": "2015-09-26T01:25:55.000+01:00",
+                    "code": "controltype",
+                    "sort": null,
+                    "help_text": "",
+                    "input_type": "select"
+                }
+            },
+            {
+                "id": 463,
+                "property_id": 17,
+                "value": "Warm White",
                 "created_at": "2015-09-26T01:28:40.000+01:00",
                 "updated_at": "2015-09-26T01:28:40.000+01:00",
                 "code": "",

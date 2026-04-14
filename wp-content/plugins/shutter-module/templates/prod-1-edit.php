@@ -137,10 +137,23 @@ $ba13 = get_post_meta($product_id, 'property_ba13', true);
 $ba14 = get_post_meta($product_id, 'property_ba14', true);
 $ba15 = get_post_meta($product_id, 'property_ba15', true);
 
-$nr_g = get_post_meta($product_id, 'counter_g', true);
-$nr_t = get_post_meta($product_id, 'counter_t', true);
-$nr_b = get_post_meta($product_id, 'counter_b', true);
-$nr_c = get_post_meta($product_id, 'counter_c', true);
+// Recalculate counters from actual stored values (fixes products saved with inflated counters).
+$nr_t = 0;
+$nr_g = 0;
+$nr_b = 0;
+$nr_c = 0;
+for ( $calc_i = 1; $calc_i <= 15; $calc_i++ ) {
+	$t_val  = get_post_meta( $product_id, 'property_t' . $calc_i, true );
+	$g_val  = get_post_meta( $product_id, 'property_g' . $calc_i, true );
+	$bp_val = get_post_meta( $product_id, 'property_bp' . $calc_i, true );
+	$ba_val = get_post_meta( $product_id, 'property_ba' . $calc_i, true );
+	$c_val  = get_post_meta( $product_id, 'property_c' . $calc_i, true );
+
+	if ( $t_val !== '' && $t_val !== '0' && $t_val !== false ) { $nr_t++; }
+	if ( $g_val !== '' && $g_val !== '0' && $g_val !== false ) { $nr_g++; }
+	if ( ( $bp_val !== '' && $bp_val !== '0' && $bp_val !== false ) || ( $ba_val !== '' && $ba_val !== false ) ) { $nr_b++; }
+	if ( $c_val !== '' && $c_val !== '0' && $c_val !== false ) { $nr_c++; }
+}
 
 $nr_code_prod = array();
 

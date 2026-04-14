@@ -114,7 +114,6 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 //			print_r('email: ', $email_user);
 
 			$atribute = get_post_meta(1, 'attributes_array', true);
-//update_post_meta( 1,'attributes_array',$atributezzz );
 
 			/*
 			 * Frame types ID => Depth calculater
@@ -222,7 +221,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 
 			if ($products['property_material'] == 187) {
-				if (!empty(get_user_meta($user_id, 'Earth', true)) || (get_user_meta($user_id, 'Earth', true) > 0)) {
+				if (get_user_meta($user_id, 'Earth', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'Earth', true)) + (($sqm_value * get_user_meta($user_id, 'Earth', true)) * get_user_meta($user_id, 'Earth_tax', true)) / 100;
 						// to_document echo 'SUM Earth: ' . $sum . ' ..... ';
@@ -254,7 +253,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				update_post_meta($post_id, 'basic_earth_price', floatval($basic));
 			}
 			if ($products['property_material'] == 188) {
-				if (!empty(get_user_meta($user_id, 'Ecowood', true)) || (get_user_meta($user_id, 'Ecowood', true) > 0)) {
+				if (get_user_meta($user_id, 'Ecowood', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'Ecowood', true)) + (($sqm_value * get_user_meta($user_id, 'Ecowood', true)) * get_user_meta($user_id, 'Ecowood_tax', true)) / 100;
 						// to_document echo 'SUM Ecowood: ' . $sum . ' ..... ';
@@ -276,7 +275,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_material'] == 137) {
-				if (!empty(get_user_meta($user_id, 'Green', true)) || (get_user_meta($user_id, 'Green', true) > 0)) {
+				if (get_user_meta($user_id, 'Green', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'Green', true)) + (($sqm_value * get_user_meta($user_id, 'Green', true)) * get_user_meta($user_id, 'Green_tax', true)) / 100;
 						// to_document echo 'SUM Green: ' . $sum . ' ..... ';
@@ -298,7 +297,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_material'] == 5) {
-				if (!empty(get_user_meta($user_id, 'EcowoodPlus', true)) || (get_user_meta($user_id, 'EcowoodPlus', true) > 0)) {
+				if (get_user_meta($user_id, 'EcowoodPlus', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'EcowoodPlus', true)) + (($sqm_value * get_user_meta($user_id, 'EcowoodPlus', true)) * get_user_meta($user_id, 'EcowoodPlus_tax', true)) / 100;
 						// to_document echo 'SUM EcowoodPlus: ' . $sum . ' ..... ';
@@ -320,7 +319,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_material'] == 138) {
-				if (!empty(get_user_meta($user_id, 'BiowoodPlus', true)) || (get_user_meta($user_id, 'BiowoodPlus', true) > 0)) {
+				if (get_user_meta($user_id, 'BiowoodPlus', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'BiowoodPlus', true)) + (($sqm_value * get_user_meta($user_id, 'BiowoodPlus', true)) * get_user_meta($user_id, 'BiowoodPlus_tax', true)) / 100;
 						// to_document echo 'SUM BiowoodPlus: ' . $sum . ' ..... ';
@@ -342,7 +341,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_material'] == 6) {
-				if (!empty(get_user_meta($user_id, 'Biowood', true)) || (get_user_meta($user_id, 'Biowood', true) > 0)) {
+				if (get_user_meta($user_id, 'Biowood', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'Biowood', true)) + (($sqm_value * get_user_meta($user_id, 'Biowood', true)) * get_user_meta($user_id, 'Biowood_tax', true)) / 100;
 						// to_document echo 'SUM Biowood: ' . $sum . ' ..... ';
@@ -364,7 +363,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_material'] == 147) {
-				if (!empty(get_user_meta($user_id, 'Basswood', true)) || (get_user_meta($user_id, 'Basswood', true) > 0)) {
+				if (get_user_meta($user_id, 'Basswood', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'Basswood', true)) + (($sqm_value * get_user_meta($user_id, 'Basswood', true)) * get_user_meta($user_id, 'Basswood_tax', true)) / 100;
 						// to_document echo 'SUM Basswood: ' . $sum . ' ..... ';
@@ -387,7 +386,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 
 			if ($products['property_material'] == 139) {
-				if (!empty(get_user_meta($user_id, 'BasswoodPlus', true)) || (get_user_meta($user_id, 'BasswoodPlus', true) > 0)) {
+				if (get_user_meta($user_id, 'BasswoodPlus', true) !== '') {
 					if ($user_id == 18) {
 						$sum = ($sqm_value * get_user_meta($user_id, 'BasswoodPlus', true)) + (($sqm_value * get_user_meta($user_id, 'BasswoodPlus', true)) * get_user_meta($user_id, 'BasswoodPlus_tax', true)) / 100;
 						// to_document echo 'SUM BasswoodPlus: ' . $sum . ' ..... ';
@@ -424,7 +423,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 //style
 
 			if (($products['property_style'] == 221) || ($products['property_style'] == 227) || ($products['property_style'] == 226) || ($products['property_style'] == 222) || ($products['property_style'] == 228) || ($products['property_style'] == 230) || ($products['property_style'] == 231) || ($products['property_style'] == 232) || ($products['property_style'] == 38) || ($products['property_style'] == 39) || $products['property_style'] == 42 || $products['property_style'] == 43) {
-				if (!empty(get_user_meta($user_id, 'Solid', true)) || (get_user_meta($user_id, 'Solid', true) > 0)) {
+				if (get_user_meta($user_id, 'Solid', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Solid', true) * $basic) / 100;
 					// to_document echo 'SUM Solid: ' . $sum . ' ..... ';
 				} else {
@@ -433,7 +432,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_style'] == 33 || $products['property_style'] == 43) {
-				if (!empty(get_user_meta($user_id, 'Shaped', true)) || (get_user_meta($user_id, 'Shaped', true) > 0)) {
+				if (get_user_meta($user_id, 'Shaped', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Shaped', true) * $basic) / 100;
 					// to_document echo 'SUM Shaped: ' . $sum . ' ..... ';
 				} else {
@@ -443,7 +442,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_style'] == 34) {
-				if (!empty(get_user_meta($user_id, 'French_Door', true)) || (get_user_meta($user_id, 'French_Door', true) > 0)) {
+				if (get_user_meta($user_id, 'French_Door', true) !== '') {
 					$sum = $sum + get_user_meta($user_id, 'French_Door', true);
 					// to_document echo 'SUM French_Door: ' . $sum . ' ..... ';
 				} else {
@@ -453,7 +452,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_style'] == 35 || $products['property_style'] == 39 || $products['property_style'] == 41) {
-				if (!empty(get_user_meta($user_id, 'Tracked', true)) || (get_user_meta($user_id, 'Tracked', true) > 0)) {
+				if (get_user_meta($user_id, 'Tracked', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Tracked', true) * ($width_track / 1000));
 					//        $sum = $sum + (get_user_meta($user_id,'Tracked',true)*$basic)/100;
 					// to_document echo 'SUM Tracked: ' . $sum . ' ..... ';
@@ -464,7 +463,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_style'] == 37 || $products['property_style'] == 38 || $products['property_style'] == 40) {
-				if (!empty(get_user_meta($user_id, 'TrackedByPass', true)) || (get_user_meta($user_id, 'TrackedByPass', true) > 0)) {
+				if (get_user_meta($user_id, 'TrackedByPass', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'TrackedByPass', true) * ($width_track / 1000));
 					// to_document echo 'SUM TrackedByPass: ' . $sum . ' ..... ';
 				} else {
@@ -472,7 +471,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 					// to_document echo 'SUM TrackedByPass: ' . $sum . ' ..... ';
 				}
 				if ($products['property_tracksnumber'] >= 3) {
-					if (!empty(get_user_meta($user_id, 'Tracked', true)) || (get_user_meta($user_id, 'Tracked', true) > 0)) {
+					if (get_user_meta($user_id, 'Tracked', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'Tracked', true) *
 							($products['property_tracksnumber'] - 2) * ($width_track / 1000));
 						// to_document echo 'SUM Tracked: ' . $sum . ' ..... ';
@@ -485,7 +484,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 
 			if ($products['property_lightblocks'] == 'Yes') {
-				if (!empty(get_user_meta($user_id, 'Light_block', true)) || (get_user_meta($user_id, 'Light_block', true) > 0)) {
+				if (get_user_meta($user_id, 'Light_block', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Light_block', true) * $basic) / 100;
 					// to_document echo 'SUM Light_block: ' . $sum . ' ..... ';
 				} else {
@@ -505,7 +504,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 					$arched_price_user = get_user_meta($products['customer_id'], 'Arched', true);
 					$arched_price = get_post_meta(1, 'Arched', true);
 				}
-				if (!empty(get_user_meta($user_id, 'Arched', true)) || (get_user_meta($user_id, 'Arched', true) > 0)) {
+				if (get_user_meta($user_id, 'Arched', true) !== '') {
 					$sum = $sum + ($arched_price_user * $basic) / 100;
 					// to_document echo 'SUM Arched: ' . $sum . ' ..... ';
 				} else {
@@ -515,7 +514,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_style'] == 229 || $products['property_style'] == 233 || $products['property_style'] == 40 || $products['property_style'] == 41) {
-				if (!empty(get_user_meta($user_id, 'Combi', true)) || (get_user_meta($user_id, 'Combi', true) > 0)) {
+				if (get_user_meta($user_id, 'Combi', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Combi', true) * $basic) / 100;
 					// to_document echo 'SUM Combi: ' . $sum . ' ..... ';
 				} else {
@@ -527,7 +526,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 
 // measurement type
 			if ($products['property_fit'] == 56) {
-				if (!empty(get_user_meta($user_id, 'Inside', true)) || (get_user_meta($user_id, 'Inside', true) > 0)) {
+				if (get_user_meta($user_id, 'Inside', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Inside', true) * $basic) / 100;
 					// to_document echo 'SUM inside: ' . $sum . ' ..... ';
 				} else {
@@ -539,7 +538,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 
 // Frame Type
 			if ($products['property_frametype'] == 171) {
-				if (!empty(get_user_meta($user_id, 'P4028X', true)) || (get_user_meta($user_id, 'P4028X', true) > 0)) {
+				if (get_user_meta($user_id, 'P4028X', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'P4028X', true) * $basic) / 100;
 					// to_document echo 'SUM P4028X: ' . $sum . ' ..... ';
 				} else {
@@ -549,7 +548,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 
 				if (!empty($products['property_blackoutblindcolour']) && $products['property_blackoutblindcolour'] != 390) {
-					if (!empty(get_user_meta($user_id, 'blackoutblind', true)) || (get_user_meta($user_id, 'blackoutblind', true) > 0)) {
+					if (get_user_meta($user_id, 'blackoutblind', true) !== '') {
 						$sum = $sum + get_user_meta($user_id, 'blackoutblind', true) * $sqm_value_blackout;
 						// to_document echo 'SUM blackoutblind: ' . $sum . ' ..... ';
 					} else {
@@ -559,7 +558,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 
 				if ($products['property_tposttype']) {
-					if (!empty(get_user_meta($user_id, 'tposttype_blackout', true)) || (get_user_meta($user_id, 'tposttype_blackout', true) > 0)) {
+					if (get_user_meta($user_id, 'tposttype_blackout', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'tposttype_blackout', true) * $basic) / 100;
 						// to_document echo 'SUM tposttype_blackout: ' . $sum . ' ..... ';
 					} else {
@@ -569,7 +568,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 
 				if (!empty($products['bay-post-type'])) {
-					if (!empty(get_user_meta($user_id, 'bposttype_blackout', true)) || (get_user_meta($user_id, 'bposttype_blackout', true) > 0)) {
+					if (get_user_meta($user_id, 'bposttype_blackout', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'bposttype_blackout', true) * $basic) / 100;
 						// to_document echo 'SUM bposttype_blackout: ' . $sum . ' ..... ';
 					} else {
@@ -579,7 +578,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_frametype'] == 322) {
-				if (!empty(get_user_meta($user_id, 'P4008T', true)) || (get_user_meta($user_id, 'P4008T', true) > 0)) {
+				if (get_user_meta($user_id, 'P4008T', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'P4008T', true) * $basic) / 100;
 					// to_document echo 'SUM P4008T: ' . $sum . ' ..... ';
 				} else {
@@ -589,7 +588,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_frametype'] == 353) {
-				if (!empty(get_user_meta($user_id, '4008T', true)) || (get_user_meta($user_id, '4008T', true) > 0)) {
+				if (get_user_meta($user_id, '4008T', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, '4008T', true) * $basic) / 100;
 					// to_document echo 'SUM 4008T: ' . $sum . ' ..... ';
 				} else {
@@ -598,7 +597,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_frametype'] == 319) {
-				if (!empty(get_user_meta($user_id, 'P4008W', true)) || (get_user_meta($user_id, 'P4008W', true) > 0)) {
+				if (get_user_meta($user_id, 'P4008W', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'P4008W', true) * $basic) / 100;
 					// to_document echo 'SUM P4008W: ' . $sum . ' ..... ';
 				} else {
@@ -621,7 +620,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				$frdepth = $framesType[$products['property_frametype']];
 				$sum_build_frame = $frdepth + $products['property_builtout'];
 				if ($sum_build_frame <= 100) {
-					if (!empty(get_user_meta($user_id, 'Buildout', true)) || (get_user_meta($user_id, 'Buildout', true) > 0)) {
+					if (get_user_meta($user_id, 'Buildout', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'Buildout', true) * $basic) / 100;
 						// to_document echo 'SUM Buildout: ' . $sum . ' ..... ';
 					} else {
@@ -635,7 +634,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if (($products['property_controltype'] == 403)) {
-				if (!empty(get_user_meta($user_id, 'Concealed_Rod', true)) || (get_user_meta($user_id, 'Concealed_Rod', true) > 0)) {
+				if (get_user_meta($user_id, 'Concealed_Rod', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Concealed_Rod', true) * $basic) / 100;
 					// to_document echo 'SUM Concealed_Rod: ' . $sum . ' ..... ';
 				} else {
@@ -645,7 +644,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 			if ($products['property_controltype'] == 387) {
 				$result = 0;
-				if (!empty(get_user_meta($user_id, 'Hidden_Rod_with_Locking_System', true)) || (get_user_meta($user_id, 'Hidden_Rod_with_Locking_System', true) > 0)) {
+				if (get_user_meta($user_id, 'Hidden_Rod_with_Locking_System', true) !== '') {
 					$result = get_user_meta($user_id, 'Hidden_Rod_with_Locking_System', true);
 					$sum = $sum + ($basic * $result) / 100;
 				} else {
@@ -655,7 +654,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				// to_document echo 'SUM Hidden_Rod_with_Locking_System: ' . $sum . ' ..... ';
 			}
 			if ($products['property_hingecolour'] == 93) {
-				if (!empty(get_user_meta($user_id, 'Stainless_Steel', true)) || (get_user_meta($user_id, 'Stainless_Steel', true) > 0)) {
+				if (get_user_meta($user_id, 'Stainless_Steel', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Stainless_Steel', true) * $basic) / 100;
 					// to_document echo 'SUM Stainless_Steel: ' . $sum . ' ..... ';
 				} else {
@@ -664,7 +663,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				}
 			}
 			if ($products['property_hingecolour'] == 186) {
-				if (!empty(get_user_meta($user_id, 'Hidden', true)) || (get_user_meta($user_id, 'Hidden', true) > 0)) {
+				if (get_user_meta($user_id, 'Hidden', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Hidden', true) * $basic) / 100;
 					// to_document echo 'SUM Hidden: ' . $sum . ' ..... ';
 				} else {
@@ -680,7 +679,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 						if ($products[$property_ba] == 90 || $products[$property_ba] == 135) {
 							// to_document echo '----- Unghi egal cu 135 sau 90: ' . $products['property_ba1'] . ' ------';
 						} else {
-							if (!empty(get_user_meta($user_id, 'Bay_Angle', true)) || (get_user_meta($user_id, 'Bay_Angle', true) > 0)) {
+							if (get_user_meta($user_id, 'Bay_Angle', true) !== '') {
 								$sum = $sum + (get_user_meta($user_id, 'Bay_Angle', true) * $basic) / 100;
 								// to_document echo 'SUM Bay_Angle: ' . $sum . ' ..... ';
 								// to_document echo '----- Unghi diferit de  90: ' . $products['property_ba1'] . ' ADAUGARE 10%------';
@@ -702,7 +701,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				update_post_meta($post_id, 'bay-post-type', $products['bay-post-type']);
 
 				if ($products['bay-post-type'] == 'flexible') {
-					if (!empty(get_user_meta($user_id, 'B_typeFlexible', true)) || (get_user_meta($user_id, 'B_typeFlexible', true) > 0)) {
+					if (get_user_meta($user_id, 'B_typeFlexible', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'B_typeFlexible', true) * $basic) / 100;
 						// to_document echo 'SUM B_typeFlexible: ' . $sum . ' ..... ';
 					} else {
@@ -718,7 +717,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			foreach ($b_buildout as $property_bb) {
 				if (!empty($property_bb)) {
 					if (!empty($products[$property_bb])) {
-						if (!empty(get_user_meta($user_id, 'B_Buildout', true)) || (get_user_meta($user_id, 'B_Buildout', true) > 0)) {
+						if (get_user_meta($user_id, 'B_Buildout', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'B_Buildout', true) * $basic) / 100;
 							// to_document echo 'SUM B_Buildout: ' . $sum . ' ..... ';
 							break;
@@ -734,7 +733,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 // If G-post exist add 3%
 //$g_post = get_post_meta( $post_id , 'property_g1' , true );
 			if ($products['property_g1']) {
-				if (!empty(get_user_meta($user_id, 'G_post', true)) || (get_user_meta($user_id, 'G_post', true) > 0)) {
+				if (get_user_meta($user_id, 'G_post', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'G_post', true) * $basic) / 100;
 					// to_document echo 'SUM G-Post: ' . $sum . ' ..... ';
 				} else {
@@ -749,7 +748,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			foreach ($t_buildout as $property_tb) {
 				if (!empty($property_tb)) {
 					if (!empty($products[$property_tb])) {
-						if (!empty(get_user_meta($user_id, 'T_Buildout', true)) || (get_user_meta($user_id, 'T_Buildout', true) > 0)) {
+						if (get_user_meta($user_id, 'T_Buildout', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'T_Buildout', true) * $basic) / 100;
 							// to_document echo 'SUM T_Buildout: ' . $sum . ' ..... ';
 							break;
@@ -766,7 +765,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				update_post_meta($post_id, 't-post-type', $products['t-post-type']);
 
 				if ($products['t-post-type'] == 'adjustable') {
-					if (!empty(get_user_meta($user_id, 'T_typeAdjustable', true)) || (get_user_meta($user_id, 'T_typeFlexible', true) > 0)) {
+					if (get_user_meta($user_id, 'T_typeAdjustable', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'T_typeAdjustable', true) * $basic) / 100;
 						// to_document echo 'SUM t-post-type: ' . $sum . ' ..... ';
 					} else {
@@ -782,7 +781,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			foreach ($c_buildout as $property_cb) {
 				if (!empty($property_cb)) {
 					if (!empty($products[$property_cb])) {
-						if (!empty(get_user_meta($user_id, 'C_Buildout', true)) || (get_user_meta($user_id, 'C_Buildout', true) > 0)) {
+						if (get_user_meta($user_id, 'C_Buildout', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'C_Buildout', true) * $basic) / 100;
 							// to_document echo 'SUM C_Buildout: ' . $sum . ' ..... ';
 							break;
@@ -802,7 +801,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 //	// green colors
 //	if ($products['property_material'] == 137) {
 //		if (($products['property_shuttercolour'] == 101) || ($products['property_shuttercolour'] == 103) || ($products['property_shuttercolour'] == 104) || ($products['property_shuttercolour'] == 105) || ($products['property_shuttercolour'] == 106) || ($products['property_shuttercolour'] == 107) || ($products['property_shuttercolour'] == 108) || ($products['property_shuttercolour'] == 109) || ($products['property_shuttercolour'] == 110) || ($products['property_shuttercolour'] == 111) || ($products['property_shuttercolour'] == 112) || ($products['property_shuttercolour'] == 113) || ($products['property_shuttercolour'] == 114) || ($products['property_shuttercolour'] == 115) || ($products['property_shuttercolour'] == 116) || ($products['property_shuttercolour'] == 117) || ($products['property_shuttercolour'] == 118) || ($products['property_shuttercolour'] == 119) || ($products['property_shuttercolour'] == 120) || ($products['property_shuttercolour'] == 121)) {
-//			if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+//			if (get_user_meta($user_id, 'Colors', true) !== '') {
 //				$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 //				// to_document echo 'SUM Colors green20%: ' . $sum . ' ..... ';
 //			} else {
@@ -816,7 +815,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 
 // Colors 20%
 			if (($products['property_shuttercolour'] == 264) || ($products['property_shuttercolour'] == 265) || ($products['property_shuttercolour'] == 266) || ($products['property_shuttercolour'] == 267) || ($products['property_shuttercolour'] == 268) || ($products['property_shuttercolour'] == 269) || ($products['property_shuttercolour'] == 270) || ($products['property_shuttercolour'] == 271) || ($products['property_shuttercolour'] == 272) || ($products['property_shuttercolour'] == 273) || ($products['property_shuttercolour'] == 128) || ($products['property_shuttercolour'] == 257) || ($products['property_shuttercolour'] == 127) || ($products['property_shuttercolour'] == 126) || ($products['property_shuttercolour'] == 220) || ($products['property_shuttercolour'] == 130) || ($products['property_shuttercolour'] == 253) || ($products['property_shuttercolour'] == 131) || ($products['property_shuttercolour'] == 129) || ($products['property_shuttercolour'] == 254) || ($products['property_shuttercolour'] == 132) || ($products['property_shuttercolour'] == 255) || ($products['property_shuttercolour'] == 134) || ($products['property_shuttercolour'] == 122) || ($products['property_shuttercolour'] == 123) || ($products['property_shuttercolour'] == 133) || ($products['property_shuttercolour'] == 256) || ($products['property_shuttercolour'] == 166) || ($products['property_shuttercolour'] == 124) || ($products['property_shuttercolour'] == 125) || ($products['property_shuttercolour'] == 111)) {
-				if (!empty(get_user_meta($user_id, 'Colors', true)) || (get_user_meta($user_id, 'Colors', true) > 0)) {
+				if (get_user_meta($user_id, 'Colors', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Colors', true) * $basic) / 100;
 					// to_document echo 'SUM Colors: ' . $sum . ' ..... ';
 				} else {
@@ -832,7 +831,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 
 			if (($products['property_style'] == 221) || ($products['property_style'] == 227) || ($products['property_style'] == 226) || ($products['property_style'] == 222) || ($products['property_style'] == 228) || ($products['property_style'] == 230) || ($products['property_style'] == 231) || ($products['property_style'] == 232)) {
 				if (!empty($products['property_ringpull'] && $products['property_ringpull'] == 'Yes')) {
-					if (!empty(get_user_meta($user_id, 'Ringpull', true)) || (get_user_meta($user_id, 'Ringpull', true) > 0)) {
+					if (get_user_meta($user_id, 'Ringpull', true) !== '') {
 						$sum = $sum + (get_user_meta($user_id, 'Ringpull', true) * $products['property_ringpull_volume']);
 						// to_document echo 'SUM Ringpull: ' . $sum . ' ..... ';
 					} else {
@@ -877,7 +876,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 						}
 						// to_document echo 'SUM lock_position: ' . $sum . ' ..... ';
 					} else {
-						if (!empty(get_user_meta($user_id, 'Lock', true)) || (get_user_meta($user_id, 'Lock', true) > 0)) {
+						if (get_user_meta($user_id, 'Lock', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'Lock', true) * $products['property_locks_volume'] * 2 * $horizontal_tpost_add);
 							// to_document echo 'SUM Lock: ' . $sum . ' ..... ';
 						} else {
@@ -908,7 +907,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			if ($products['property_controltype'] == 387) {
 
 				$midCount = midrailDividerCounterApi($products['property_midrailheight'], $products['property_midrailheight2'], $products['property_midraildivider1'], $products['property_midraildivider2']);
-				if (!empty(get_user_meta($user_id, 'Louver_lock', true)) || (get_user_meta($user_id, 'Louver_lock', true) > 0)) {
+				if (get_user_meta($user_id, 'Louver_lock', true) !== '') {
 					$sum = $sum + (get_user_meta($user_id, 'Louver_lock', true) * $nrPanels * $midCount);
 				} else {
 					$sum = $sum + (get_post_meta(1, 'Louver_lock', true) * $nrPanels * $midCount);
@@ -917,7 +916,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 
 			if (!empty($products['property_sparelouvres'] && $products['property_sparelouvres'] == 'Yes')) {
-				if (!empty(get_user_meta($user_id, 'Spare_Louvres', true)) || (get_user_meta($user_id, 'Spare_Louvres', true) > 0)) {
+				if (get_user_meta($user_id, 'Spare_Louvres', true) !== '') {
 					$sum = $sum + ($nrPanels * get_user_meta($user_id, 'Spare_Louvres', true));
 					// to_document echo ' Panels: ' . $nrPanels . ' SUM Spare_Louvres: ' . $sum . ' ..... ';
 				} else {
@@ -932,7 +931,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 // }
 
 // ADD Tax for material for user lifetimeshutter (MikeR) id 18
-			if (!empty(get_user_meta($user_id, 'SeaDelivery', true))) {
+			if (get_user_meta($user_id, 'SeaDelivery', true) !== '') {
 				$sum = $sum + (get_user_meta($user_id, 'SeaDelivery', true));
 				// to_document echo 'SUM SeaDelivery: ' . $sum . ' ..... ';
 			}
@@ -1038,7 +1037,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 
 					if (!empty($products[$property_tb])) {
 						update_post_meta($post_id, $property_tb, $products[$property_tb]);
-						if (!empty(get_user_meta($user_id, 'T_Buildout', true)) || (get_user_meta($user_id, 'T_Buildout', true) > 0)) {
+						if (get_user_meta($user_id, 'T_Buildout', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'T_Buildout', true) * $basic) / 100;
 							// to_document echo 'SUM T_Buildout: ' . $sum . ' ..... ';
 							// to_document echo 'BASIC 7: ' . $basic . '<br>';
@@ -1055,7 +1054,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 						update_post_meta($post_id, $tposttype, $products[$tposttype]);
 
 						if ($products[$tposttype] == 'adjustable') {
-							if (!empty(get_user_meta($user_id, 'T_typeAdjustable', true)) || (get_user_meta($user_id, 'T_typeFlexible', true) > 0)) {
+							if (get_user_meta($user_id, 'T_typeAdjustable', true) !== '') {
 								$sum = $sum + (get_user_meta($user_id, 'T_typeAdjustable', true) * $basic) / 100;
 								// to_document echo 'SUM t-post-type: ' . $sum . ' ..... ';
 								// to_document echo 'BASIC 7: ' . $basic . '<br>';
@@ -1068,7 +1067,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 					}
 
 					if ($products[$property_g1]) {
-						if (!empty(get_user_meta($user_id, 'G_post', true)) || (get_user_meta($user_id, 'G_post', true) > 0)) {
+						if (get_user_meta($user_id, 'G_post', true) !== '') {
 							$sum = $sum + (get_user_meta($user_id, 'G_post', true) * $basic) / 100;
 							// to_document echo 'SUM G-Post: ' . $sum . ' ..... ';
 							// to_document echo 'BASIC 7: ' . $basic . '<br>';
@@ -1200,16 +1199,8 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 				// to_document echo 'BASIC 1 dolar: ' . $basic . '<br>';
 			}
 			if ($products['property_material'] == 139) {
-				$sum = $sqm_value * dolarSum('BasswoodPlus-dolar', $user_id);
-				echo 'SUM 1 dolar: ' . $sum . ' ..... ';
+				$sum = $sqm_value * dolarSumApi('BasswoodPlus-dolar', $user_id);
 				$basic = $sum;
-				// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
-			}
-			if ($products['property_material'] == 147) {
-				$sum = $sqm_value * dolarSum('Basswood-dolar', $user_id);
-				echo 'SUM 1 dolar: ' . $sum . ' ..... ';
-				$basic = $sum;
-				// echo 'BASIC 1 dolar: ' . $basic . ' ..... ';
 			}
 			
 
@@ -1339,7 +1330,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 			if ($products['property_controltype'] == 403) {
 				$result = 0;
-				if (!empty(get_user_meta($user_id, 'Concealed_Rod-dolar', true)) || (get_user_meta($user_id, 'Concealed_Rod-dolar', true) > 0)) {
+				if (get_user_meta($user_id, 'Concealed_Rod-dolar', true) !== '') {
 					$result = get_user_meta($user_id, 'Concealed_Rod-dolar', true);
 					$sum = $sum + ($basic * $result) / 100;
 				} else {
@@ -1352,7 +1343,7 @@ function matrix_handle_product_insert(WP_REST_Request $request)
 			}
 			if ($products['property_controltype'] == 387) {
 				$result = 0;
-				if (!empty(get_user_meta($user_id, 'Hidden_Rod_with_Locking_System-dolar', true)) || (get_user_meta($user_id, 'Hidden_Rod_with_Locking_System-dolar', true) > 0)) {
+				if (get_user_meta($user_id, 'Hidden_Rod_with_Locking_System-dolar', true) !== '') {
 					$result = get_user_meta($user_id, 'Hidden_Rod_with_Locking_System-dolar', true);
 					$sum = $sum + ($basic * $result) / 100;
 				} else {
@@ -2206,7 +2197,7 @@ if (!function_exists('dolarSumApi')) {
 	function dolarSumApi($name_prop, $user_id)
 	{
 		$result = 0;
-		if (!empty(get_user_meta($user_id, $name_prop, true)) || (get_user_meta($user_id, $name_prop, true) > 0)) {
+		if (get_user_meta($user_id, $name_prop, true) !== '') {
 			$result = get_user_meta($user_id, $name_prop, true);
 		} else {
 			$result = get_post_meta(1, $name_prop, true);

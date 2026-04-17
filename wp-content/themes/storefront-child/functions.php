@@ -620,9 +620,8 @@ function modify_dashboard_container_html($views)
 
             // Fetch container price data and update the HTML
             jQuery.post(ajaxurl, data_price, function(response) {
-                console.log(response);
-                var containers_price = JSON.parse(response);
-                for (const [key, value] of Object.entries(containers_price)) {
+                var containers_price = typeof response === 'string' ? JSON.parse(response) : response;
+                for (const [key, value] of Object.entries(containers_price || {})) {
                     jQuery('#container-price-' + key).text(value);
                 }
                 var end = new Date().getTime();
@@ -631,8 +630,8 @@ function modify_dashboard_container_html($views)
 
             // Fetch container sqm data and update the HTML
             jQuery.post(ajaxurl, data_sqm, function(response) {
-                var containers_sqm = JSON.parse(response);
-                for (const [key, value] of Object.entries(containers_sqm)) {
+                var containers_sqm = typeof response === 'string' ? JSON.parse(response) : response;
+                for (const [key, value] of Object.entries(containers_sqm || {})) {
                     jQuery('#container-sqm-' + key).text(value);
                 }
                 var end = new Date().getTime();

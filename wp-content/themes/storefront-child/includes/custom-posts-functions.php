@@ -351,7 +351,7 @@ function container_column_content($column, $post_id)
 		echo '<span id="container-sqm-' . $post_id . '" data-id="' . $post_id . '" class="container-sqm"></span>';
 	}
 	if ($column == 'container-price') {
-		echo '<span id="container-price-' . $post_id . '" data-id="' . $post_id . '" class="container-sqm"></span>';
+		echo '<span id="container-price-' . $post_id . '" data-id="' . $post_id . '" class="container-price"></span>';
 	}
 	if ($column == 'packing') {
 		// $csv_pack_read = get_post_meta($post_id, 'csv_pack_read', true);

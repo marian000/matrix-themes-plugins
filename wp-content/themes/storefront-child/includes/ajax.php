@@ -402,7 +402,7 @@ function get_container_sqm_callback()
 {
     global $wpdb; // this is how you get access to the database
     $orders_sqm = array();
-    $containers = $_POST['conatiner_orders'];
+    $containers = isset( $_POST['conatiner_orders'] ) ? array_map( 'absint', (array) $_POST['conatiner_orders'] ) : array();
 
 
     foreach ($containers as $post_id) {
@@ -439,91 +439,73 @@ function get_container_sqm_callback()
 
         } else if ($container_orders) {
 
-            $total_orders = 0;
-            $tablename = $wpdb->prefix . 'custom_orders';
-            $sqm_ord = $wpdb->get_results($wpdb->prepare("SELECT sqm, idOrder FROM $tablename WHERE idOrder IN (" . implode(',', $container_orders) . ") ", ARRAY_A));
-
-            if ($sqm_ord) {
-                foreach ($sqm_ord as $order_res) {
-                    if (get_post_type($order_res->idOrder) == 'order_repair') {
-
-                    } elseif (get_post_type($order_res->idOrder) == 'shop_order') {
-                        $sqm_total = floatval($sqm_total) + floatval($order_res->sqm);
-                    }
+            $shop_orders = array();
+            foreach ( (array) $container_orders as $oid ) {
+                if ( get_post_type( $oid ) === 'shop_order' ) {
+                    $shop_orders[] = absint( $oid );
                 }
-                $orders_sqm[$post_id] = number_format($sqm_total, 3);
             }
+            if ( ! empty( $shop_orders ) ) {
+                $tablename    = $wpdb->prefix . 'custom_orders';
+                $placeholders = implode( ',', array_fill( 0, count( $shop_orders ), '%d' ) );
+                $sql          = $wpdb->prepare(
+                    "SELECT sqm, idOrder FROM {$tablename} WHERE idOrder IN ({$placeholders})",
+                    $shop_orders
+                );
+                $sqm_ord = $wpdb->get_results( $sql, ARRAY_A );
 
-//            foreach ($container_orders as $order) {
-//                $order_id = $order;
-//                if (get_post_type($order) == 'shop_order') {
-//
-//                    $tablename = $wpdb->prefix . 'custom_orders';
-//                    $order_sqm = $wpdb->get_var($wpdb->prepare("SELECT sqm FROM $tablename WHERE idOrder = %s ", $order_id));
-//                    $sqm_total = floatval($sqm_total) + floatval($order_sqm);
-//                }
-//                if (get_post_type($order) == 'order_repair') {
-//
-//                }
-//            }
-//            $orders_sqm[$post_id] = number_format($sqm_total, 3);
+                if ( $sqm_ord ) {
+                    foreach ( $sqm_ord as $row ) {
+                        $sqm_total = floatval( $sqm_total ) + floatval( $row['sqm'] );
+                    }
+                    $orders_sqm[ $post_id ] = number_format( $sqm_total, 3 );
+                }
+            }
 
         } else {
             // echo 'No Orders';
         }
     }
-    $js_array = json_encode($orders_sqm);
-    echo $js_array;
-
-    wp_die(); // this is required to terminate immediately and return a proper response
+    wp_send_json( $orders_sqm );
 }
 
 add_action('wp_ajax_get_container_price', 'get_container_price_callback');
 
 function get_container_price_callback()
 {
-    global $wpdb; // this is how you get access to the database
     $orders_price = array();
-    $containers = $_POST['conatiner_orders'];
+    $containers   = isset( $_POST['conatiner_orders'] ) ? array_map( 'absint', (array) $_POST['conatiner_orders'] ) : array();
 
-    foreach ($containers as $post_id) {
-        $total_orders = 0;
-        $shop_orders = array();
-        $orders = get_post_meta($post_id, 'container_orders', true);
-        foreach ($orders as $order_id) {
-            if (get_post_type($order_id) == 'order_repair') {
-            } elseif (get_post_type($order_id) == 'shop_order') {
-                $shop_orders[] = $order_id;
-            }
-
+    foreach ( $containers as $post_id ) {
+        $orders = get_post_meta( $post_id, 'container_orders', true );
+        if ( ! is_array( $orders ) || empty( $orders ) ) {
+            continue;
         }
 
-        $tablename = $wpdb->prefix . 'custom_orders';
-        $usd_price_ord = $wpdb->get_results($wpdb->prepare("SELECT usd_price FROM $tablename WHERE idOrder IN (" . implode(',', $shop_orders) . ") ", ARRAY_A));
-
-        if ($usd_price_ord) {
-            foreach ($usd_price_ord as $order_price) {
-                $total_orders = floatval($total_orders) + floatval($order_price->usd_price);
+        $total = 0;
+        foreach ( $orders as $order_id ) {
+            if ( get_post_type( $order_id ) === 'order_repair' ) {
+                $order_original = get_post_meta( $order_id, 'order-id-original', true );
+                $order          = wc_get_order( $order_original );
+            } else {
+                $order = wc_get_order( $order_id );
             }
-            $orders_price[$post_id] = '$' . number_format($total_orders, 2);
+            if ( ! $order ) {
+                continue;
+            }
+
+            foreach ( $order->get_items() as $item_data ) {
+                $product_id  = $item_data['product_id'];
+                $qty         = $item_data['quantity'];
+                $dolar_price = get_post_meta( $product_id, 'dolar_price', true );
+                $total      += floatval( $dolar_price ) * floatval( $qty );
+            }
         }
 
-
-//        if ($orders) {
-//            foreach ($orders as $order_id) {
-//                if (get_post_type($order_id) == 'shop_order') {
-//                    $tablename = $wpdb->prefix . 'custom_orders';
-//                    $usd_price = $wpdb->get_var($wpdb->prepare("SELECT usd_price FROM $tablename WHERE idOrder = %s ", $order_id));
-//                    $total_orders = floatval($total_orders) + floatval($usd_price);
-//                }
-//            }
-//            $orders_price[$post_id] = '$' . number_format($total_orders, 2);
-//        }
+        $orders_price[ $post_id ] = '£' . number_format( $total, 2 );
     }
-    $js_array = json_encode($orders_price);
-    echo $js_array;
 
-    wp_die(); // this is required to terminate immediately and return a proper response
+    wp_send_json( $orders_price );
 }
 
 

@@ -839,3 +839,73 @@ function matrix_dedup_custom_orders_notice()
     echo 'Backup salvat în tabela <code>' . esc_html($_GET['backup'] ?? '') . '</code>.';
     echo '</p></div>';
 }
+
+/**
+ * Enforce uniqueness on wp_custom_orders.idOrder at schema level so future
+ * duplicate inserts fail fast instead of accumulating silently.
+ *
+ * Runs once per option flag. Safety guards:
+ * - Skips if duplicates still exist (ALTER would otherwise fail with 1062).
+ * - Skips if the unique key (or an equivalent name) is already present.
+ * - Logs result; admin can re-run by deleting matrix_custom_orders_unique_v1.
+ */
+add_action('admin_init', 'matrix_add_custom_orders_unique_key_once');
+function matrix_add_custom_orders_unique_key_once()
+{
+    if (!current_user_can('manage_woocommerce')) {
+        return;
+    }
+    if (get_option('matrix_custom_orders_unique_v1') === 'yes') {
+        return;
+    }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'custom_orders';
+
+    // Block if duplicates still exist.
+    $dup_count = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM (
+            SELECT idOrder FROM {$table}
+            WHERE idOrder <> ''
+            GROUP BY idOrder HAVING COUNT(*) > 1
+         ) t"
+    );
+    if ($dup_count > 0) {
+        matrix_sqm_log("unique key skipped: {$dup_count} duplicate idOrder rows still present — run dedup first");
+        return;
+    }
+
+    // Block if a unique key on idOrder already exists.
+    $existing = $wpdb->get_results(
+        "SHOW INDEX FROM {$table} WHERE Column_name = 'idOrder' AND Non_unique = 0",
+        ARRAY_A
+    );
+    if (!empty($existing)) {
+        update_option('matrix_custom_orders_unique_v1', 'yes', false);
+        matrix_sqm_log('unique key already present on idOrder — marking option as set');
+        return;
+    }
+
+    // Drop the redundant non-unique index so the UNIQUE replaces it cleanly.
+    $wpdb->query("ALTER TABLE {$table} DROP INDEX idx_idOrder");
+    $drop_err = $wpdb->last_error;
+
+    $ok = $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY uk_idOrder (idOrder)");
+    $alter_err = $wpdb->last_error;
+    matrix_sqm_log("unique key apply: ok=" . var_export($ok, true) . " drop_idx_err={$drop_err} alter_err={$alter_err}");
+
+    if ($ok !== false && $alter_err === '') {
+        update_option('matrix_custom_orders_unique_v1', 'yes', false);
+        add_action('admin_notices', function () {
+            echo '<div class="notice notice-success is-dismissible"><p>';
+            echo 'Matrix: UNIQUE KEY uk_idOrder adăugat pe wp_custom_orders. Inserările duplicate vor fi blocate la nivel de schemă.';
+            echo '</p></div>';
+        });
+    } else {
+        add_action('admin_notices', function () use ($alter_err) {
+            echo '<div class="notice notice-error is-dismissible"><p>';
+            echo 'Matrix: nu am putut adăuga UNIQUE KEY pe wp_custom_orders. Eroare: ' . esc_html($alter_err);
+            echo '</p></div>';
+        });
+    }
+}

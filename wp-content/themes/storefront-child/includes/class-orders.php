@@ -30,7 +30,7 @@ class OrdersCustom
                 status varchar(50) DEFAULT '' NOT NULL,
                 createTime datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
                 PRIMARY KEY (id),
-                INDEX idx_idOrder (idOrder),
+                UNIQUE KEY uk_idOrder (idOrder),
                 INDEX idx_status (status),
                 INDEX idx_createTime (createTime)
             ) {$charset_collate}";

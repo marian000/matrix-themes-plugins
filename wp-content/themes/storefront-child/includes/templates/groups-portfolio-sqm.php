@@ -357,34 +357,44 @@ function get_user_ids_by_billing_company_sqm($company_name)
         $user_id = get_current_user_id();
         $allowed_user_ids = [1, 2, 18, 192, 354];
 
+        // $restrict_to_group becomes true only when the page is scoped to a
+        // specific group / user filter. When the viewer asks for "everyone"
+        // (default admin path or group_name=all_users) we skip the
+        // wc_get_orders customer_id filter entirely — passing a 500-element
+        // IN clause silently drops a handful of orders whose _customer_user
+        // points to a user role excluded by get_users() (subscribers added
+        // after a role rename, multisite stragglers, etc.).
+        $restrict_to_group = false;
+        $group = array();
+
         if (isset($_POST['group_name']) && $_POST['group_name'] !== '') {
             if ($_POST['group_name'] === 'all_users') {
-                $users = get_users(array('fields' => array('ID')));
-                $group = array();
-                foreach ($users as $user) {
-                    $group[] = $user->ID;
-                }
+                // Treat as "no filter" — show every order in range.
+                $restrict_to_group = false;
             } else {
                 $group = get_post_meta(1, sanitize_text_field($_POST['group_name']), true);
+                $restrict_to_group = true;
             }
         } else {
             if ($user_id === 192) {
                 $group = get_post_meta(1, "andrew_clients", true);
+                $restrict_to_group = true;
             } elseif ($user_id === 354) {
                 $group = get_post_meta(1, "alex_clients", true);
-            } else {
-                $users = get_users(array('fields' => array('ID')));
-                $group = array();
-                foreach ($users as $user) {
-                    $group[] = $user->ID;
-                }
+                $restrict_to_group = true;
             }
+            // Otherwise admin / unrestricted viewer → no customer_id filter.
         }
 
         // Apply user filter — intersect with selected users
         if (isset($_POST['user_filter']) && !empty($_POST['user_filter'])) {
             $selected_users = array_map('intval', $_POST['user_filter']);
-            $group = array_intersect($group, $selected_users);
+            if ($restrict_to_group && !empty($group)) {
+                $group = array_intersect($group, $selected_users);
+            } else {
+                $group = $selected_users;
+            }
+            $restrict_to_group = true;
         }
 
         $i = 1;
@@ -401,7 +411,6 @@ function get_user_ids_by_billing_company_sqm($company_name)
         $date_before = date('Y-m-d H:i:s', mktime(23, 59, 59, $to_month, (int) date('t', strtotime("$to_year-$to_month-01")), $to_year));
 
         $args = array(
-            'customer_id' => $group,
             'limit' => -1,
             'type' => 'shop_order',
             'status' => array('wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing', 'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision'),
@@ -415,6 +424,9 @@ function get_user_ids_by_billing_company_sqm($company_name)
             ),
             'return' => 'ids',
         );
+        if ($restrict_to_group && !empty($group)) {
+            $args['customer_id'] = array_values(array_map('intval', $group));
+        }
 
         $orders = wc_get_orders($args);
 

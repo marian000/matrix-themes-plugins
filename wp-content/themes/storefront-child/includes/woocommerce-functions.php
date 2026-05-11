@@ -625,16 +625,22 @@ function matrix_add_sqm_to_wc_reports() {
             $end_date = date('Y-m-d');
     }
 
-    // Query total SQM from wp_custom_orders
-    $statuses = array('inproduction', 'completed', 'pending', 'processing', 'paid', 'waiting', 'revised', 'inrevision', 'on-hold');
-    $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+    // Query total SQM from wp_custom_orders, joined on wp_posts so post_status is
+    // authoritative (wp_custom_orders.status can drift if a sync hook misses an update).
+    // Mirrors the status set used by groups-portfolio-sqm.php so totals align.
+    $post_statuses = array(
+        'wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing',
+        'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision',
+    );
+    $status_placeholders = implode(',', array_fill(0, count($post_statuses), '%s'));
 
     $query = $wpdb->prepare(
-        "SELECT COALESCE(SUM(sqm), 0) as total_sqm
-         FROM {$wpdb->prefix}custom_orders
-         WHERE DATE(createTime) BETWEEN %s AND %s
-         AND status IN ($status_placeholders)",
-        array_merge([$start_date, $end_date], $statuses)
+        "SELECT COALESCE(SUM(co.sqm), 0) as total_sqm
+         FROM {$wpdb->prefix}custom_orders co
+         INNER JOIN {$wpdb->posts} p ON p.ID = co.idOrder
+         WHERE DATE(co.createTime) BETWEEN %s AND %s
+         AND p.post_status IN ($status_placeholders)",
+        array_merge([$start_date, $end_date], $post_statuses)
     );
 
     $total_sqm = $wpdb->get_var($query);
@@ -656,4 +662,80 @@ function matrix_add_sqm_to_wc_reports() {
     });
     </script>
     <?php
+}
+
+
+/**
+ * Keep wp_custom_orders.status aligned with wp_posts.post_status.
+ *
+ * Forward sync: whenever an order status changes, mirror it to the custom table.
+ * The custom table stores the status without the wc- prefix.
+ */
+add_action('woocommerce_order_status_changed', 'matrix_sync_custom_order_status', 20, 4);
+function matrix_sync_custom_order_status($order_id, $from_status, $to_status, $order = null)
+{
+    global $wpdb;
+    $wpdb->update(
+        $wpdb->prefix . 'custom_orders',
+        array('status' => $to_status),
+        array('idOrder' => (int) $order_id),
+        array('%s'),
+        array('%d')
+    );
+}
+
+/**
+ * Catch-all sync on order save (admin edit, payment update, etc.) — covers
+ * paths that mutate post_status without firing woocommerce_order_status_changed.
+ */
+add_action('woocommerce_update_order', 'matrix_sync_custom_order_status_on_update', 20, 1);
+function matrix_sync_custom_order_status_on_update($order_id)
+{
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        return;
+    }
+    global $wpdb;
+    $wpdb->update(
+        $wpdb->prefix . 'custom_orders',
+        array('status' => $order->get_status()),
+        array('idOrder' => (int) $order_id),
+        array('%s'),
+        array('%d')
+    );
+}
+
+/**
+ * One-shot backfill: align all existing wp_custom_orders.status rows with
+ * the current wp_posts.post_status (stripping the wc- prefix). Runs once
+ * per option flag; admins can re-run by deleting the option.
+ */
+add_action('admin_init', 'matrix_backfill_custom_orders_status_once');
+function matrix_backfill_custom_orders_status_once()
+{
+    if (!current_user_can('manage_woocommerce')) {
+        return;
+    }
+    if (get_option('matrix_custom_orders_status_backfilled_v1') === 'yes') {
+        return;
+    }
+
+    global $wpdb;
+    $rows = $wpdb->query(
+        "UPDATE {$wpdb->prefix}custom_orders co
+         INNER JOIN {$wpdb->posts} p ON p.ID = co.idOrder
+         SET co.status = REPLACE(p.post_status, 'wc-', '')
+         WHERE co.status <> REPLACE(p.post_status, 'wc-', '')
+           AND p.post_type = 'shop_order'"
+    );
+
+    update_option('matrix_custom_orders_status_backfilled_v1', 'yes', false);
+
+    if (is_admin() && function_exists('add_action')) {
+        add_action('admin_notices', function () use ($rows) {
+            echo '<div class="notice notice-success is-dismissible"><p>';
+            echo 'Matrix: sincronizate ' . intval($rows) . ' rânduri wp_custom_orders.status cu wp_posts.post_status.';
+            echo '</p></div>';
+        });
+    }
 }

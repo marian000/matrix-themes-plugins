@@ -831,11 +831,43 @@ function matrix_dedup_custom_orders_handler()
 add_action('admin_notices', 'matrix_dedup_custom_orders_notice');
 function matrix_dedup_custom_orders_notice()
 {
-    if (empty($_GET['matrix_dedup_done'])) {
+    // Success notice after dedup run.
+    if (!empty($_GET['matrix_dedup_done'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>';
+        echo 'Matrix dedup OK. Șterse: <strong>' . intval($_GET['deleted'] ?? 0) . '</strong> rânduri. ';
+        echo 'Backup salvat în tabela <code>' . esc_html($_GET['backup'] ?? '') . '</code>.';
+        echo '</p></div>';
         return;
     }
-    echo '<div class="notice notice-success is-dismissible"><p>';
-    echo 'Matrix dedup OK. Șterse: <strong>' . intval($_GET['deleted'] ?? 0) . '</strong> rânduri. ';
-    echo 'Backup salvat în tabela <code>' . esc_html($_GET['backup'] ?? '') . '</code>.';
+
+    // Pending notice: offer the dedup button to admins when duplicates exist
+    // and the cleanup hasn't been run yet.
+    if (!current_user_can('manage_woocommerce')) {
+        return;
+    }
+    if (get_option('matrix_custom_orders_deduped_v1') === 'yes') {
+        return;
+    }
+
+    global $wpdb;
+    $dup_count = (int) $wpdb->get_var(
+        "SELECT COUNT(*) FROM (
+            SELECT idOrder FROM {$wpdb->prefix}custom_orders
+            WHERE idOrder <> ''
+            GROUP BY idOrder HAVING COUNT(*) > 1
+         ) t"
+    );
+    if ($dup_count === 0) {
+        return;
+    }
+
+    $url = wp_nonce_url(
+        admin_url('?matrix_dedup_custom_orders=1'),
+        'matrix_dedup_custom_orders'
+    );
+
+    echo '<div class="notice notice-warning"><p>';
+    echo 'Matrix: <strong>' . intval($dup_count) . '</strong> idOrder cu rânduri duplicate în <code>wp_custom_orders</code>. ';
+    echo '<a href="' . esc_url($url) . '" class="button button-primary" onclick="return confirm(\'Backup tabel + șterge rânduri duplicate. Continui?\');">Rulează dedup (cu backup)</a>';
     echo '</p></div>';
 }

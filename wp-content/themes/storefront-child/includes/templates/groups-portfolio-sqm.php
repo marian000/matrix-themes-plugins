@@ -655,7 +655,18 @@ function get_user_ids_by_billing_company_sqm($company_name)
 </div>
 
 <script>
+    console.log('[groups-portfolio-sqm] script loaded');
     jQuery(document).ready(function() {
+        console.log('[groups-portfolio-sqm] ready fired');
+
+        // Cache modal DOM + nonce + ajax URL early so failures below don't block modal binding
+        var exampleModal = jQuery('#exampleModal');
+        var messageText = jQuery('#message-text');
+        var dealerIdField = jQuery('#dealer-id');
+        var dealerNotesNonce = '<?php echo wp_create_nonce('matrix_dealer_notes'); ?>';
+        var ajaxUrl = (typeof _wpUtilSettings !== 'undefined' && _wpUtilSettings.ajax && _wpUtilSettings.ajax.url)
+            ? _wpUtilSettings.ajax.url
+            : (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
 
         // Quick date preset buttons
         jQuery('.date-preset').on('click', function() {
@@ -668,19 +679,27 @@ function get_user_ids_by_billing_company_sqm($company_name)
             btn.removeClass('btn-outline-secondary').addClass('btn-primary');
         });
 
-        // Initialize DataTable with export buttons
-        jQuery('#grup-portfolio-sqm-table').DataTable({
-            paging: false,
-            dom: 'Bfrtip',
-            buttons: ['copy', 'csv', 'excel', 'print'],
-            order: [
-                [2, 'desc']
-            ],
-            columnDefs: [{
-                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10],
-                className: 'text-end'
-            }]
-        });
+        // Initialize DataTable (guarded — plugin may be absent in admin)
+        try {
+            if (jQuery.fn.DataTable) {
+                jQuery('#grup-portfolio-sqm-table').DataTable({
+                    paging: false,
+                    dom: 'Bfrtip',
+                    buttons: ['copy', 'csv', 'excel', 'print'],
+                    order: [
+                        [2, 'desc']
+                    ],
+                    columnDefs: [{
+                        targets: [2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        className: 'text-end'
+                    }]
+                });
+            } else {
+                console.warn('[groups-portfolio-sqm] DataTable plugin not loaded');
+            }
+        } catch (e) {
+            console.error('[groups-portfolio-sqm] DataTable init failed', e);
+        }
 
         // Company filter: reload options when group changes
         jQuery('#q_status_order_id_eq').on('change', function() {
@@ -719,11 +738,6 @@ function get_user_ids_by_billing_company_sqm($company_name)
         });
 
         // Modal logic
-        var exampleModal = jQuery('#exampleModal');
-        var messageText = jQuery('#message-text');
-        var dealerIdField = jQuery('#dealer-id');
-        var dealerNotesNonce = '<?php echo wp_create_nonce('matrix_dealer_notes'); ?>';
-
         function populateDealerModal(buttonEl) {
             if (!buttonEl) return;
             var name = buttonEl.getAttribute('data-bs-name') || '';
@@ -773,7 +787,7 @@ function get_user_ids_by_billing_company_sqm($company_name)
 
         function fetchMessages(dealerId) {
             jQuery.ajax({
-                url: _wpUtilSettings.ajax.url,
+                url: ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'get_user_messages',
@@ -790,7 +804,7 @@ function get_user_ids_by_billing_company_sqm($company_name)
 
         function sendMessage(dealerId, message) {
             jQuery.ajax({
-                url: _wpUtilSettings.ajax.url,
+                url: ajaxUrl,
                 type: 'POST',
                 data: {
                     action: 'save_user_message',

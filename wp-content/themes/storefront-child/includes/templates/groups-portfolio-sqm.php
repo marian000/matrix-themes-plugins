@@ -394,8 +394,11 @@ function get_user_ids_by_billing_company_sqm($company_name)
         $to_month   = isset($_POST['luna_to']) ? $_POST['luna_to'] : date("m");
         $to_year    = isset($_POST['an_to']) ? $_POST['an_to'] : date("Y");
 
-        $date_after  = date('Y-m-d', mktime(0, 0, 0, $from_month, 0, $from_year));
-        $date_before = date('Y-m-d', strtotime('+1 month', strtotime($to_year . '-' . $to_month . '-1')));
+        // Strict month bounds: first day of from_month → last day of to_month.
+        // Previous code used day=0 (last day of previous month) which leaked an
+        // extra day on each side and inflated the range vs wc-reports.
+        $date_after  = date('Y-m-d', mktime(0, 0, 0, $from_month, 1, $from_year));
+        $date_before = date('Y-m-d', mktime(23, 59, 59, $to_month, (int) date('t', strtotime("$to_year-$to_month-01")), $to_year));
 
         $args = array(
             'customer_id' => $group,

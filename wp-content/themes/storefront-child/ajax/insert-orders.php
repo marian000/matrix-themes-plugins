@@ -106,14 +106,17 @@ if (!empty($id_ord_original)) {
 
 	my_custom_log("Database", "Pregătește inserarea în tabela: $tablename");
 
-	// Verifică dacă comanda există deja
+	// Verifică dacă comanda există deja — fără skip aici, fiecare reload al
+	// thankyou page (sau re-trigger AJAX) crea un rând duplicat pentru același order.
 	$existing_order = $wpdb->get_var($wpdb->prepare(
 	  "SELECT COUNT(*) FROM $tablename WHERE idOrder = %s",
 	  $order->get_id()
 	));
 
 	if ($existing_order > 0) {
-		my_custom_log("Database Warning", "Comanda {$order->get_id()} există deja în tabela custom_orders");
+		my_custom_log("Database Skip", "Comanda {$order->get_id()} există deja în custom_orders — se sare insert pentru a evita duplicate");
+		echo "Order already recorded.";
+		exit;
 	}
 
 	$data = array(

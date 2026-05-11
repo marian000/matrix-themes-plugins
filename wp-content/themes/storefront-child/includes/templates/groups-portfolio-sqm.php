@@ -418,6 +418,16 @@ function get_user_ids_by_billing_company_sqm($company_name)
 
         $orders = wc_get_orders($args);
 
+        if (function_exists('my_custom_log')) {
+            my_custom_log('PORTFOLIO-SQM', 'args=' . wp_json_encode(array(
+                'group_count' => is_array($group) ? count($group) : 0,
+                'date_after'  => $date_after,
+                'date_before' => $date_before,
+                'order_count' => is_array($orders) ? count($orders) : 0,
+                'order_ids_sample' => is_array($orders) ? array_slice($orders, 0, 10) : array(),
+            )));
+        }
+
         $group_companies = array();
 
         // === BATCH DATA LOADING ===
@@ -589,7 +599,11 @@ function get_user_ids_by_billing_company_sqm($company_name)
                             $total_sqm_basswoodPlus = 0;
                             $total_sqm_basswood = 0;
 
+                            $debug_companies_with_sqm = 0;
                             foreach ($group_companies as $company => $data) {
+                                if (!empty($data['sqm'])) {
+                                    $debug_companies_with_sqm++;
+                                }
                                 $total_sqm += $data['sqm'];
                                 $total_sqm_earth += (float)($data['Earth'] ?? 0);
                                 $total_sqm_ecowood += (float)($data['Ecowood'] ?? 0);
@@ -633,6 +647,13 @@ function get_user_ids_by_billing_company_sqm($company_name)
                                 </tr>
                             <?php
                                 $i++;
+                            }
+                            if (function_exists('my_custom_log')) {
+                                my_custom_log('PORTFOLIO-SQM-TOTALS', wp_json_encode(array(
+                                    'total_sqm' => $total_sqm,
+                                    'companies_total' => count($group_companies),
+                                    'companies_with_sqm' => $debug_companies_with_sqm,
+                                )));
                             }
                             ?>
                         </tbody>

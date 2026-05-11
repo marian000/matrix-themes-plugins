@@ -1,7 +1,4 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
 
 // Define paths to log files in the plugin directory.
 define( 'MY_PLUGIN_LOG_FILE', plugin_dir_path( __DIR__ ) . 'custom-log.txt' );
@@ -217,7 +214,7 @@ function my_custom_log_viewer() {
 				echo '<h2>Checkout Debug Log</h2>';
 				echo '<p class="description">This log captures cart quantity and price discrepancies at checkout. Enable/disable in the <a href="' . esc_url( $base_url . '&tab=settings' ) . '">Settings</a> tab.</p>';
 
-				$checkout_enabled = get_option( 'shutter_log_checkout_enabled', 1 );
+				$checkout_enabled = get_option( 'shutter_log_checkout_enabled', 0 );
 				if ( ! $checkout_enabled ) {
 					echo '<div class="notice notice-info"><p>Checkout logging is currently disabled. '
 						. 'Enable it in the <a href="' . esc_url( $base_url . '&tab=settings' ) . '">Settings</a> tab.</p></div>';
@@ -229,11 +226,7 @@ function my_custom_log_viewer() {
 					file_put_contents( SHUTTER_LOG_CHECKOUT_FILE, '' );
 					// Clear all fingerprint transients.
 					global $wpdb;
-					$wpdb->query( $wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-				'_transient_chk_log_fp_%',
-				'_transient_timeout_chk_log_fp_%'
-			) );
+					$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_chk_log_fp_%' OR option_name LIKE '_transient_timeout_chk_log_fp_%'" );
 					echo '<div class="updated"><p>Checkout logs have been cleared successfully!</p></div>';
 				}
 
@@ -290,7 +283,7 @@ function my_custom_log_viewer() {
 				$current_max_size  = absint( get_option( 'shutter_log_max_size_mb', 3 ) );
 				$current_retention = absint( get_option( 'shutter_log_retention_days', 60 ) );
 				$current_pricing   = intval( get_option( 'shutter_log_pricing_enabled', 0 ) );
-				$current_checkout  = intval( get_option( 'shutter_log_checkout_enabled', 1 ) );
+					$current_checkout  = intval( get_option( 'shutter_log_checkout_enabled', 1 ) );
 
 				echo '<form method="post">';
 				wp_nonce_field( 'shutter_save_log_settings' );
@@ -331,144 +324,54 @@ function my_custom_log_viewer() {
 							<p class="description">When enabled, every price calculation is written to pricing-log.txt with full phase breakdown.</p>
 						</td>
 					</tr>
-					<tr>
-						<th>Enable Checkout Logging</th>
-						<td>
-							<label>
-								<input type="radio" name="log_checkout_enabled" value="1"
-									<?php checked( $current_checkout, 1 ); ?>>
-								Enabled
-							</label>
-							<br>
-							<label>
-								<input type="radio" name="log_checkout_enabled" value="0"
-									<?php checked( $current_checkout, 0 ); ?>>
-								Disabled
-							</label>
-							<p class="description">When enabled, cart contents are logged at checkout to detect price/quantity discrepancies.</p>
-						</td>
-					</tr>
 				</table>
 				<?php
 				echo '<input type="submit" name="save_log_settings" class="button button-primary" value="Save Settings">';
 				echo '</form>';
+
+				// ----- Maintenance: wp_custom_orders dedup -----
+				if ( current_user_can( 'manage_woocommerce' ) ) {
+					global $wpdb;
+					$dup_count = (int) $wpdb->get_var(
+						"SELECT COUNT(*) FROM (
+							SELECT idOrder FROM {$wpdb->prefix}custom_orders
+							WHERE idOrder <> ''
+							GROUP BY idOrder HAVING COUNT(*) > 1
+						) t"
+					);
+					$last_backup = $wpdb->get_var(
+						"SELECT TABLE_NAME FROM information_schema.TABLES
+						 WHERE TABLE_SCHEMA = DATABASE()
+						   AND TABLE_NAME LIKE '{$wpdb->prefix}custom_orders_backup_%'
+						 ORDER BY TABLE_NAME DESC LIMIT 1"
+					);
+
+					echo '<hr style="margin:30px 0">';
+					echo '<h2>Maintenance: wp_custom_orders Dedup</h2>';
+					echo '<table class="form-table shutter-settings-table">';
+					echo '<tr><th>idOrder cu duplicate</th><td><strong>' . intval( $dup_count ) . '</strong></td></tr>';
+					echo '<tr><th>Ultimul backup</th><td>' . ( $last_backup ? '<code>' . esc_html( $last_backup ) . '</code>' : '—' ) . '</td></tr>';
+					echo '</table>';
+
+					if ( $dup_count > 0 ) {
+						$dedup_url = wp_nonce_url(
+							admin_url( '?matrix_dedup_custom_orders=1' ),
+							'matrix_dedup_custom_orders'
+						);
+						echo '<p><a href="' . esc_url( $dedup_url ) . '" class="button button-primary" '
+							. 'onclick="return confirm(\'Backup full + șterge rânduri duplicate (păstrează MAX(id) per idOrder). Continui?\');">'
+							. 'Rulează dedup (cu backup auto)</a></p>';
+						echo '<p class="description">Creează tabela backup <code>' . esc_html( $wpdb->prefix ) . 'custom_orders_backup_YYYYMMDD_HHMMSS</code> înainte de DELETE. '
+							. 'wc-reports SQM total deja de-duplică în query, deci raportarea e corectă fără cleanup. '
+							. 'Cleanup elimină rândurile redundante din DB.</p>';
+					} else {
+						echo '<p style="color:#1d2327"><span class="dashicons dashicons-yes"></span> Nu există rânduri duplicate.</p>';
+					}
+				}
 				break;
 		}
 		?>
 		</div><!-- .shutter-log-tab-content -->
 	</div><!-- .wrap -->
 	<?php
-}
-
-/**
- * Log cart contents at checkout for debugging price/quantity discrepancies.
- *
- * Fires after the order is created but while the cart is still available.
- * Uses a fingerprint transient to prevent duplicate log entries.
- *
- * @since 2.1.0
- */
-add_action( 'woocommerce_checkout_order_processed', 'shutter_log_checkout_cart', 5, 1 );
-function shutter_log_checkout_cart( $order_id ) {
-	if ( ! get_option( 'shutter_log_checkout_enabled', 1 ) ) {
-		return;
-	}
-
-	$cart = WC()->cart;
-	if ( ! $cart || $cart->is_empty() ) {
-		return;
-	}
-
-	$user_id  = get_current_user_id();
-	$user     = get_userdata( $user_id );
-	$username = $user ? $user->user_login : 'guest';
-
-	// Build fingerprint from cart state.
-	$fp_parts = array();
-	foreach ( $cart->get_cart() as $item ) {
-		$fp_parts[] = $item['product_id'] . ':' . $item['quantity'] . ':' . $item['data']->get_price();
-	}
-	$fingerprint = md5( implode( '|', $fp_parts ) . '|' . $user_id . '|' . $order_id );
-
-	// Skip if this exact cart state was already logged recently.
-	$transient_key = 'chk_log_fp_' . substr( $fingerprint, 0, 20 );
-	if ( get_transient( $transient_key ) ) {
-		return;
-	}
-	set_transient( $transient_key, 1, HOUR_IN_SECONDS );
-
-	// Multi-session cart ID.
-	$cart_id = '';
-	if ( function_exists( 'BMC\\WooCommerce\\MultiSession\\customer_id' ) ) {
-		$cart_id = BMC\WooCommerce\MultiSession\customer_id();
-	}
-
-	$date = current_time( 'Y-m-d H:i:s' );
-	$sep  = str_repeat( '-', 100 );
-
-	// Header.
-	$log  = sprintf( "[%s] User: %d (%s) | Order: %d | Cart ID: %s | FP: %s\n",
-		$date, $user_id, $username, $order_id, $cart_id, $fingerprint );
-	$log .= $sep . "\n";
-
-	// Table header.
-	$log .= sprintf( "%-5s| %-13s| %-9s| %-9s| %-13s| %-13s| %-13s| %-14s\n",
-		'#', 'Product ID', 'WC Qty', 'Meta Qty', 'WC Price', 'Meta Price', 'WC Subtotal', 'Running Total' );
-	$log .= str_repeat( '-', 107 ) . "\n";
-
-	$running_total = 0;
-	$meta_total    = 0;
-	$i             = 0;
-
-	foreach ( $cart->get_cart() as $cart_item ) {
-		$i++;
-		$product_id = $cart_item['product_id'];
-		$_product   = $cart_item['data'];
-
-		$wc_qty    = $cart_item['quantity'];
-		$meta_qty  = get_post_meta( $product_id, 'property_count', true );
-		$meta_qty  = ( $meta_qty !== '' && is_numeric( $meta_qty ) ) ? intval( $meta_qty ) : $wc_qty;
-
-		$wc_price   = floatval( $_product->get_price() );
-		$meta_price = floatval( get_post_meta( $product_id, '_price', true ) );
-
-		$wc_subtotal    = $wc_price * $wc_qty;
-		$running_total += $wc_subtotal;
-		$meta_total    += $meta_price * $meta_qty;
-
-		$log .= sprintf( "%-5s| %-13s| %-9s| %-9s| %-13s| %-13s| %-13s| %-14s\n",
-			$i,
-			$product_id,
-			$wc_qty,
-			$meta_qty,
-			number_format( $wc_price, 2 ),
-			number_format( $meta_price, 2 ),
-			number_format( $wc_subtotal, 2 ),
-			number_format( $running_total, 2 )
-		);
-	}
-
-	$log .= $sep . "\n";
-
-	// Compare subtotals (before tax/shipping) for a fair comparison.
-	$wc_subtotal_raw = floatval( $cart->get_subtotal() );
-
-	$log .= sprintf( "WC cart total (amount): £%s\n", number_format( $wc_subtotal_raw, 2 ) );
-	$log .= sprintf( "Items meta total (_price * meta_qty): £%s\n", number_format( $meta_total, 2 ) );
-
-	if ( abs( $wc_subtotal_raw - $meta_total ) < 0.01 ) {
-		$log .= "OK - totals match.\n";
-	} else {
-		$log .= sprintf( "MISMATCH - difference: £%s\n",
-			number_format( abs( $wc_subtotal_raw - $meta_total ), 2 ) );
-	}
-	$log .= "\n";
-
-	// Rotate if needed.
-	if ( file_exists( SHUTTER_LOG_CHECKOUT_FILE ) && filesize( SHUTTER_LOG_CHECKOUT_FILE ) > shutter_get_log_max_size() ) {
-		rename( SHUTTER_LOG_CHECKOUT_FILE, SHUTTER_LOG_CHECKOUT_FILE . '.' . time() . '.bak' );
-		shutter_cleanup_old_bak_files();
-	}
-
-	file_put_contents( SHUTTER_LOG_CHECKOUT_FILE, $log, FILE_APPEND | LOCK_EX );
 }

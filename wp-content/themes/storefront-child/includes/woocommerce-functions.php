@@ -637,9 +637,10 @@ function matrix_add_sqm_to_wc_reports() {
             $end_date = date('Y-m-d');
     }
 
-    // Query total SQM from wp_custom_orders, joined on wp_posts so post_status is
-    // authoritative (wp_custom_orders.status can drift if a sync hook misses an update).
-    // Mirrors the status set used by groups-portfolio-sqm.php so totals align.
+    // Query total SQM. wp_custom_orders has no UNIQUE constraint on idOrder so
+    // recalc / bulk-insert paths can leave duplicate rows per order; the inner
+    // subquery dedupes by taking the highest-id (latest insert) row per order.
+    // wp_posts.post_status is the authoritative status set (mirrors groups-portfolio-sqm.php).
     $post_statuses = array(
         'wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing',
         'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision',
@@ -647,11 +648,20 @@ function matrix_add_sqm_to_wc_reports() {
     $status_placeholders = implode(',', array_fill(0, count($post_statuses), '%s'));
 
     $query = $wpdb->prepare(
-        "SELECT COALESCE(SUM(co.sqm), 0) as total_sqm
-         FROM {$wpdb->prefix}custom_orders co
-         INNER JOIN {$wpdb->posts} p ON p.ID = co.idOrder
-         WHERE DATE(co.createTime) BETWEEN %s AND %s
-         AND p.post_status IN ($status_placeholders)",
+        "SELECT COALESCE(SUM(latest.sqm), 0) as total_sqm
+         FROM (
+             SELECT co.idOrder, co.sqm
+             FROM {$wpdb->prefix}custom_orders co
+             INNER JOIN (
+                 SELECT idOrder, MAX(id) AS max_id
+                 FROM {$wpdb->prefix}custom_orders
+                 GROUP BY idOrder
+             ) latest_ids ON latest_ids.idOrder = co.idOrder AND latest_ids.max_id = co.id
+         ) latest
+         INNER JOIN {$wpdb->posts} p ON p.ID = latest.idOrder
+         WHERE DATE(p.post_date) BETWEEN %s AND %s
+         AND p.post_status IN ($status_placeholders)
+         AND p.post_type = 'shop_order'",
         array_merge([$start_date, $end_date], $post_statuses)
     );
 
@@ -756,4 +766,45 @@ function matrix_backfill_custom_orders_status_once()
             echo '</p></div>';
         });
     }
+}
+
+/**
+ * One-shot cleanup: collapse duplicate wp_custom_orders rows. For each idOrder
+ * with multiple rows, keep the one with MAX(id) (latest insert) and delete
+ * the rest. Without a UNIQUE constraint on idOrder the bulk-insert path leaves
+ * stale rows that double-count in totals.
+ */
+add_action('admin_init', 'matrix_dedup_custom_orders_once');
+function matrix_dedup_custom_orders_once()
+{
+    if (!current_user_can('manage_woocommerce')) {
+        return;
+    }
+    if (get_option('matrix_custom_orders_deduped_v1') === 'yes') {
+        return;
+    }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'custom_orders';
+    $rows = $wpdb->query(
+        "DELETE co1 FROM {$table} co1
+         INNER JOIN (
+             SELECT idOrder, MAX(id) AS keep_id
+             FROM {$table}
+             WHERE idOrder <> ''
+             GROUP BY idOrder
+             HAVING COUNT(*) > 1
+         ) co2 ON co1.idOrder = co2.idOrder
+         WHERE co1.id < co2.keep_id"
+    );
+    $last_error = $wpdb->last_error;
+    matrix_sqm_log('dedup ran. deleted_rows=' . var_export($rows, true) . ' last_error=' . $last_error);
+
+    update_option('matrix_custom_orders_deduped_v1', 'yes', false);
+
+    add_action('admin_notices', function () use ($rows) {
+        echo '<div class="notice notice-success is-dismissible"><p>';
+        echo 'Matrix: șterse ' . intval($rows) . ' rânduri duplicate din wp_custom_orders.';
+        echo '</p></div>';
+    });
 }

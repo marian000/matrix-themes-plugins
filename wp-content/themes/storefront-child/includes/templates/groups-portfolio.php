@@ -398,10 +398,10 @@ function get_user_ids_by_billing_company($company_name)
 
         // Build date range: start of from_month to end of to_month
         // Strict month bounds: first day of from_month → last day of to_month.
-        // Previous code used day=0 (last day of previous month) which leaked an
-        // extra day on each side and inflated the range vs wc-reports.
-        $date_after  = date('Y-m-d', mktime(0, 0, 0, $from_month, 1, $from_year));
-        $date_before = date('Y-m-d', mktime(23, 59, 59, $to_month, (int) date('t', strtotime("$to_year-$to_month-01")), $to_year));
+        // Full datetime strings + inclusive=true because WP_Date_Query treats
+        // bare date strings as exclusive, silently dropping the boundary days.
+        $date_after  = date('Y-m-d H:i:s', mktime(0, 0, 0, $from_month, 1, $from_year));
+        $date_before = date('Y-m-d H:i:s', mktime(23, 59, 59, $to_month, (int) date('t', strtotime("$to_year-$to_month-01")), $to_year));
 
         $args = array(
             'customer_id' => $group,
@@ -410,8 +410,11 @@ function get_user_ids_by_billing_company($company_name)
             'status' => array('wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing', 'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision'),
             'orderby' => 'date',
             'date_query' => array(
-                'after' => $date_after,
-                'before' => $date_before,
+                array(
+                    'after'     => $date_after,
+                    'before'    => $date_before,
+                    'inclusive' => true,
+                ),
             ),
             'return' => 'ids',
         );

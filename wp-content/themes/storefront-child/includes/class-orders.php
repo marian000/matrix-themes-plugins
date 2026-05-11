@@ -19,7 +19,7 @@ class OrdersCustom
 		if ($table_exists !== $table_name) {
 			$sql = "CREATE TABLE `{$table_name}` (
                 id INT NOT NULL AUTO_INCREMENT,
-                idOrder varchar(255) DEFAULT '' NOT NULL,
+                idOrder varchar(20) DEFAULT '' NOT NULL,
                 reference varchar(100) DEFAULT '' NOT NULL,
                 usd_price DECIMAL(10,2) DEFAULT 0.00 NOT NULL,
                 gbp_price DECIMAL(10,2) DEFAULT 0.00 NOT NULL,

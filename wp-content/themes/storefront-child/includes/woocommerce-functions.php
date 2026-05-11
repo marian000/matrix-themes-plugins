@@ -890,9 +890,21 @@ function matrix_add_custom_orders_unique_key_once()
     $wpdb->query("ALTER TABLE {$table} DROP INDEX idx_idOrder");
     $drop_err = $wpdb->last_error;
 
-    $ok = $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY uk_idOrder (idOrder)");
+    // Step 1: shrink idOrder so the UNIQUE index fits the 1000-byte limit on
+    // utf8mb4 (varchar(255) * 4 = 1020 bytes). idOrder always holds numeric
+    // post IDs, so varchar(20) is plenty.
+    $shrink = $wpdb->query("ALTER TABLE {$table} MODIFY idOrder VARCHAR(20) NOT NULL DEFAULT ''");
+    $shrink_err = $wpdb->last_error;
+
+    // Step 2: add the UNIQUE key. If shrink failed for any reason, fall back
+    // to a prefix UNIQUE on the original column width.
+    if ($shrink !== false && $shrink_err === '') {
+        $ok = $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY uk_idOrder (idOrder)");
+    } else {
+        $ok = $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY uk_idOrder (idOrder(190))");
+    }
     $alter_err = $wpdb->last_error;
-    matrix_sqm_log("unique key apply: ok=" . var_export($ok, true) . " drop_idx_err={$drop_err} alter_err={$alter_err}");
+    matrix_sqm_log("unique key apply: ok=" . var_export($ok, true) . " drop_idx_err={$drop_err} shrink_err={$shrink_err} alter_err={$alter_err}");
 
     if ($ok !== false && $alter_err === '') {
         update_option('matrix_custom_orders_unique_v1', 'yes', false);

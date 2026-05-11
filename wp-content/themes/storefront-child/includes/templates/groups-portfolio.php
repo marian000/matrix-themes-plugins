@@ -701,11 +701,11 @@ function get_user_ids_by_billing_company($company_name)
                                     <td>
                                         <!-- Butonul deschide un modal cu detaliile utilizatorului -->
                                         <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                                            data-bs-name="<?php echo esc_html($company); ?>"
-                                            data-bs-phone="<?php echo esc_html($phone_number); ?>"
-                                            data-bs-postcode="<?php echo esc_html($shipping_address['postcode']); ?>"
+                                            data-bs-name="<?php echo esc_attr((string)($company ?? '')); ?>"
+                                            data-bs-phone="<?php echo esc_attr((string)($phone_number ?? '')); ?>"
+                                            data-bs-postcode="<?php echo esc_attr((string)($shipping_address['postcode'] ?? '')); ?>"
                                             data-bs-dealer="<?php echo esc_attr($user_id); ?>"
-                                            data-bs-address="<?php echo esc_html($shipping_address['address_1']); ?>">
+                                            data-bs-address="<?php echo esc_attr((string)($shipping_address['address_1'] ?? '')); ?>">
                                             <?php echo esc_html($company); ?>
                                         </button>
                                     </td>
@@ -783,7 +783,18 @@ for ($i = 11; $i >= 0; $i--) {
 ?>
 
 <script>
+    console.log('[groups-portfolio] script loaded');
     jQuery(document).ready(function() {
+        console.log('[groups-portfolio] ready fired');
+
+        // Cache commonly used DOM elements to optimize performance
+        var exampleModal = jQuery('#exampleModal');
+        var messageText = jQuery('#message-text');
+        var dealerIdField = jQuery('#dealer-id');
+        var dealerNotesNonce = '<?php echo wp_create_nonce('matrix_dealer_notes'); ?>';
+        var ajaxUrl = (typeof _wpUtilSettings !== 'undefined' && _wpUtilSettings.ajax && _wpUtilSettings.ajax.url)
+            ? _wpUtilSettings.ajax.url
+            : (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
 
         // Quick date preset buttons
         jQuery('.date-preset').on('click', function() {
@@ -797,62 +808,70 @@ for ($i = 11; $i >= 0; $i--) {
             btn.removeClass('btn-outline-secondary').addClass('btn-primary');
         });
 
-        // Initialize DataTable with export buttons
-        jQuery('#grup-portfolio-table').DataTable({
-            paging: false,
-            dom: 'Bfrtip',
-            buttons: ['copy', 'csv', 'excel', 'print'],
-            order: [
-                [2, 'desc']
-            ],
-            columnDefs: [{
-                targets: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-                className: 'text-end'
-            }]
+        // Initialize DataTable (guarded — DataTable may not be loaded in admin)
+        try {
+            if (jQuery.fn.DataTable) {
+                jQuery('#grup-portfolio-table').DataTable({
+                    paging: false,
+                    dom: 'Bfrtip',
+                    buttons: ['copy', 'csv', 'excel', 'print'],
+                    order: [
+                        [2, 'desc']
+                    ],
+                    columnDefs: [{
+                        targets: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                        className: 'text-end'
+                    }]
+                });
+            } else {
+                console.warn('[groups-portfolio] DataTable plugin not loaded');
+            }
+        } catch (e) {
+            console.error('[groups-portfolio] DataTable init failed', e);
+        }
+
+        // Populate modal BEFORE Bootstrap opens it. Delegated on document so DataTable
+        // redraws / dynamic rows still match. Reads via native getAttribute to bypass
+        // any jQuery .data() cache or Bootstrap dataset parsing quirks.
+        function populateDealerModal(buttonEl) {
+            if (!buttonEl) return;
+            var name = buttonEl.getAttribute('data-bs-name') || '';
+            var phone = buttonEl.getAttribute('data-bs-phone') || '';
+            var address = buttonEl.getAttribute('data-bs-address') || '';
+            var dealerId = buttonEl.getAttribute('data-bs-dealer') || '';
+            var postcode = buttonEl.getAttribute('data-bs-postcode') || '';
+
+            console.log('[dealer-modal]', { name: name, phone: phone, address: address, dealerId: dealerId, postcode: postcode });
+
+            var modal = jQuery('#exampleModal');
+            modal.find('.dealer-name').text(name);
+            modal.find('.dealer-phone').text(phone);
+            modal.find('.dealer-postcode').text(postcode);
+            modal.find('.dealer-address').text(address);
+
+            modal.find('.modal-title').text('Notes for ' + name);
+            modal.find('.modal-body input#dealer-name').val(name);
+            modal.find('.modal-body input#dealer-phone').val(phone);
+            modal.find('.modal-body input#dealer-postcode').val(postcode);
+            modal.find('.modal-body input#dealer-address').val(address);
+            modal.find('.modal-body input#dealer-id').val(dealerId);
+
+            jQuery('.user-message').remove();
+            if (dealerId) {
+                fetchMessages(dealerId);
+            }
+        }
+
+        // Primary: delegated click before Bootstrap opens modal
+        jQuery(document).on('click', '[data-bs-target="#exampleModal"]', function() {
+            populateDealerModal(this);
         });
 
-        // Cache commonly used DOM elements to optimize performance
-        var exampleModal = jQuery('#exampleModal');
-        var messageText = jQuery('#message-text');
-        var dealerIdField = jQuery('#dealer-id');
-
-        // Event listener for when the modal is about to be shown
+        // Fallback: Bootstrap show event (in case click handler missed it)
         jQuery('#exampleModal').on('show.bs.modal', function(event) {
-            // Button that triggered the modal
-            var button = jQuery(event.relatedTarget);
-
-            // Extract info from data-bs-* attributes
-            var name = button.data('bs-name'); // Using jQuery's .data() method
-            var phone = button.data('bs-phone'); // Using jQuery's .data() method
-            var address = button.data('bs-address'); // Using jQuery's .data() method
-            var dealerId = button.data('bs-dealer'); // Using jQuery's .data() method
-            var postcode = button.data('bs-postcode'); // Using jQuery's .data() method
-            console.log('dealerId', dealerId);
-
-            // insert into span
-            jQuery('.dealer-name').text(name);
-            jQuery('.dealer-phone').text(phone);
-            jQuery('.dealer-postcode').text(postcode);
-            jQuery('.dealer-address').text(address);
-
-            // Update the modal's content.
-            var modalTitle = jQuery(this).find('.modal-title');
-            var modalBodyInput = jQuery(this).find('.modal-body input#dealer-name');
-            var modalBodyInputPhone = jQuery(this).find('.modal-body input#dealer-phone');
-            var modalBodyInputPostcode = jQuery(this).find('.modal-body input#dealer-postcode');
-            var modalBodyInputAddress = jQuery(this).find('.modal-body input#dealer-address');
-            var modalBodyInputId = jQuery(this).find('.modal-body input#dealer-id');
-
-            modalTitle.text('Notes for ' + name); // Using .text() to update title
-            modalBodyInput.val(name); // Using .val() to update input's value
-            modalBodyInputPhone.val(phone); // Using .val() to update input's value
-            modalBodyInputPostcode.val(postcode); // Using .val() to update input's value
-            modalBodyInputAddress.val(address); // Using .val() to update input's value
-            modalBodyInputId.val(dealerId); // Using .val() to update input's value
-
-            // Clear any existing messages from previous uses of the modal and fetch new ones
-            jQuery('.user-message').remove();
-            fetchMessages(dealerId);
+            if (event.relatedTarget) {
+                populateDealerModal(event.relatedTarget);
+            }
         });
 
         // Event listener for when the 'Send Message' button is clicked
@@ -868,11 +887,12 @@ for ($i = 11; $i >= 0; $i--) {
         // Function to fetch messages for a given dealer and update the modal
         function fetchMessages(dealerId) {
             jQuery.ajax({
-                url: _wpUtilSettings.ajax.url, // URL from WP AJAX setup
+                url: ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'get_user_messages', // WP AJAX action
-                    user_id: dealerId // User/dealer ID for whom messages are fetched
+                    action: 'get_user_messages',
+                    user_id: dealerId,
+                    nonce: dealerNotesNonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -895,7 +915,8 @@ for ($i = 11; $i >= 0; $i--) {
                 data: {
                     action: 'save_user_message', // WP AJAX action
                     user_id: dealerId, // Dealer ID
-                    message: message // Message text
+                    message: message, // Message text
+                    nonce: dealerNotesNonce
                 },
                 success: function(response) {
                     if (response.success) {

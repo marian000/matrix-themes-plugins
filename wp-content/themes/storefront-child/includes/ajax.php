@@ -573,37 +573,52 @@ function container_list_status()
 add_action('wp_ajax_save_user_message', 'save_user_message_callback');
 
 function save_user_message_callback() {
-	$user_id = $_POST['user_id'];
-	$message = sanitize_text_field($_POST['message']);
+	check_ajax_referer('matrix_dealer_notes', 'nonce');
 
-	// Get the current array of messages or initialize a new one
+	if (!current_user_can('manage_woocommerce')) {
+		wp_send_json_error('forbidden', 403);
+	}
+
+	$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+	$message = isset($_POST['message']) ? sanitize_text_field(wp_unslash($_POST['message'])) : '';
+
+	if ($user_id <= 0 || !get_userdata($user_id)) {
+		wp_send_json_error('invalid_user', 400);
+	}
+	if ($message === '') {
+		wp_send_json_error('empty_message', 400);
+	}
+
 	$messages = get_user_meta($user_id, 'user_messages', true);
-	if (empty($messages)) {
+	if (empty($messages) || !is_array($messages)) {
 		$messages = [];
 	}
 
-	// Append new message
-	$messages[] = date('Y-m-d H:i') . ' - ' .$message;
-
-	// Save the updated array back to user meta
+	$messages[] = date('Y-m-d H:i') . ' - ' . $message;
 	update_user_meta($user_id, 'user_messages', $messages);
 
-	$data = array(
+	wp_send_json_success(array(
 		'user_id' => $user_id,
 		'message' => $message,
-		'date' => date('Y-m-d H:i:s')
-	);
-
-	wp_send_json_success($data);
+		'date'    => date('Y-m-d H:i:s'),
+	));
 }
 
 add_action('wp_ajax_get_user_messages', 'get_user_messages_callback');
 
 function get_user_messages_callback() {
-	$user_id = intval($_POST['user_id']);
-	// Get messages from user meta or wherever they are stored
-	$messages = get_user_meta($user_id, 'user_messages', true) ?: [];
+	check_ajax_referer('matrix_dealer_notes', 'nonce');
 
+	if (!current_user_can('manage_woocommerce')) {
+		wp_send_json_error('forbidden', 403);
+	}
+
+	$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+	if ($user_id <= 0) {
+		wp_send_json_error('invalid_user', 400);
+	}
+
+	$messages = get_user_meta($user_id, 'user_messages', true) ?: [];
 	wp_send_json_success($messages);
 }
 

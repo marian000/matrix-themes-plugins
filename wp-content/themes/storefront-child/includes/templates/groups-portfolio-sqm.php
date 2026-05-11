@@ -607,11 +607,11 @@ function get_user_ids_by_billing_company_sqm($company_name)
                                     <td><?php echo $i; ?></td>
                                     <td>
                                         <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#exampleModal"
-                                            data-bs-name="<?php echo esc_html($company); ?>"
-                                            data-bs-phone="<?php echo esc_html($phone_number); ?>"
-                                            data-bs-postcode="<?php echo esc_html($shipping_address['postcode']); ?>"
+                                            data-bs-name="<?php echo esc_attr((string)($company ?? '')); ?>"
+                                            data-bs-phone="<?php echo esc_attr((string)($phone_number ?? '')); ?>"
+                                            data-bs-postcode="<?php echo esc_attr((string)($shipping_address['postcode'] ?? '')); ?>"
                                             data-bs-dealer="<?php echo esc_attr($user_id); ?>"
-                                            data-bs-address="<?php echo esc_html($shipping_address['address_1']); ?>">
+                                            data-bs-address="<?php echo esc_attr((string)($shipping_address['address_1'] ?? '')); ?>">
                                             <?php echo esc_html($company); ?>
                                         </button>
                                     </td>
@@ -722,30 +722,44 @@ function get_user_ids_by_billing_company_sqm($company_name)
         var exampleModal = jQuery('#exampleModal');
         var messageText = jQuery('#message-text');
         var dealerIdField = jQuery('#dealer-id');
+        var dealerNotesNonce = '<?php echo wp_create_nonce('matrix_dealer_notes'); ?>';
 
-        jQuery('#exampleModal').on('show.bs.modal', function(event) {
-            var button = jQuery(event.relatedTarget);
-            var name = button.data('bs-name');
-            var phone = button.data('bs-phone');
-            var address = button.data('bs-address');
-            var dealerId = button.data('bs-dealer');
-            var postcode = button.data('bs-postcode');
+        function populateDealerModal(buttonEl) {
+            if (!buttonEl) return;
+            var name = buttonEl.getAttribute('data-bs-name') || '';
+            var phone = buttonEl.getAttribute('data-bs-phone') || '';
+            var address = buttonEl.getAttribute('data-bs-address') || '';
+            var dealerId = buttonEl.getAttribute('data-bs-dealer') || '';
+            var postcode = buttonEl.getAttribute('data-bs-postcode') || '';
 
-            jQuery('.dealer-name').text(name);
-            jQuery('.dealer-phone').text(phone);
-            jQuery('.dealer-postcode').text(postcode);
-            jQuery('.dealer-address').text(address);
+            console.log('[dealer-modal]', { name: name, phone: phone, address: address, dealerId: dealerId, postcode: postcode });
 
-            var modalTitle = jQuery(this).find('.modal-title');
-            jQuery(this).find('.modal-body input#dealer-name').val(name);
-            jQuery(this).find('.modal-body input#dealer-phone').val(phone);
-            jQuery(this).find('.modal-body input#dealer-postcode').val(postcode);
-            jQuery(this).find('.modal-body input#dealer-address').val(address);
-            jQuery(this).find('.modal-body input#dealer-id').val(dealerId);
-            modalTitle.text('Notes for ' + name);
+            var modal = jQuery('#exampleModal');
+            modal.find('.dealer-name').text(name);
+            modal.find('.dealer-phone').text(phone);
+            modal.find('.dealer-postcode').text(postcode);
+            modal.find('.dealer-address').text(address);
+            modal.find('.modal-title').text('Notes for ' + name);
+            modal.find('.modal-body input#dealer-name').val(name);
+            modal.find('.modal-body input#dealer-phone').val(phone);
+            modal.find('.modal-body input#dealer-postcode').val(postcode);
+            modal.find('.modal-body input#dealer-address').val(address);
+            modal.find('.modal-body input#dealer-id').val(dealerId);
 
             jQuery('.user-message').remove();
-            fetchMessages(dealerId);
+            if (dealerId) {
+                fetchMessages(dealerId);
+            }
+        }
+
+        jQuery(document).on('click', '[data-bs-target="#exampleModal"]', function() {
+            populateDealerModal(this);
+        });
+
+        jQuery('#exampleModal').on('show.bs.modal', function(event) {
+            if (event.relatedTarget) {
+                populateDealerModal(event.relatedTarget);
+            }
         });
 
         jQuery('.btn-primary.send-notes').click(function() {
@@ -763,7 +777,8 @@ function get_user_ids_by_billing_company_sqm($company_name)
                 type: 'POST',
                 data: {
                     action: 'get_user_messages',
-                    user_id: dealerId
+                    user_id: dealerId,
+                    nonce: dealerNotesNonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -780,7 +795,8 @@ function get_user_ids_by_billing_company_sqm($company_name)
                 data: {
                     action: 'save_user_message',
                     user_id: dealerId,
-                    message: message
+                    message: message,
+                    nonce: dealerNotesNonce
                 },
                 success: function(response) {
                     if (response.success) {

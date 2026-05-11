@@ -769,24 +769,42 @@ function matrix_backfill_custom_orders_status_once()
 }
 
 /**
- * One-shot cleanup: collapse duplicate wp_custom_orders rows. For each idOrder
- * with multiple rows, keep the one with MAX(id) (latest insert) and delete
- * the rest. Without a UNIQUE constraint on idOrder the bulk-insert path leaves
- * stale rows that double-count in totals.
+ * Manual dedup tool. Backs up the full table to a dated backup table FIRST,
+ * then deletes older duplicate rows (keeps MAX(id) per idOrder).
+ *
+ * Trigger ONLY when an admin visits:
+ *   /wp-admin/?matrix_dedup_custom_orders=1
+ * Requires manage_woocommerce + WP nonce (action: matrix_dedup_custom_orders).
+ * Does NOT auto-run — destructive, must be invoked explicitly.
  */
-add_action('admin_init', 'matrix_dedup_custom_orders_once');
-function matrix_dedup_custom_orders_once()
+add_action('admin_init', 'matrix_dedup_custom_orders_handler');
+function matrix_dedup_custom_orders_handler()
 {
+    if (empty($_GET['matrix_dedup_custom_orders'])) {
+        return;
+    }
     if (!current_user_can('manage_woocommerce')) {
-        return;
+        wp_die('Forbidden');
     }
-    if (get_option('matrix_custom_orders_deduped_v1') === 'yes') {
-        return;
-    }
+    check_admin_referer('matrix_dedup_custom_orders');
 
     global $wpdb;
-    $table = $wpdb->prefix . 'custom_orders';
-    $rows = $wpdb->query(
+    $table  = $wpdb->prefix . 'custom_orders';
+    $backup = $wpdb->prefix . 'custom_orders_backup_' . date('Ymd_His');
+
+    // 1. Backup full table.
+    $wpdb->query("CREATE TABLE {$backup} LIKE {$table}");
+    if ($wpdb->last_error) {
+        wp_die('Backup table create failed: ' . esc_html($wpdb->last_error));
+    }
+    $wpdb->query("INSERT INTO {$backup} SELECT * FROM {$table}");
+    if ($wpdb->last_error) {
+        wp_die('Backup copy failed: ' . esc_html($wpdb->last_error));
+    }
+    $backup_count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$backup}");
+
+    // 2. Delete duplicate (older) rows.
+    $deleted = $wpdb->query(
         "DELETE co1 FROM {$table} co1
          INNER JOIN (
              SELECT idOrder, MAX(id) AS keep_id
@@ -798,13 +816,26 @@ function matrix_dedup_custom_orders_once()
          WHERE co1.id < co2.keep_id"
     );
     $last_error = $wpdb->last_error;
-    matrix_sqm_log('dedup ran. deleted_rows=' . var_export($rows, true) . ' last_error=' . $last_error);
+    matrix_sqm_log("dedup manual: backup={$backup} backup_count={$backup_count} deleted=" . var_export($deleted, true) . " err={$last_error}");
 
     update_option('matrix_custom_orders_deduped_v1', 'yes', false);
 
-    add_action('admin_notices', function () use ($rows) {
-        echo '<div class="notice notice-success is-dismissible"><p>';
-        echo 'Matrix: șterse ' . intval($rows) . ' rânduri duplicate din wp_custom_orders.';
-        echo '</p></div>';
-    });
+    wp_safe_redirect(add_query_arg(array(
+        'matrix_dedup_done' => 1,
+        'deleted'           => intval($deleted),
+        'backup'            => $backup,
+    ), admin_url()));
+    exit;
+}
+
+add_action('admin_notices', 'matrix_dedup_custom_orders_notice');
+function matrix_dedup_custom_orders_notice()
+{
+    if (empty($_GET['matrix_dedup_done'])) {
+        return;
+    }
+    echo '<div class="notice notice-success is-dismissible"><p>';
+    echo 'Matrix dedup OK. Șterse: <strong>' . intval($_GET['deleted'] ?? 0) . '</strong> rânduri. ';
+    echo 'Backup salvat în tabela <code>' . esc_html($_GET['backup'] ?? '') . '</code>.';
+    echo '</p></div>';
 }

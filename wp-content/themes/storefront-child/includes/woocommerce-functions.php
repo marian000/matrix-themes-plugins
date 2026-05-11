@@ -588,13 +588,25 @@ function wpa83368_price_html($price, $product)
 }
 
 
+/**
+ * Lightweight logger — writes to error_log and to my_custom_log when available.
+ */
+function matrix_sqm_log($msg) {
+    error_log('[MATRIX-SQM] ' . $msg);
+    if (function_exists('my_custom_log')) {
+        my_custom_log('MATRIX-SQM', $msg);
+    }
+}
+
 // Add Total SQM to WooCommerce Reports page
 add_action('admin_footer', 'matrix_add_sqm_to_wc_reports');
 function matrix_add_sqm_to_wc_reports() {
     $screen = get_current_screen();
+    matrix_sqm_log('admin_footer fired. screen=' . ($screen ? $screen->id : 'null'));
     if (!$screen || $screen->id !== 'woocommerce_page_wc-reports') {
         return;
     }
+    matrix_sqm_log('on wc-reports screen, building SQM query');
 
     global $wpdb;
 
@@ -644,6 +656,10 @@ function matrix_add_sqm_to_wc_reports() {
     );
 
     $total_sqm = $wpdb->get_var($query);
+    matrix_sqm_log('range=' . $range . ' start=' . $start_date . ' end=' . $end_date . ' total_sqm=' . $total_sqm . ' query=' . preg_replace('/\s+/', ' ', $query));
+    if ($wpdb->last_error) {
+        matrix_sqm_log('DB ERROR: ' . $wpdb->last_error);
+    }
     $total_sqm = number_format(floatval($total_sqm), 2);
 
     ?>
@@ -675,13 +691,14 @@ add_action('woocommerce_order_status_changed', 'matrix_sync_custom_order_status'
 function matrix_sync_custom_order_status($order_id, $from_status, $to_status, $order = null)
 {
     global $wpdb;
-    $wpdb->update(
+    $rows = $wpdb->update(
         $wpdb->prefix . 'custom_orders',
         array('status' => $to_status),
         array('idOrder' => (int) $order_id),
         array('%s'),
         array('%d')
     );
+    matrix_sqm_log("status_changed order=$order_id from=$from_status to=$to_status updated_rows=" . var_export($rows, true));
 }
 
 /**
@@ -728,6 +745,7 @@ function matrix_backfill_custom_orders_status_once()
          WHERE co.status <> REPLACE(p.post_status, 'wc-', '')
            AND p.post_type = 'shop_order'"
     );
+    matrix_sqm_log('backfill ran. affected_rows=' . var_export($rows, true) . ' last_error=' . $wpdb->last_error);
 
     update_option('matrix_custom_orders_status_backfilled_v1', 'yes', false);
 

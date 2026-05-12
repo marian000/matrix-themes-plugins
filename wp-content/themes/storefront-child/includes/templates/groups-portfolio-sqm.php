@@ -633,7 +633,11 @@ function get_user_ids_by_billing_company_sqm($company_name)
                                 $shipping_address = array(
                                     'address_1' => get_user_meta($user_id, 'shipping_address_1', true),
                                     'postcode' => get_user_meta($user_id, 'shipping_postcode', true),
+                                    'first_name' => get_user_meta($user_id, 'shipping_first_name', true),
+                                    'last_name' => get_user_meta($user_id, 'shipping_last_name', true),
                                 );
+                                $user_obj = get_userdata($user_id);
+                                $user_email = $user_obj ? $user_obj->user_email : '';
                             ?>
                                 <tr<?php echo ($data['sqm'] == 0) ? ' class="grup-row-empty"' : ''; ?>>
                                     <td><?php echo $i; ?></td>
@@ -643,6 +647,9 @@ function get_user_ids_by_billing_company_sqm($company_name)
                                             data-bs-phone="<?php echo esc_attr((string)($phone_number ?? '')); ?>"
                                             data-bs-postcode="<?php echo esc_attr((string)($shipping_address['postcode'] ?? '')); ?>"
                                             data-bs-dealer="<?php echo esc_attr($user_id); ?>"
+                                            data-bs-firstname="<?php echo esc_attr((string)($shipping_address['first_name'] ?? '')); ?>"
+                                            data-bs-lastname="<?php echo esc_attr((string)($shipping_address['last_name'] ?? '')); ?>"
+                                            data-bs-email="<?php echo esc_attr((string)$user_email); ?>"
                                             data-bs-address="<?php echo esc_attr((string)($shipping_address['address_1'] ?? '')); ?>">
                                             <?php echo esc_html($company); ?>
                                         </button>
@@ -784,19 +791,28 @@ function get_user_ids_by_billing_company_sqm($company_name)
             var address = buttonEl.getAttribute('data-bs-address') || '';
             var dealerId = buttonEl.getAttribute('data-bs-dealer') || '';
             var postcode = buttonEl.getAttribute('data-bs-postcode') || '';
+            var firstName = buttonEl.getAttribute('data-bs-firstname') || '';
+            var lastName = buttonEl.getAttribute('data-bs-lastname') || '';
+            var email = buttonEl.getAttribute('data-bs-email') || '';
 
-            console.log('[dealer-modal]', { name: name, phone: phone, address: address, dealerId: dealerId, postcode: postcode });
+            console.log('[dealer-modal]', { name: name, phone: phone, address: address, dealerId: dealerId, postcode: postcode, firstName: firstName, lastName: lastName, email: email });
 
             var modal = jQuery('#exampleModal');
             modal.find('.dealer-name').text(name);
             modal.find('.dealer-phone').text(phone);
             modal.find('.dealer-postcode').text(postcode);
             modal.find('.dealer-address').text(address);
+            modal.find('.dealer-firstname').text(firstName);
+            modal.find('.dealer-lastname').text(lastName);
+            modal.find('.dealer-email').text(email);
             modal.find('.modal-title').text('Notes for ' + name);
             modal.find('.modal-body input#dealer-name').val(name);
             modal.find('.modal-body input#dealer-phone').val(phone);
             modal.find('.modal-body input#dealer-postcode').val(postcode);
             modal.find('.modal-body input#dealer-address').val(address);
+            modal.find('.modal-body input#dealer-firstname').val(firstName);
+            modal.find('.modal-body input#dealer-lastname').val(lastName);
+            modal.find('.modal-body input#dealer-email').val(email);
             modal.find('.modal-body input#dealer-id').val(dealerId);
 
             jQuery('.user-message').remove();
@@ -902,6 +918,21 @@ function get_user_ids_by_billing_company_sqm($company_name)
                                 <label class="form-label fw-semibold mb-0">Postcode</label>
                                 <span class="d-block dealer-postcode text-muted"></span>
                                 <input type="hidden" class="form-control" id="dealer-postcode">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold mb-0">First Name</label>
+                                <span class="d-block dealer-firstname text-muted"></span>
+                                <input type="hidden" class="form-control" id="dealer-firstname">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold mb-0">Last Name</label>
+                                <span class="d-block dealer-lastname text-muted"></span>
+                                <input type="hidden" class="form-control" id="dealer-lastname">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold mb-0">Email</label>
+                                <span class="d-block dealer-email text-muted"></span>
+                                <input type="hidden" class="form-control" id="dealer-email">
                             </div>
                         </div>
                     </div>

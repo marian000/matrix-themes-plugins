@@ -1027,11 +1027,33 @@ function recalculate_order_render_menu_meta_box()
 		return;
 	}
 
+	$is_awning = function_exists('matrix_order_is_awning') && matrix_order_is_awning($order);
+
 	$sea_freight = get_post_meta($order_id, 'order_train', true);
-	$subtotal = $order->get_subtotal();
-	$vat = $order->get_total_tax();
 	$shipping = $order->get_shipping_total();
-	$total = $order->get_total();
+	$usd_total = 0;
+	$sqm_total = 0;
+
+	if ($is_awning) {
+		// Awning: derive from immutable line-item meta (same source the recalc and
+		// the view-order table use), so the box shows the true values even when the
+		// stored WC totals are still stale (e.g. £100 dummy) before recalc runs.
+		$subtotal = 0;
+		foreach ($order->get_items() as $item_data) {
+			$qty = $item_data->get_quantity();
+			$subtotal  += floatval($item_data->get_meta('final_price_uk', true)) * $qty;
+			$usd_total += floatval($item_data->get_meta('final_price_china', true)) * $qty;
+			$sqm_total += floatval($item_data->get_meta('awning_sqm', true)) * $qty;
+		}
+		$country  = $order->get_shipping_country() ?: $order->get_billing_country();
+		$vat_rate = in_array($country, array('GB', 'IE'), true) ? 0.20 : 0;
+		$vat      = ($subtotal * $vat_rate) + floatval($order->get_shipping_tax());
+		$total    = $subtotal + $vat + floatval($shipping);
+	} else {
+		$subtotal = $order->get_subtotal();
+		$vat = $order->get_total_tax();
+		$total = $order->get_total();
+	}
 
 	// Get current train price per sqm from first product with price_item_train
 	$train_price_per_sqm = 0;
@@ -1060,6 +1082,16 @@ function recalculate_order_render_menu_meta_box()
         <td style="padding:4px 0;"><strong>Subtotal:</strong></td>
         <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($subtotal), 2)); ?></td>
       </tr>
+<?php if ($is_awning) : ?>
+      <tr>
+        <td style="padding:4px 0;"><strong>SQM:</strong></td>
+        <td style="padding:4px 0; text-align:right;"><?php echo esc_html(number_format($sqm_total, 3)); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;"><strong>Total $:</strong></td>
+        <td style="padding:4px 0; text-align:right;">$<?php echo esc_html(number_format($usd_total, 2)); ?></td>
+      </tr>
+<?php else : ?>
       <tr>
         <td style="padding:4px 0;"><strong>Sea Freight:</strong></td>
         <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($sea_freight), 2)); ?></td>
@@ -1070,6 +1102,7 @@ function recalculate_order_render_menu_meta_box()
           <input type="number" id="recalculate-train-price" value="<?php echo esc_attr(number_format($train_price_per_sqm, 2, '.', '')); ?>" step="0.01" min="0" style="width:80px; text-align:right;">
         </td>
       </tr>
+<?php endif; ?>
       <tr>
         <td style="padding:4px 0;"><strong>VAT:</strong></td>
         <td style="padding:4px 0; text-align:right;">&pound;<?php echo esc_html(number_format(floatval($vat), 2)); ?></td>
@@ -1085,6 +1118,10 @@ function recalculate_order_render_menu_meta_box()
     </table>
     <input type="hidden" id="recalculate-order-id" value="<?php echo esc_attr($order_id); ?>">
     <input type="hidden" id="recalculate-order-nonce" value="<?php echo esc_attr(wp_create_nonce('matrix_recalculate_order_nonce')); ?>">
+<?php if ($is_awning) : ?>
+    <?php // Awning shares one dummy product; train/sea-freight not applicable. Keep input so the recalc JS still finds it. ?>
+    <input type="hidden" id="recalculate-train-price" value="0">
+<?php endif; ?>
     <button type="button" class="button button-primary button-large" id="recalculate-order-btn" style="width:100%;">Recalculate Order</button>
   </div>
 

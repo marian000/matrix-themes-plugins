@@ -1745,3 +1745,37 @@ function add_type_order_meta_to_awning_order($order, $data)
 	}
 }
 
+/**
+ * Detectează dacă o comandă este de tip awning.
+ *
+ * Sursă primară: meta comenzii `type_order = 'awning'` (setată la checkout de
+ * add_type_order_meta_to_awning_order). Fallback: prezența meta-ului
+ * `final_price_uk` pe orice line-item — semnalul folosit și de recalc
+ * (matrix_recalculate_order_totals_and_update_custom_table) — pentru comenzile
+ * create înainte ca meta `type_order` să fie scrisă sau prin fluxuri non-checkout.
+ *
+ * @param WC_Order|int $order Obiect comandă sau ID.
+ * @return bool
+ */
+function matrix_order_is_awning($order)
+{
+	if (!is_a($order, 'WC_Order')) {
+		$order = wc_get_order($order);
+	}
+	if (!$order) {
+		return false;
+	}
+
+	if ($order->get_meta('type_order') === 'awning') {
+		return true;
+	}
+
+	foreach ($order->get_items() as $item) {
+		if ($item->get_meta('final_price_uk', true) !== '') {
+			return true;
+		}
+	}
+
+	return false;
+}
+

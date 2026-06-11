@@ -663,8 +663,12 @@ function matrix_recalculate_order_ajax_handler()
 		wp_die();
 	}
 
-	// If a new train price per sqm was provided, update all order products
-	if (isset($_POST['train_price']) && is_numeric($_POST['train_price'])) {
+	// If a new train price per sqm was provided, update all order products.
+	// Skip for awning orders: they share a single dummy "awning product", so
+	// writing price_item_train on its product_id would pollute every awning
+	// order, and the recalc skips sea-freight for awning anyway (no effect).
+	$is_awning = function_exists('matrix_order_is_awning') && matrix_order_is_awning($order);
+	if (!$is_awning && isset($_POST['train_price']) && is_numeric($_POST['train_price'])) {
 		$new_train_price = floatval($_POST['train_price']);
 		$items = $order->get_items();
 		foreach ($items as $item_data) {

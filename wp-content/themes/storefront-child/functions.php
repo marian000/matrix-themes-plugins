@@ -1129,18 +1129,29 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 		// $quantity_meta = get_post_meta($product_id, 'quantity', true); // Logica originală citea meta 'quantity' a produsului! NU a itemului comenzii. Folosim cantitatea itemului.
 		$item_quantity = $item_data->get_quantity();
 
+		// Detectează item-ele awning (produs dummy partajat). Prețul real e stocat în
+		// meta item-ului ('final_price_uk'), NU în prețul produsului de bază.
+		$awning_final_price = $item_data->get_meta('final_price_uk', true);
+		$is_awning = ($awning_final_price !== '' && $awning_final_price !== null);
+
 		// Prețul de bază al produsului
 		// Folosim prețul produsului direct, nu meta. Poate fi preț normal sau de vânzare.
 		// $price_meta = get_post_meta($product_id, '_price', true); // Logica originală citea meta '_price'. Folosim prețul curent.
-		$base_price = floatval($_product->get_price());
-
-		// Metraj pătrat (SQM)
-		$sqm = floatval(get_post_meta($product_id, 'property_total', true));
+		// Pentru awning folosim final_price_uk + awning_sqm din meta item-ului.
+		if ($is_awning) {
+			$base_price = floatval($awning_final_price);
+			$sqm = floatval($item_data->get_meta('awning_sqm', true));
+		} else {
+			$base_price = floatval($_product->get_price());
+			$sqm = floatval(get_post_meta($product_id, 'property_total', true));
+		}
 
 		// Preț transport 'tren'
+		// Awning: prețul afișat (final_price_uk) e prețul final, fără freight separat,
+		// deci NU adăugăm tren — altfel footer-ul nu mai corespunde cu liniile afișate.
 		$train_price_per_sqm = 0;
 		$item_train_price_total = 0;
-		if ($sqm > 0 && $user_id_customer > 0) { // Prețul tren se aplică doar dacă avem SQM și client logat?
+		if (!$is_awning && $sqm > 0 && $user_id_customer > 0) { // Prețul tren se aplică doar dacă avem SQM și client logat?
 
 			// MODIFICARE: Verifică mai întâi dacă există preț train original salvat în primul produs
 			$original_train_price = null;
@@ -1178,8 +1189,10 @@ function matrix_recalculate_order_totals_and_update_custom_table($order_id)
 			}
 		}
 
-		// Preț în USD (din meta produs)
-		$dolar_price = floatval(get_post_meta($product_id, 'dolar_price', true));
+		// Preț în USD (din meta produs; pentru awning din meta item-ului)
+		$dolar_price = $is_awning
+		  ? floatval($item_data->get_meta('final_price_china', true))
+		  : floatval(get_post_meta($product_id, 'dolar_price', true));
 
 		// --- Calculează valorile pentru linia curentă ---
 		$line_subtotal_gbp = ($base_price * $item_quantity) + $item_train_price_total;

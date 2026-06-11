@@ -22,7 +22,9 @@ if (!defined('ABSPATH')) {
 
 $post_order_no_csv = 0;
 $j = 0;
-$awning = false;
+// Comenzile awning trebuie să trimită CSV-ul awning, nu cel de shutter (table_csv_shc).
+// type_order='awning' e setat la checkout de add_type_order_meta_to_awning_order().
+$awning = ($order && get_post_meta($order->get_id(), 'type_order', true) === 'awning');
 ?>
 
 <div class="woocommerce-order">

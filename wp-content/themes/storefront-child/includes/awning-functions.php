@@ -310,6 +310,23 @@ function my_awning_settings_page_html()
 
 add_action('wp_ajax_add_custom_awning', 'add_custom_awning_handler');
 
+/**
+ * Setează prețul custom al unui item awning în coș pe baza 'custom_price'.
+ * Atașat temporar la 'woocommerce_add_cart_item' de handlerele de add/update.
+ * Declarată o singură dată la top-level pentru a evita "Cannot redeclare".
+ *
+ * @param array  $cart_item     Datele item-ului din coș.
+ * @param string $cart_item_key Cheia item-ului.
+ * @return array
+ */
+function awnings_set_custom_price($cart_item, $cart_item_key)
+{
+	if (isset($cart_item['custom_price']) && $cart_item['custom_price'] !== '') {
+		$cart_item['data']->set_price(floatval($cart_item['custom_price']));
+	}
+	return $cart_item;
+}
+
 function add_custom_awning_handler()
 {
 
@@ -375,14 +392,6 @@ function add_custom_awning_handler()
 
 // Adăugăm un filtru temporar pentru a seta prețul custom în coș
 	add_filter('woocommerce_add_cart_item', 'awnings_set_custom_price', 10, 2);
-	function awnings_set_custom_price($cart_item, $cart_item_key)
-	{
-		if (isset($cart_item['custom_price'])) {
-			$cart_item['data']->set_price(floatval($cart_item['custom_price']));
-		}
-		return $cart_item;
-	}
-
 
 	// Adăugăm produsul în coș
 	$added = WC()->cart->add_to_cart($product_id, 1, 0, array(), $cart_item_data);
@@ -457,14 +466,6 @@ function update_awning_item_handler()
 
 	// Add a temporary filter to update the cart item price based on custom_price.
 	add_filter('woocommerce_add_cart_item', 'awnings_set_custom_price', 10, 2);
-	function awnings_set_custom_price($cart_item, $cart_item_key)
-	{
-		if (isset($cart_item['custom_price']) && $cart_item['custom_price'] !== '') {
-			$cart_item['data']->set_price(floatval($cart_item['custom_price']));
-		}
-		return $cart_item;
-	}
-
 
 	// Opțional: înregistrează în log datele actualizate pentru debugging
 	error_log('Updated data: ' . print_r($updated_data, true));
@@ -792,9 +793,13 @@ function awning_order_table_shortcode($atts)
                             <div>Wind &amp; Rain Sensor: <?php echo esc_html($sensor); ?></div>
 						<?php endif; ?>
                     </td>
-                    <td><?php echo wc_price($price_uk ? $price_uk : $unit_price); ?></td>
+					<?php
+					$awning_unit_price = $price_uk ? floatval($price_uk) : floatval($unit_price);
+					$awning_line_total = $awning_unit_price * intval($product_qty);
+					?>
+                    <td><?php echo wc_price($awning_unit_price); ?></td>
                     <td><?php echo esc_html($product_qty); ?></td>
-                    <td><?php echo wc_price($price_uk); ?></td>
+                    <td><?php echo wc_price($awning_line_total); ?></td>
                 </tr>
 				<?php
 				$i++;

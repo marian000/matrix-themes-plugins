@@ -22,6 +22,12 @@ $order_data = $order->get_data();
 
 $i = 0;
 $atributes = get_post_meta(1, 'attributes_array_csv', true);
+
+// Harta culorilor de fabrică pentru decodare (color meta stochează cheia, nu numele)
+$awning_option = get_option('my_awning_settings_option');
+$factory_colors = (!empty($awning_option['factory_colors_json']))
+  ? json_decode($awning_option['factory_colors_json'], true)
+  : array();
 //print_r($atributes);
 //Iterating through each "line" items in the order
 
@@ -117,6 +123,10 @@ ob_start();
 		$meta_values = array();
 		foreach ($meta_keys as $key => $label) {
 			$meta_values[$key] = $item->get_meta($key);
+		}
+		// Decodează cheia culorii în numele citibil (ca în tabelul de comandă)
+		if (!empty($meta_values['color']) && isset($factory_colors[$meta_values['color']])) {
+			$meta_values['color'] = $factory_colors[$meta_values['color']];
 		}
 		?>
         <tr data-id="<?php echo esc_attr($item_id); ?>">

@@ -24,7 +24,9 @@ $post_order_no_csv = 0;
 $j = 0;
 // Comenzile awning trebuie să trimită CSV-ul awning, nu cel de shutter (table_csv_shc).
 // type_order='awning' e setat la checkout de add_type_order_meta_to_awning_order().
-$awning = ($order && get_post_meta($order->get_id(), 'type_order', true) === 'awning');
+// Folosim $order->get_meta() (nu get_post_meta) ca să meargă și sub HPOS — meta e
+// scrisă tot prin abstracția WC (update_meta_data).
+$awning = ($order && $order->get_meta('type_order') === 'awning');
 ?>
 
 <div class="woocommerce-order">

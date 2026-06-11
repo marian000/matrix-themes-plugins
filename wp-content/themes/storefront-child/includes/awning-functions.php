@@ -815,10 +815,13 @@ function awning_order_table_shortcode($atts)
 			// (care pot fi corupte la £100/produs pentru comenzi vechi neresalvate).
 			$awning_shipping_total = floatval($order_data['shipping_total']);
 			$awning_shipping_tax   = floatval($order->get_shipping_tax());
-			$awning_country        = $order->get_shipping_country();
+			// Țara pentru TVA: shipping, cu fallback pe billing (comenzi fără adresă de
+			// livrare / taxare după billing) — altfel VAT/Gross ar afișa 0 eronat.
+			$awning_country        = $order->get_shipping_country() ?: $order->get_billing_country();
 			$awning_vat_rate       = in_array($awning_country, array('GB', 'IE'), true) ? 0.20 : 0;
-			$awning_vat            = $awning_calc_subtotal * $awning_vat_rate;
-			$awning_gross          = $awning_calc_subtotal + $awning_vat + $awning_shipping_total + $awning_shipping_tax;
+			// VAT afișat include și taxa pe transport, ca rândurile să se reconcilieze cu Gross.
+			$awning_vat            = ($awning_calc_subtotal * $awning_vat_rate) + $awning_shipping_tax;
+			$awning_gross          = $awning_calc_subtotal + $awning_vat + $awning_shipping_total;
 			?>
             <tfooter>
                 <tr class="table-totals">

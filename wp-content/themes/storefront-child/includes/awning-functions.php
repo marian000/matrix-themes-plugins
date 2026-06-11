@@ -717,6 +717,10 @@ function awning_order_table_shortcode($atts)
             <tbody>
 			<?php
 			$i = 1;
+			// Subtotalul calculat din liniile afișate (final_price_uk * qty).
+			// Nu ne bazăm pe $order->get_subtotal() — poate fi corupt în DB pentru
+			// comenzi plasate înainte de fix sau editate prin fluxuri ce nu rulează recalc.
+			$awning_calc_subtotal = 0;
 			// Verificăm dacă comanda are item-uri
 			$items = $order->get_items();
 			if (empty($items)) {
@@ -796,6 +800,7 @@ function awning_order_table_shortcode($atts)
 					<?php
 					$awning_unit_price = $price_uk ? floatval($price_uk) : floatval($unit_price);
 					$awning_line_total = $awning_unit_price * intval($product_qty);
+					$awning_calc_subtotal += $awning_line_total;
 					?>
                     <td><?php echo wc_price($awning_unit_price); ?></td>
                     <td><?php echo esc_html($product_qty); ?></td>
@@ -805,6 +810,15 @@ function awning_order_table_shortcode($atts)
 				$i++;
 			}
 			$order_data = $order->get_data(); // The Order data
+
+			// Totaluri calculate din liniile afișate, nu din valorile stocate
+			// (care pot fi corupte la £100/produs pentru comenzi vechi neresalvate).
+			$awning_shipping_total = floatval($order_data['shipping_total']);
+			$awning_shipping_tax   = floatval($order->get_shipping_tax());
+			$awning_country        = $order->get_shipping_country();
+			$awning_vat_rate       = in_array($awning_country, array('GB', 'IE'), true) ? 0.20 : 0;
+			$awning_vat            = $awning_calc_subtotal * $awning_vat_rate;
+			$awning_gross          = $awning_calc_subtotal + $awning_vat + $awning_shipping_total + $awning_shipping_tax;
 			?>
             <tfooter>
                 <tr class="table-totals">
@@ -812,7 +826,7 @@ function awning_order_table_shortcode($atts)
                     </td>
                     <td id="total_box" class="amount">
 						<?php
-						echo '£' . number_format((double)$order->get_subtotal(), 2);
+						echo '£' . number_format($awning_calc_subtotal, 2);
 						?>
                     </td>
                 </tr>
@@ -820,16 +834,16 @@ function awning_order_table_shortcode($atts)
                     <td colspan="4" style="text-align:right">Local delivery :</td>
                     <!--                <td class="amount">$-->
                     <!--</td>-->
-                    <td class="amount">£<?php echo number_format($order_data['shipping_total'], 2) ?></td>
+                    <td class="amount">£<?php echo number_format($awning_shipping_total, 2) ?></td>
                 </tr>
                 <tr class="table-totals">
                     <td colspan="4" style="text-align:right">VAT:</td>
-                    <td class="amount">£<?php echo number_format($order_data['total_tax'], 2); ?></td>
+                    <td class="amount">£<?php echo number_format($awning_vat, 2); ?></td>
                 </tr>
                 <tr class="table-totals">
                     <td colspan="4" style="text-align:right"><strong>Gross Total:</strong></td>
                     <td class="amount">
-                        <strong>£<?php echo number_format((double)$order->get_total(), 2); ?></strong>
+                        <strong>£<?php echo number_format($awning_gross, 2); ?></strong>
                     </td>
                 </tr>
             </tfooter>

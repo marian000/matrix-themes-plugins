@@ -50,7 +50,13 @@
 <div class="show_tabble">
     <div id="external-csv" class="show_tabble" style="overflow: auto; ">
         <?php
-            echo do_shortcode('[table_csv_shc order_id="' . get_the_id() . '" table_id="example" table_class="table table-striped shortcode" admin="true" editable="false" ]');
+            $csv_order_id  = get_the_id();
+            $csv_order     = wc_get_order($csv_order_id);
+            $csv_is_awning = ($csv_order && $csv_order->get_meta('type_order') === 'awning');
+
+            echo do_shortcode($csv_is_awning
+              ? '[table_csv_awning order_id="' . $csv_order_id . '" table_id="example" table_class="table table-striped shortcode" admin="true" editable="false" ]'
+              : '[table_csv_shc order_id="'   . $csv_order_id . '" table_id="example" table_class="table table-striped shortcode" admin="true" editable="false" ]');
         ?>
     </div>
 </div>

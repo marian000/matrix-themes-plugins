@@ -6,55 +6,17 @@ jQuery.noConflict();
             // ========== START - customize some properties by user =========
             var idCustomer = null;
             var idDealer = null;
-            var selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"6\"]}";
+            var selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"147\",\"6\"]}";
 
             idCustomer = jQuery('input[name="customer_id"]').val();
             idDealer = jQuery('input[name="dealer_id"]').val();
 
             // "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\"]}",
             if (idCustomer == 274 || idDealer == 274) {
-                selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"6\"]}"
+                selectedPropertyValuesEcowood = "{\"property_field\":\"18\",\"property_value_ids\":[\"188\",\"147\",\"6\"]}"
             }
             // console.log('idCustomer ', idCustomer);
             // console.log('selectedPropertyValuesEcowood ', selectedPropertyValuesEcowood);
-
-
-            var showBiowood = {};
-            // console.log('Show Biowood:', my_showBiowood_object.showBiowood);
-            if (my_showBiowood_object.showBiowood === 'yes') {
-                showBiowood = {
-                    "id": 6,
-                    "property_id": 18,
-                    "value": "Biowood",
-                    "created_at": "2015-10-19T20:31:50.000+01:00",
-                    "updated_at": "2015-11-08T19:36:15.000+00:00",
-                    "code": "paulownia",
-                    "uplift": "0.0",
-                    "color": "",
-                    "all_products": true,
-                    "selected_products": "{\"product_ids\":null}",
-                    "all_property_values": true,
-                    "selected_property_values": "{\"property_field\":null,\"property_value_ids\":null}",
-                    "graphic": "none",
-                    "image_file_name": null,
-                    "image_content_type": null,
-                    "image_file_size": null,
-                    "image_updated_at": null,
-                    "is_active": true,
-                    "property": {
-                        "id": 18,
-                        "name": "Material",
-                        "created_at": "2015-10-19T20:30:37.000+01:00",
-                        "updated_at": "2015-10-19T21:47:55.000+01:00",
-                        "code": "material",
-                        "sort": 0,
-                        "help_text": "",
-                        "input_type": "select"
-                    }
-                };
-            }
-
-            // ========== END - customize some properties by user =========
 
 
             function format(item) {
@@ -500,6 +462,37 @@ jQuery.noConflict();
                     "id": 411,
                     "property_id": 17,
                     "value": "Frosted White",
+                    "created_at": "2015-09-26T01:28:40.000+01:00",
+                    "updated_at": "2015-09-26T01:28:40.000+01:00",
+                    "code": "",
+                    "uplift": "0.0",
+                    "color": "",
+                    "all_products": true,
+                    "selected_products": "{\"product_ids\":null}",
+                    "all_property_values": false,
+                    "selected_property_values": selectedPropertyValuesEcowood,
+                    //"selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"188\"]}",
+                    "graphic": "none",
+                    "image_file_name": null,
+                    "image_content_type": null,
+                    "image_file_size": null,
+                    "image_updated_at": null,
+                    "is_active": true,
+                    "property": {
+                        "id": 16,
+                        "name": "Control Type",
+                        "created_at": "2015-09-26T01:25:55.000+01:00",
+                        "updated_at": "2015-09-26T01:25:55.000+01:00",
+                        "code": "controltype",
+                        "sort": null,
+                        "help_text": "",
+                        "input_type": "select"
+                    }
+                }
+                , {
+                    "id": 463,
+                    "property_id": 17,
+                    "value": "Warm White",
                     "created_at": "2015-09-26T01:28:40.000+01:00",
                     "updated_at": "2015-09-26T01:28:40.000+01:00",
                     "code": "",

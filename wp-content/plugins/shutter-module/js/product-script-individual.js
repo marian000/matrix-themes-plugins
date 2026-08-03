@@ -22,78 +22,6 @@ jQuery.noConflict();
           // ========== END - customize some properties by user =========
 
 
-        var showBiowood = {};
-        console.log('Show Biowood:', my_showBiowood_object.showBiowood);
-        if (my_showBiowood_object.showBiowood === 'yes') {
-            showBiowood = {
-                "id": 6,
-                "property_id": 18,
-                "value": "Biowood",
-                "created_at": "2015-10-19T20:31:50.000+01:00",
-                "updated_at": "2015-11-08T19:36:15.000+00:00",
-                "code": "paulownia",
-                "uplift": "0.0",
-                "color": "",
-                "all_products": true,
-                "selected_products": "{\"product_ids\":null}",
-                "all_property_values": true,
-                "selected_property_values": "{\"property_field\":null,\"property_value_ids\":null}",
-                "graphic": "none",
-                "image_file_name": null,
-                "image_content_type": null,
-                "image_file_size": null,
-                "image_updated_at": null,
-                "is_active": true,
-                "property": {
-                    "id": 18,
-                    "name": "Material",
-                    "created_at": "2015-10-19T20:30:37.000+01:00",
-                    "updated_at": "2015-10-19T21:47:55.000+01:00",
-                    "code": "material",
-                    "sort": 0,
-                    "help_text": "",
-                    "input_type": "select"
-                }
-            };
-        }
-
-        // ========== END - customize some properties by user =========
-
-        var showBasswood = {};
-        console.log('Show Basswood:', my_showBiowood_object.showBasswood);
-        if (my_showBiowood_object.showBasswood === 'yes') {
-            showBasswood = {
-                "id": 147,
-                "property_id": 18,
-                "value": "Basswood",
-                "created_at": "2015-10-19T20:32:01.000+01:00",
-                "updated_at": "2015-10-19T20:32:01.000+01:00",
-                "code": "basswood",
-                "uplift": "0.0",
-                "color": "",
-                "all_products": true,
-                "selected_products": "{\"product_ids\":null}",
-                "all_property_values": true,
-                "selected_property_values": "{\"property_field\":null,\"property_value_ids\":null}",
-                "graphic": "none",
-                "image_file_name": null,
-                "image_content_type": null,
-                "image_file_size": null,
-                "image_updated_at": null,
-                "is_active": true,
-                "property": {
-                    "id": 18,
-                    "name": "Material",
-                    "created_at": "2015-10-19T20:30:37.000+01:00",
-                    "updated_at": "2015-10-19T21:47:55.000+01:00",
-                    "code": "material",
-                    "sort": 0,
-                    "help_text": "",
-                    "input_type": "select"
-                }
-            }
-        }
-
         function getPropertyCodeById(id) {
             code = '';
             for (i = 0; i < property_fields.length; i++) {
@@ -213,8 +141,62 @@ jQuery.noConflict();
             return data;
         }
 
+        //fields whose value must stay valid for the selected material
+        var SM_FILTER_READY = false;
+        var SM_GUARDED_FIELDS = ['property_shuttercolour'];
+
+        //check if a value is still present in a filtered list of property values
+        function smValueInList(val, values) {
+            if (val === '' || val === null || typeof val === 'undefined') return true;
+            for (var i = 0; i < values.length; i++) {
+                if (String(values[i].id) === String(val)) return true;
+            }
+            return false;
+        }
+
+        //a guarded field only counts when it is present and visible on the page
+        function smIsFieldInUse(id) {
+            //presence only: a collapsed accordion panel makes the field ":hidden"
+            //even though it is part of the configuration and gets submitted
+            return $('#' + id).length > 0;
+        }
+
+        //check a guarded field against the currently selected material
+        function smIsGuardedFieldValid(id) {
+            var material_val = $('#property_material').val();
+            if (!material_val) return true;
+
+            var material_field_id = getPropertyIdByCode('property_material');
+            var field_id = getPropertyIdByCode(id);
+            var allowed = getRelatedFieldData(field_id, material_field_id, material_val);
+
+            return smValueInList($('#' + id).val(), allowed);
+        }
+
+        function smMarkInvalid(id, msg) {
+            $('span.error-text.sm-mismatch[data-for="' + id + '"]').remove();
+            var $el = $('#' + id);
+            var $c = $el.prev('.select2-container');
+            //flag survives the value being cleared, so the submit guard still blocks
+            $el.attr('data-sm-invalid', '1');
+            if ($.fn.collapse) $el.closest('.panel').find('.panel-collapse').collapse('show');
+            ($c.length ? $c : $el).addClass('error-field');
+            $('<span class="error-text sm-mismatch" data-for="' + id + '">' + msg + '</span>')
+                .insertAfter($c.length ? $c : $el);
+        }
+
+        function smClearInvalid(id) {
+            $('span.error-text.sm-mismatch[data-for="' + id + '"]').remove();
+            $('#' + id).removeAttr('data-sm-invalid')
+                .removeClass('error-field').prev('.select2-container').removeClass('error-field');
+        }
+
         function loadItems(property_code, values) {
-            $('#' + property_code).select2({
+            var $el = $('#' + property_code);
+            var guarded = SM_FILTER_READY && SM_GUARDED_FIELDS.indexOf(property_code) > -1;
+            var wasValid = guarded ? smValueInList($el.val(), values) : true;
+
+            $el.select2({
                 data: {
                     results: values,
                     text: 'name'
@@ -226,6 +208,16 @@ jQuery.noConflict();
                     return m;
                 }
             });
+
+            if (!guarded) return;
+
+            if (wasValid) {
+                smClearInvalid(property_code);
+            } else {
+                //select2 v3 keeps the old value when it is missing from the new list
+                $el.select2('val', '');
+                smMarkInvalid(property_code, 'Not available for the selected Material — please choose again.');
+            }
         }
 
 
@@ -1790,7 +1782,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"61\",\"307\",\"323\",\"62\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"216\",\"322\",\"59\",\"300\",\"303\",\"305\",\"320\",\"305\",\"320\",\"173\",\"141\",\"60\",\"306\",\"308\",\"311\",\"150\",\"309\",\"312\",\"63\",\"217\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"61\",\"307\",\"323\",\"62\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"216\",\"322\",\"59\",\"300\",\"303\",\"305\",\"320\",\"305\",\"320\",\"173\",\"141\",\"60\",\"306\",\"308\",\"311\",\"150\",\"309\",\"312\",\"63\",\"217\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1848,7 +1840,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\",\"420\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1906,7 +1898,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -1966,7 +1958,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2024,7 +2016,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\",\"420\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2053,7 +2045,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2113,7 +2105,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2171,7 +2163,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\",\"420\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2200,7 +2192,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2260,7 +2252,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2318,7 +2310,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"142\",\"67\",\"326\",\"66\",\"315\",\"316\",\"317\",\"329\",\"64\",\"314\",\"325\",\"328\",\"140\",\"65\",\"301\",\"302\",\"303\",\"324\",\"327\",\"352\",\"420\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -2376,7 +2368,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
+                "selected_property_values": "{\"property_field\":\"10\",\"property_value_ids\":[\"143\",\"144\",\"142\",\"307\",\"323\",\"310\",\"313\",\"420\",\"318\",\"319\",\"462\",\"321\",\"322\",\"300\",\"303\",\"305\",\"320\",\"306\",\"308\",\"311\",\"309\",\"312\",\"326\",\"315\",\"316\",\"317\",\"329\",\"314\",\"325\",\"328\",\"301\",\"302\",\"324\",\"327\",\"330\",\"331\",\"332\",\"351\",\"352\",\"353\",\"333\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -3075,7 +3067,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4209,7 +4201,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4238,7 +4230,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4267,7 +4259,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4296,7 +4288,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4325,7 +4317,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4354,7 +4346,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4383,7 +4375,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4412,7 +4404,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4441,7 +4433,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4470,7 +4462,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"137\",\"5\",\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4499,7 +4491,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4528,7 +4520,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4557,7 +4549,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4586,7 +4578,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4615,7 +4607,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4644,7 +4636,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4673,7 +4665,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4702,7 +4694,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4731,7 +4723,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\",\"138\",\"137\",\"5\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"138\",\"137\",\"5\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4760,7 +4752,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4789,7 +4781,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4818,7 +4810,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4847,7 +4839,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4876,7 +4868,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4905,7 +4897,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4934,7 +4926,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4963,7 +4955,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -4992,7 +4984,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5021,7 +5013,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5050,7 +5042,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5079,7 +5071,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5108,7 +5100,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5137,7 +5129,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5166,7 +5158,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5195,7 +5187,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5224,7 +5216,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5253,7 +5245,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5282,7 +5274,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -5311,7 +5303,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\",\"147\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
                 "graphic": "none",
                 "image_file_name": null,
                 "image_content_type": null,
@@ -6710,7 +6702,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4001A.png",
                 "image_content_type": "image/jpeg",
@@ -6739,7 +6731,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4007A.png",
                 "image_content_type": "image/jpeg",
@@ -6768,7 +6760,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4008A.png",
                 "image_content_type": "image/jpeg",
@@ -6797,7 +6789,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4001B.png",
                 "image_content_type": "image/jpeg",
@@ -6826,7 +6818,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4007B.png",
                 "image_content_type": "image/jpeg",
@@ -6855,7 +6847,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4008B.png",
                 "image_content_type": "image/jpeg",
@@ -6884,7 +6876,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4001C.png",
                 "image_content_type": "image/jpeg",
@@ -6913,7 +6905,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4007C.png",
                 "image_content_type": "image/jpeg",
@@ -6942,7 +6934,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "40078C.png",
                 "image_content_type": "image/jpeg",
@@ -6972,7 +6964,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "40078C.png",
                 "image_content_type": "image/jpeg",
@@ -7002,7 +6994,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4003.png",
                 "image_content_type": "image/jpeg",
@@ -7031,7 +7023,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4004.png",
                 "image_content_type": "image/jpeg",
@@ -7265,7 +7257,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4022B.png",
                 "image_content_type": "image/jpeg",
@@ -7323,7 +7315,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4009.png",
                 "image_content_type": "image/jpeg",
@@ -7352,7 +7344,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4013.png",
                 "image_content_type": "image/jpeg",
@@ -7381,7 +7373,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4014.png",
                 "image_content_type": "image/jpeg",
@@ -7410,7 +7402,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\", \"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\", \"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4008T.png",
                 "image_content_type": "image/jpeg",
@@ -7439,7 +7431,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4008T.png",
                 "image_content_type": "image/jpeg",
@@ -7468,7 +7460,7 @@ jQuery.noConflict();
                 "all_products": true,
                 "selected_products": "{\"product_ids\":null}",
                 "all_property_values": false,
-                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"139\"]}",
+                "selected_property_values": "{\"property_field\":\"18\",\"property_value_ids\":[\"138\",\"139\",\"147\"]}",
                 "graphic": "image",
                 "image_file_name": "4028B.png",
                 "image_content_type": "image/jpeg",
@@ -8680,7 +8672,7 @@ jQuery.noConflict();
             },  {
                 "id": 403,
                 "property_id": 16,
-                "value": "Concealed tilt",
+                "value": "Concealed tilt(+5%)",
                 "created_at": "2015-09-26T01:28:40.000+01:00",
                 "updated_at": "2015-09-26T01:28:40.000+01:00",
                 "code": "",
@@ -9312,6 +9304,37 @@ jQuery.noConflict();
             dropdownAutoWidth: true
         });
 
+        //enable the material/colour guard only after the whole synchronous init is done,
+        //so saved values are not wiped while the page is being built in edit mode
+        setTimeout(function () {
+            SM_FILTER_READY = true;
+        }, 0);
+
+        //block submit when a guarded field does not match the selected material.
+        //capture phase: runs before the jQuery handlers bound in custom-scripts.js
+        var sm_form = document.getElementById('add-product-single-form');
+        if (sm_form) {
+            sm_form.addEventListener('click', function (ev) {
+                var $btn = $(ev.target).closest('.update-btn, .update-btn-admin, .btn-success');
+                if (!$btn.length) return;
+
+                for (var i = 0; i < SM_GUARDED_FIELDS.length; i++) {
+                    var fid = SM_GUARDED_FIELDS[i];
+                    if (!smIsFieldInUse(fid)) continue;
+                    if ($('#' + fid).attr('data-sm-invalid') === '1' || !smIsGuardedFieldValid(fid)) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        smMarkInvalid(fid, 'Not available for the selected Material.');
+                        showErrorModal(
+                            'Shutter Colour',
+                            'Selected Shutter Colour is not available for the chosen Material. Please select a valid colour.'
+                        );
+                        return;
+                    }
+                }
+            }, true);
+        }
+
         $("#property_height").change(function () {
             console.log('change width 2');
             calculateTotalSection();
@@ -9372,6 +9395,10 @@ jQuery.noConflict();
                         }
                     }
                 }
+            }
+
+            if (smIsGuardedFieldValid('property_shuttercolour')) {
+                smClearInvalid('property_shuttercolour');
             }
         });
 
@@ -10733,7 +10760,7 @@ jQuery.noConflict();
             $(element).find(".extra-column-label" + sec + "").html(label);
             $(element).find("input").remove();
             if (character === 'b') {
-                $(element).find(".extra-column-label" + sec + "").append("<select id='buildout-select' name='bay-post-type'><option value='normal'>Normal</option><option value='flexible'>Flexible</option></select>");
+                $(element).find(".extra-column-label" + sec + "").append("<select id='buildout-select' name='bay-post-type'><option value='normal'>Normal</option><option value='slim'>Slim</option><option value='flexible'>Flexible</option></select>");
             } else if (character === 't') {
                 $(element).find(".extra-column-label" + sec + "").append("<select id='buildout-select-t" + sec + "'  name='t-post-type" + sec + "'><option value='normal'>Normal</option><option value='adjustable'>Adjustable</option></select>");
             }

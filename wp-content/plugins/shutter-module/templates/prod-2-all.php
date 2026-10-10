@@ -1601,7 +1601,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="FS 50.8"
                                                                        data-title="41mm 1001M(plain butt)"
 
-                                                                       value="376" <?php if ($property_stile == '376' && $material == 6) {
+                                                                       value="376" <?php if ($property_stile == '376' && $material == 147) {
 
 																	echo "checked";
 																} ?> />
@@ -1619,7 +1619,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="DFS 50.8"
                                                                        data-title="41mm 1005M(plain D-mould)"
 
-                                                                       value="377" <?php if ($property_stile == '377' && $material == 6) {
+                                                                       value="377" <?php if ($property_stile == '377' && $material == 147) {
 
 																	echo "checked";
 																} ?> />
@@ -1637,7 +1637,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="RFS 50.8"
                                                                        data-title="41mm 1003M(plain rebate)"
 
-                                                                       value="378" <?php if ($property_stile == '378' && $material == 6) {
+                                                                       value="378" <?php if ($property_stile == '378' && $material == 147) {
 
 																	echo "checked";
 																} ?> />
@@ -1649,12 +1649,66 @@ if (!empty($_GET['id'])) {
 
                                                             <label>
 
+                                                                <br/> 41mm 1002M<br/>(beaded butt)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1002M (beaded butt)"
+
+                                                                       value="459" <?php if ($property_stile == '459' && $material == 147) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-4"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1002M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 41mm 1004M<br/>(beaded rebate)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1004M (beaded rebate)"
+
+                                                                       value="460" <?php if ($property_stile == '460' && $material == 147) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-5"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1004M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 41mm 1006M<br/>(beaded D-mould)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1006M (beaded D-mould)"
+
+                                                                       value="461" <?php if ($property_stile == '461' && $material == 147) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1006M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
                                                                 <br/> 51mm 1001B<br/>( plain butt)
 
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="FS 50.8"
                                                                        data-title="51mm 1001B( plain butt)"
-                                                                       value="355" <?php if ($property_stile == '355' && ($material == 139 || $material == 147)) {
+                                                                       value="355" <?php if ($property_stile == '355' && $material == 147) {
 
 																	echo "checked";
 																} ?> />
@@ -1671,7 +1725,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="DFS 50.8"
                                                                        data-title="51mm 1005B(plain D-mould)"
-                                                                       value="356" <?php if ($property_stile == '356' && ($material == 139 || $material == 147)
+                                                                       value="356" <?php if ($property_stile == '356' && $material == 147
 
 																) {
 
@@ -1690,7 +1744,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="RFS 50.8"
                                                                        data-title="51mm 1003B(plain rebate)"
-                                                                       value="360" <?php if ($property_stile == '360' && ($material == 139 || $material == 147)
+                                                                       value="360" <?php if ($property_stile == '360' && $material == 147
 
 																) {
 
@@ -1709,7 +1763,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="BS 50.8"
                                                                        data-title="51mm 1002B(beaded butt)"
-                                                                       value="357" <?php if ($property_stile == '357' && ($material == 139 || $material == 147)
+                                                                       value="357" <?php if ($property_stile == '357' && $material == 147
 
 																) {
 
@@ -1728,7 +1782,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="DBS 50.8"
                                                                        data-title="51mm 1006B(beaded D-mould)"
-                                                                       value="358" <?php if ($property_stile == '358' && ($material == 139 || $material == 147)
+                                                                       value="358" <?php if ($property_stile == '358' && $material == 147
 
 																) {
 
@@ -1747,7 +1801,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="RBS 50.8"
                                                                        data-title="51mm 1004B(beaded rebate)"
-                                                                       value="359" <?php if ($property_stile == '359' && ($material == 139 || $material == 147)
+                                                                       value="359" <?php if ($property_stile == '359' && $material == 147
 
 																) {
 
@@ -1774,7 +1828,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="FS 50.8"
                                                                        data-title="41mm 1001M(plain butt)"
 
-                                                                       value="376" <?php if ($property_stile == '376' && $material == 6) {
+                                                                       value="376" <?php if ($property_stile == '376' && $material == 139) {
 
 																	echo "checked";
 																} ?> />
@@ -1792,7 +1846,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="DFS 50.8"
                                                                        data-title="41mm 1005M(plain D-mould)"
 
-                                                                       value="377" <?php if ($property_stile == '377' && $material == 6) {
+                                                                       value="377" <?php if ($property_stile == '377' && $material == 139) {
 
 																	echo "checked";
 																} ?> />
@@ -1810,7 +1864,7 @@ if (!empty($_GET['id'])) {
                                                                        data-code="RFS 50.8"
                                                                        data-title="41mm 1003M(plain rebate)"
 
-                                                                       value="378" <?php if ($property_stile == '378' && $material == 6) {
+                                                                       value="378" <?php if ($property_stile == '378' && $material == 139) {
 
 																	echo "checked";
 																} ?> />
@@ -1822,12 +1876,66 @@ if (!empty($_GET['id'])) {
 
                                                             <label>
 
+                                                                <br/> 41mm 1002M<br/>(beaded butt)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1002M (beaded butt)"
+
+                                                                       value="459" <?php if ($property_stile == '459' && $material == 139) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-4"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1002M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 41mm 1004M<br/>(beaded rebate)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1004M (beaded rebate)"
+
+                                                                       value="460" <?php if ($property_stile == '460' && $material == 139) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-5"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1004M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
+                                                                <br/> 41mm 1006M<br/>(beaded D-mould)
+
+                                                                <input type="radio" name="property_stile"
+                                                                       data-code="RFS 50.8"
+                                                                       data-title="41mm 1006M (beaded D-mould)"
+
+                                                                       value="461" <?php if ($property_stile == '461' && $material == 139) {
+
+																	echo "checked";
+																} ?> />
+
+                                                                <img class="stile-6"
+                                                                     src="/wp-content/plugins/shutter-module/imgs/1006M.png"/>
+
+                                                            </label>
+
+                                                            <label>
+
                                                                 <br/> 51mm 1001B<br/>( plain butt)
 
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="FS 50.8"
                                                                        data-title="51mm 1001B( plain butt)"
-                                                                       value="355" <?php if ($property_stile == '355' && ($material == 139 || $material == 147)) {
+                                                                       value="355" <?php if ($property_stile == '355' && $material == 139) {
 
 																	echo "checked";
 																} ?> />
@@ -1844,7 +1952,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="DFS 50.8"
                                                                        data-title="51mm 1005B(plain D-mould)"
-                                                                       value="356" <?php if ($property_stile == '356' && ($material == 139 || $material == 147)
+                                                                       value="356" <?php if ($property_stile == '356' && $material == 139
 
 																) {
 
@@ -1863,7 +1971,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="RFS 50.8"
                                                                        data-title="51mm 1003B(plain rebate)"
-                                                                       value="360" <?php if ($property_stile == '360' && ($material == 139 || $material == 147)
+                                                                       value="360" <?php if ($property_stile == '360' && $material == 139
 
 																) {
 
@@ -1882,7 +1990,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="BS 50.8"
                                                                        data-title="51mm 1002B(beaded butt)"
-                                                                       value="357" <?php if ($property_stile == '357' && ($material == 139 || $material == 147)
+                                                                       value="357" <?php if ($property_stile == '357' && $material == 139
 
 																) {
 
@@ -1901,7 +2009,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="DBS 50.8"
                                                                        data-title="51mm 1006B(beaded D-mould)"
-                                                                       value="358" <?php if ($property_stile == '358' && ($material == 139 || $material == 147)
+                                                                       value="358" <?php if ($property_stile == '358' && $material == 139
 
 																) {
 
@@ -1920,7 +2028,7 @@ if (!empty($_GET['id'])) {
                                                                 <input type="radio" name="property_stile"
                                                                        data-code="RBS 50.8"
                                                                        data-title="51mm 1004B(beaded rebate)"
-                                                                       value="359" <?php if ($property_stile == '359' && ($material == 139 || $material == 147)
+                                                                       value="359" <?php if ($property_stile == '359' && $material == 139
 
 																) {
 

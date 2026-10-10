@@ -260,7 +260,7 @@ function wpse_load_plugin_css()
 
 	// blackout blind
 	if (in_array('prod3', $classes)) {
-		wp_enqueue_script('product3-script-custom', $plugin_url . 'js/product3-script-custom.js', array('shutter-property-values'), '1.6.3', true);
+		wp_enqueue_script('product3-script-custom', $plugin_url . 'js/product3-script-custom.js', array('shutter-property-values'), '1.6.4', true);
 	}
 
 	// batten

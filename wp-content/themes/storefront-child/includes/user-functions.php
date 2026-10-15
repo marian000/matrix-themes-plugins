@@ -73,7 +73,8 @@ function matrix_save_group_membership( $user_id ) {
  * Saves boolean/simple meta fields from $_POST for non-employee users.
  *
  * Includes group-related meta (current_selected_group, group_added)
- * and general settings (max_nr_employees, suspended, view_price, etc.).
+ * and general settings (max_nr_employees, view_price, etc.).
+ * suspended_user is saved for all users in my_user_profile_update_action().
  *
  * @since 1.0.0
  * @param int $user_id The user being updated.
@@ -81,7 +82,6 @@ function matrix_save_group_membership( $user_id ) {
 function matrix_save_general_user_settings( $user_id ) {
 	$fields = array(
 		'max_nr_employees'     => 'absint',
-		'suspended_user'       => 'sanitize_key',
 		'view_price'           => 'sanitize_key',
 		'show_biowood'         => 'sanitize_key',
 		'favorite_user'        => 'sanitize_key',
@@ -180,6 +180,11 @@ function my_user_profile_update_action( $user_id ) {
 	// show_basswood is saved for ALL users including employees
 	if ( isset( $_POST['show_basswood'] ) ) {
 		update_user_meta( $user_id, 'show_basswood', sanitize_key( wp_unslash( $_POST['show_basswood'] ) ) );
+	}
+
+	// suspended_user is saved for ALL users including employees; each user is suspended separately
+	if ( isset( $_POST['suspended_user'] ) ) {
+		update_user_meta( $user_id, 'suspended_user', sanitize_key( wp_unslash( $_POST['suspended_user'] ) ) );
 	}
 
 	// General settings and pricing (non-employee only)

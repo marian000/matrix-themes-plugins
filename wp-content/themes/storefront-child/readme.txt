@@ -11,6 +11,9 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= Unreleased =
+* Fix: "Suspended Dealer? (no add orders)" is now saved for employees and salesmen too, so each user is suspended or reactivated separately (before, the field was ignored on employee profiles and an existing "yes" could not be cleared)
+
 = 1.3.1 - 2026-02-26 (~3h) =
 * Feature: Admin metabox "Send Repair Email" on order_repair for manual resend of notification emails
 * Feature: Email send history log with date/time, result, and user who sent

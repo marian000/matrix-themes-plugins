@@ -65,12 +65,18 @@ $deler_id = get_user_meta($user_id, 'company_parent', true);
 //if (current_user_can('administrator') || get_current_user_id() == $deler_id) $view_price = true;
 
 /**
- * Resolve a surcharge display rate using the same 3-level fallback chain
- * as PricingConfig::getPerMaterialRate() in the pricing calculator.
+ * Resolve a surcharge display rate.
  *
- * Level 1: per-material user meta  (mat_{material_id}_{key})
- * Level 2: user meta               ({key})
- * Level 3: global post meta        (post ID 1, {key})
+ * When $product_id is given and the product has a 'price_item_rates' snapshot
+ * (saved by ProductHandler since shutter-module 1.1.1) that contains $key, the
+ * rate charged when the item was priced is returned. Otherwise (older items, or
+ * a key not used in the calculation) the current rate is resolved with the same
+ * 4-level fallback chain as PricingConfig::getPerMaterialRate():
+ *
+ * Level 1: per-material user meta    (mat_{material_id}_{key})
+ * Level 2: user meta                 ({key})
+ * Level 3: per-material global meta  (post ID 1, mat_{material_id}_{key})
+ * Level 4: global post meta          (post ID 1, {key})
  *
  * Returns the raw value (string/number) as stored in meta, or empty string.
  *
@@ -78,9 +84,17 @@ $deler_id = get_user_meta($user_id, 'company_parent', true);
  * @param int    $user_id     The customer/dealer user ID.
  * @param int    $material_id The material ID (e.g. 137 for Green, 187 for Earth).
  * @param string $key         The meta key (e.g. 'Arched', 'French_Door').
- * @return string
+ * @param int    $product_id  Optional. The product post ID, to read the rate snapshot.
+ * @return string|float
  */
-function items_get_display_rate( $user_id, $material_id, $key ) {
+function items_get_display_rate( $user_id, $material_id, $key, $product_id = 0 ) {
+	// Snapshot of the rates used when the item was priced.
+	if ( $product_id ) {
+		$rates_snapshot = get_post_meta( $product_id, 'price_item_rates', true );
+		if ( is_array( $rates_snapshot ) && array_key_exists( $key, $rates_snapshot ) ) {
+			return $rates_snapshot[ $key ];
+		}
+	}
 	// Level 1: per-material user meta
 	if ( $material_id ) {
 		$val = get_user_meta( $user_id, 'mat_' . $material_id . '_' . $key, true );
@@ -102,6 +116,39 @@ function items_get_display_rate( $user_id, $material_id, $key ) {
 	}
 	// Level 4: global post meta (post ID 1 = system defaults)
 	return get_post_meta( 1, $key, true );
+}
+
+/**
+ * Resolve the per-lock rate charged for Biowood (6) / BiowoodPlus (138) locks.
+ *
+ * Mirrors PricingConfig::getBiowoodLockRate(): per-material user meta
+ * (mat_{id}_Lock), then per-material global meta on post ID 1. The generic
+ * 'Lock' keys are not used for these materials. An empty string means the
+ * fixed Biowood price (58) applies. For products with a 'price_item_rates'
+ * snapshot, the snapshot decides: 'Lock' present means the per-material rate
+ * was used, absent means the fixed price was used.
+ *
+ * @param int $user_id     The customer/dealer user ID.
+ * @param int $material_id The material ID (6 or 138).
+ * @param int $product_id  Optional. The product post ID, to read the rate snapshot.
+ * @return string|float Per-lock rate, or '' when the fixed price applies.
+ */
+function items_get_biowood_lock_rate( $user_id, $material_id, $product_id = 0 ) {
+	if ( $product_id ) {
+		$rates_snapshot = get_post_meta( $product_id, 'price_item_rates', true );
+		if ( is_array( $rates_snapshot ) ) {
+			return array_key_exists( 'Lock', $rates_snapshot ) ? $rates_snapshot['Lock'] : '';
+		}
+	}
+	$val = get_user_meta( $user_id, 'mat_' . $material_id . '_Lock', true );
+	if ( $val !== '' && $val !== false ) {
+		return $val;
+	}
+	$val = get_post_meta( 1, 'mat_' . $material_id . '_Lock', true );
+	if ( $val !== '' && $val !== false ) {
+		return $val;
+	}
+	return '';
 }
 
 /**
@@ -666,18 +713,18 @@ echo $table_class; ?>">
                             <br> Installation style:<strong>
 								<?php
 								echo 'Individual Bay Window - ' . strip_label_surcharge( $atributes[$property_style] );
-								if ($property_style == 36) {
-									$arched_rate = items_get_display_rate( $user_id, $property_material, 'Arched' );
+								if (in_array($property_style, array(36, 42))) {
+									$arched_rate = items_get_display_rate( $user_id, $property_material, 'Arched', $product_id );
 									echo ' (+' . $arched_rate . '%)';
 								} elseif ($property_style == 34) {
-									$french_door_rate = items_get_display_rate( $user_id, $property_material, 'French_Door' );
+									$french_door_rate = items_get_display_rate( $user_id, $property_material, 'French_Door', $product_id );
 									echo ' (+£' . $french_door_rate . ')';
-								} elseif ($property_style == 33) {
-									$shaped_procent = items_get_display_rate( $user_id, $property_material, 'Shaped' );
+								} elseif (in_array($property_style, array(33, 43))) {
+									$shaped_procent = items_get_display_rate( $user_id, $property_material, 'Shaped', $product_id );
 									echo ' (+' . $shaped_procent . '%)';
 								}
 								if ( in_array( $property_style, array( 229, 233, 40, 41 ) ) ) {
-									$combi_rate = items_get_display_rate( $user_id, $property_material, 'Combi' );
+									$combi_rate = items_get_display_rate( $user_id, $property_material, 'Combi', $product_id );
 									if ( $combi_rate ) {
 										echo ' (+' . esc_html( $combi_rate ) . '%)';
 									}
@@ -720,7 +767,7 @@ echo $table_class; ?>">
 							if (!empty($property_solidpanelheight)) {
 								// TODO: Calculator applies Solid surcharge for all SOLID_STYLES (IDs 221,227,226,222,228,230,231,232,38,39,42,43).
 								// Display condition uses $property_solidpanelheight which may differ. Full alignment pending client review.
-								$solid_rate = items_get_display_rate( $user_id, $property_material, 'Solid' );
+								$solid_rate = items_get_display_rate( $user_id, $property_material, 'Solid', $product_id );
 								echo 'Solid Panel Height: <strong>' . $property_solidpanelheight . '(+' . $solid_rate . '%)</strong><br>';
 							}
 							if (!empty($property_solidtype && strpos('Solid', $atributes[$property_style]))) {
@@ -753,7 +800,7 @@ echo $table_class; ?>">
 							}
 							if ($property_style == 35 || $property_style == 39 || $property_style == 41) {
 								echo 'Tracked type: <strong>' . $property_trackedtype . '</strong>';
-								$tracked_rate = items_get_display_rate( $user_id, $property_material, 'Tracked' );
+								$tracked_rate = items_get_display_rate( $user_id, $property_material, 'Tracked', $product_id );
 								if ( $tracked_rate ) {
 									echo ' (+&pound;' . esc_html( $tracked_rate ) . '/m)';
 								}
@@ -761,7 +808,7 @@ echo $table_class; ?>">
 								echo 'Free folding: <strong>' . $property_freefolding . '</strong><br>';
 							} elseif ($property_style == 37 || $property_style == 38 || $property_style == 40) {
 								echo 'Tracked type: <strong>' . $property_trackedtype . '</strong>';
-								$tracked_bypass_rate = items_get_display_rate( $user_id, $property_material, 'TrackedByPass' );
+								$tracked_bypass_rate = items_get_display_rate( $user_id, $property_material, 'TrackedByPass', $product_id );
 								if ( $tracked_bypass_rate ) {
 									echo ' (+&pound;' . esc_html( $tracked_bypass_rate ) . '/m)';
 								}
@@ -780,7 +827,7 @@ echo $table_class; ?>">
 								echo '<br>';
 							} else {
 								if ($property_fit == 56) {
-									$measure_procent = items_get_display_rate( $user_id, $property_material, 'Inside' );
+									$measure_procent = items_get_display_rate( $user_id, $property_material, 'Inside', $product_id );
 									echo 'Measure Type: <strong>' . $atributes[$property_fit] . '(+' . $measure_procent . '%)</strong>';
 								} else {
 									echo 'Measure Type: <strong>' . $atributes[$property_fit] . '</strong>';
@@ -798,7 +845,7 @@ echo $table_class; ?>">
 								} elseif ( intval( $property_frametype ) == 322 ) { // P4008T
 									$frame_surcharge_key = 'P4008T';
 								} elseif ( intval( $property_frametype ) == 353 ) { // 4008T
-									$frame_surcharge_key = 'P4008T';
+									$frame_surcharge_key = '4008T';
 								} elseif ( intval( $property_frametype ) == 319 ) { // P4008W
 									$frame_surcharge_key = 'P4008W';
 								} elseif ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
@@ -806,7 +853,7 @@ echo $table_class; ?>">
 									$frame_surcharge_key = 'Flat_Louver';
 								}
 								if ( $frame_surcharge_key ) {
-									$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key );
+									$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key, $product_id );
 									if ( $frame_rate ) {
 										echo ' (+' . esc_html( $frame_rate ) . '%)';
 									}
@@ -832,7 +879,7 @@ echo $table_class; ?>">
 							if (!empty($property_builtout)) {
 								// TODO: Calculator uses fixed 20% (BUILDOUT_DEEP_PCT) when frame_depth + buildout > 100mm.
 								// Display currently shows the configurable Buildout rate in all cases. Full alignment pending.
-								$buildout_rate = items_get_display_rate( $user_id, $property_material, 'Buildout' );
+								$buildout_rate = items_get_display_rate( $user_id, $property_material, 'Buildout', $product_id );
 								echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $buildout_rate . '%)';
 							}
 							?>
@@ -842,12 +889,12 @@ echo $table_class; ?>">
 								echo strip_label_surcharge( $atributes[$property_hingecolour] );
 								// Hinge colour surcharges (Stainless Steel, Hidden, Hidden Rod with Locking System).
 								if ( intval( $property_hingecolour ) == 93 ) { // Stainless Steel
-									$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Stainless_Steel' );
+									$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Stainless_Steel', $product_id );
 									if ( $hinge_rate ) {
 										echo ' (+' . esc_html( $hinge_rate ) . '%)';
 									}
 								} elseif ( intval( $property_hingecolour ) == 186 ) { // Hidden
-									$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Hidden' );
+									$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Hidden', $product_id );
 									if ( $hinge_rate ) {
 										echo ' (+' . esc_html( $hinge_rate ) . '%)';
 									}
@@ -856,7 +903,7 @@ echo $table_class; ?>">
 							<?php
 							// Hidden Rod with Locking System — triggered by control type 387, not hinge colour.
 							if ( intval( $property_controltype ) == 387 ) {
-								$hrod_rate = items_get_display_rate( $user_id, $property_material, 'Hidden_Rod_with_Locking_System' );
+								$hrod_rate = items_get_display_rate( $user_id, $property_material, 'Hidden_Rod_with_Locking_System', $product_id );
 								if ( $hrod_rate ) {
 									echo '<br>Hidden Rod Locking: <strong>(+' . esc_html( $hrod_rate ) . '%)</strong>';
 								}
@@ -867,7 +914,7 @@ echo $table_class; ?>">
 								echo strip_label_surcharge( $atributes[$property_shuttercolour] );
 								$colour_id = intval( $property_shuttercolour );
 								if ( class_exists( 'PricingConfig' ) && in_array( $colour_id, PricingConfig::COLORS_GBP_SURCHARGE ) ) {
-									$colours_rate = items_get_display_rate( $user_id, $property_material, 'Colors' );
+									$colours_rate = items_get_display_rate( $user_id, $property_material, 'Colors', $product_id );
 									if ( $colours_rate ) {
 										echo ' (+' . esc_html( $colours_rate ) . '%)';
 									}
@@ -895,7 +942,7 @@ echo $table_class; ?>">
 								<?php
 								echo strip_label_surcharge( $atributes[$property_controltype] ); ?><?php
 								if ($atributes[$property_controltype] == 'Clearview' || $property_controltype == 403) {
-									$concealed_rate = items_get_display_rate( $user_id, $property_material, 'Concealed_Rod' );
+									$concealed_rate = items_get_display_rate( $user_id, $property_material, 'Concealed_Rod', $product_id );
 									echo ' (+' . $concealed_rate . '%)';
 								}
 								?>
@@ -948,7 +995,7 @@ echo $table_class; ?>">
 											echo 'CPost Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_c_buildout' . $i . '_' . $sec, true) . '</strong>';
 											$cbuilout++;
 											if ($cbuilout == 1) {
-												$c_buildout_rate = items_get_display_rate( $user_id, $property_material, 'C_Buildout' );
+												$c_buildout_rate = items_get_display_rate( $user_id, $property_material, 'C_Buildout', $product_id );
 												echo ' (+' . $c_buildout_rate . '%)';
 											}
 										}
@@ -960,7 +1007,7 @@ echo $table_class; ?>">
 											echo 'TPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_t_buildout' . $i . '_' . $sec, true) . '</strong>';
 											$tbuilout++;
 											if ($tbuilout == 1) {
-												$t_buildout_rate = items_get_display_rate( $user_id, $property_material, 'T_Buildout' );
+												$t_buildout_rate = items_get_display_rate( $user_id, $property_material, 'T_Buildout', $product_id );
 												echo ' (+' . $t_buildout_rate . '%)';
 											}
 											echo "<br>";
@@ -988,7 +1035,7 @@ echo $table_class; ?>">
 										echo $atributes[$property_tposttype]; ?></strong>
 									<?php
 									if ( intval( $property_frametype ) == 171 ) {
-										$tpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'tposttype_blackout' );
+										$tpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'tposttype_blackout', $product_id );
 										if ( $tpost_blackout_rate ) {
 											echo ' (+' . esc_html( $tpost_blackout_rate ) . '%)';
 										}
@@ -1000,7 +1047,7 @@ echo $table_class; ?>">
 							} ?>
 							<?php
 							if ($property_sparelouvres == 'Yes') {
-								$spare_louvres_rate = items_get_display_rate( $user_id, $property_material, 'Spare_Louvres' );
+								$spare_louvres_rate = items_get_display_rate( $user_id, $property_material, 'Spare_Louvres', $product_id );
 								?> Include 2 x Spare Louvre:
                                 <strong>
 									<?php
@@ -1010,7 +1057,7 @@ echo $table_class; ?>">
 							} ?>
 							<?php
 							if ($property_ringpull == 'Yes') {
-								$ringpull_rate   = items_get_display_rate( $user_id, $property_material, 'Ringpull' );
+								$ringpull_rate   = items_get_display_rate( $user_id, $property_material, 'Ringpull', $product_id );
 								$ringpull_volume = ! empty( $property_ringpull_volume ) ? intval( $property_ringpull_volume ) : 1;
 								$ringpull_total  = round( $ringpull_rate * $ringpull_volume, 2 );
 								?> Ring Pull:
@@ -1029,12 +1076,23 @@ echo $table_class; ?>">
 							if ($property_locks == 'Yes' || $property_central_lock == "Yes") {
 								// Determine lock key based on lock position (matches PricingCalculator Phase 10)
 								$lock_key = ( $property_lock_position === 'Top & Bottom Lock' ) ? 'Top_Bottom_Lock' : 'Central_Lock';
+								$lock_tpost_add = ( $property_horizontaltpost == 'Yes' ) ? 2 : 1;
 
-								// Biowood (ID 6) and BiowoodPlus (ID 138) use a fixed lock price (matches PricingConfig::BIOWOOD_LOCK_PRICE)
-								if ( in_array( (int) $property_material, array( 6, 138 ), true ) ) {
-									$lock_display = '(+£58)';
+								if ( $property_locks == 'Yes' && in_array( (int) $property_material, array( 6, 138 ), true ) ) {
+									// Biowood (ID 6) / BiowoodPlus (ID 138): per-material Lock x 2, else fixed 58 (PricingConfig::BIOWOOD_LOCK_PRICE)
+									$biowood_lock_rate = items_get_biowood_lock_rate( $user_id, $property_material, $product_id );
+									$lock_amount = ( $biowood_lock_rate !== '' ) ? floatval( $biowood_lock_rate ) * 2 * $lock_tpost_add : 58 * $lock_tpost_add;
+									$lock_display = '(+£' . round( $lock_amount, 2 ) . ')';
+								} elseif ( $property_locks == 'Yes' && empty( $property_lock_position ) ) {
+									// Default lock: Lock x 2
+									$lock_rate = items_get_display_rate( $user_id, $property_material, 'Lock', $product_id );
+									$lock_display = '(+' . round( floatval( $lock_rate ) * 2 * $lock_tpost_add, 2 ) . '£)';
+								} elseif ( $property_locks == 'Yes' ) {
+									// Lock position set: Central_Lock / Top_Bottom_Lock
+									$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key, $product_id );
+									$lock_display = '(+' . round( floatval( $lock_rate ) * $lock_tpost_add, 2 ) . '£)';
 								} else {
-									$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key );
+									$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key, $product_id );
 									$lock_display = '(+' . $lock_rate . '£)';
 								}
 								?> Locks:
@@ -1303,18 +1361,18 @@ echo $table_class; ?>">
                         <br> Installation style:<strong>
 							<?php
 							echo strip_label_surcharge( $atributes[$property_style] );
-							if ($property_style == 36) {
-								$arched_rate = items_get_display_rate( $user_id, $property_material, 'Arched' );
+							if (in_array($property_style, array(36, 42))) {
+								$arched_rate = items_get_display_rate( $user_id, $property_material, 'Arched', $product_id );
 								echo ' (+' . $arched_rate . '%)';
 							} elseif ($property_style == 34) {
-								$french_door_rate = items_get_display_rate( $user_id, $property_material, 'French_Door' );
+								$french_door_rate = items_get_display_rate( $user_id, $property_material, 'French_Door', $product_id );
 								echo ' (+£' . $french_door_rate . ')';
-							} elseif ($property_style == 33) {
-								$shaped_procent = items_get_display_rate( $user_id, $property_material, 'Shaped' );
+							} elseif (in_array($property_style, array(33, 43))) {
+								$shaped_procent = items_get_display_rate( $user_id, $property_material, 'Shaped', $product_id );
 								echo ' (+' . $shaped_procent . '%)';
 							}
 							if ( in_array( $property_style, array( 229, 233, 40, 41 ) ) ) {
-								$combi_rate = items_get_display_rate( $user_id, $property_material, 'Combi' );
+								$combi_rate = items_get_display_rate( $user_id, $property_material, 'Combi', $product_id );
 								if ( $combi_rate ) {
 									echo ' (+' . esc_html( $combi_rate ) . '%)';
 								}
@@ -1357,7 +1415,7 @@ echo $table_class; ?>">
 						if (!empty($property_solidpanelheight)) {
 							// TODO: Calculator applies Solid surcharge for all SOLID_STYLES (IDs 221,227,226,222,228,230,231,232,38,39,42,43).
 							// Display condition uses $property_solidpanelheight which may differ. Full alignment pending client review.
-							$solid_rate = items_get_display_rate( $user_id, $property_material, 'Solid' );
+							$solid_rate = items_get_display_rate( $user_id, $property_material, 'Solid', $product_id );
 							echo 'Solid Panel Height: <strong>' . $property_solidpanelheight . '(+' . $solid_rate . '%)</strong><br>';
 						}
 						if (!empty($property_solidtype && strpos('Solid', $atributes[$property_style]))) {
@@ -1390,7 +1448,7 @@ echo $table_class; ?>">
 						}
 						if ($property_style == 35 || $property_style == 39 || $property_style == 41) {
 							echo 'Tracked type: <strong>' . $property_trackedtype . '</strong>';
-							$tracked_rate = items_get_display_rate( $user_id, $property_material, 'Tracked' );
+							$tracked_rate = items_get_display_rate( $user_id, $property_material, 'Tracked', $product_id );
 							if ( $tracked_rate ) {
 								echo ' (+&pound;' . esc_html( $tracked_rate ) . '/m)';
 							}
@@ -1398,7 +1456,7 @@ echo $table_class; ?>">
 							echo 'Free folding: <strong>' . $property_freefolding . '</strong><br>';
 						} elseif ($property_style == 37 || $property_style == 38 || $property_style == 40) {
 							echo 'Tracked type: <strong>' . $property_trackedtype . '</strong>';
-							$tracked_bypass_rate = items_get_display_rate( $user_id, $property_material, 'TrackedByPass' );
+							$tracked_bypass_rate = items_get_display_rate( $user_id, $property_material, 'TrackedByPass', $product_id );
 							if ( $tracked_bypass_rate ) {
 								echo ' (+&pound;' . esc_html( $tracked_bypass_rate ) . '/m)';
 							}
@@ -1419,7 +1477,7 @@ echo $table_class; ?>">
 							echo '<br>';
 						} else {
 							if ($property_fit == 56) {
-								$measure_procent = items_get_display_rate( $user_id, $property_material, 'Inside' );
+								$measure_procent = items_get_display_rate( $user_id, $property_material, 'Inside', $product_id );
 								echo 'Measure Type: <strong>' . $atributes[$property_fit] . '(+' . $measure_procent . '%)</strong>';
 							} else {
 								echo 'Measure Type: <strong>' . $atributes[$property_fit] . '</strong>';
@@ -1437,7 +1495,7 @@ echo $table_class; ?>">
 							} elseif ( intval( $property_frametype ) == 322 ) { // P4008T
 								$frame_surcharge_key = 'P4008T';
 							} elseif ( intval( $property_frametype ) == 353 ) { // 4008T
-								$frame_surcharge_key = 'P4008T';
+								$frame_surcharge_key = '4008T';
 							} elseif ( intval( $property_frametype ) == 319 ) { // P4008W
 								$frame_surcharge_key = 'P4008W';
 							} elseif ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
@@ -1445,7 +1503,7 @@ echo $table_class; ?>">
 								$frame_surcharge_key = 'Flat_Louver';
 							}
 							if ( $frame_surcharge_key ) {
-								$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key );
+								$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key, $product_id );
 								if ( $frame_rate ) {
 									echo ' (+' . esc_html( $frame_rate ) . '%)';
 								}
@@ -1471,7 +1529,7 @@ echo $table_class; ?>">
 						if (!empty($property_builtout)) {
 							// TODO: Calculator uses fixed 20% (BUILDOUT_DEEP_PCT) when frame_depth + buildout > 100mm.
 							// Display currently shows the configurable Buildout rate in all cases. Full alignment pending.
-							$buildout_rate = items_get_display_rate( $user_id, $property_material, 'Buildout' );
+							$buildout_rate = items_get_display_rate( $user_id, $property_material, 'Buildout', $product_id );
 							echo 'Buildout: <strong>' . $property_builtout . '</strong> (+' . $buildout_rate . '%)';
 						}
 						?>
@@ -1481,12 +1539,12 @@ echo $table_class; ?>">
 							echo strip_label_surcharge( $atributes[$property_hingecolour] );
 							// Hinge colour surcharges (Stainless Steel, Hidden, Hidden Rod with Locking System).
 							if ( intval( $property_hingecolour ) == 93 ) { // Stainless Steel
-								$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Stainless_Steel' );
+								$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Stainless_Steel', $product_id );
 								if ( $hinge_rate ) {
 									echo ' (+' . esc_html( $hinge_rate ) . '%)';
 								}
 							} elseif ( intval( $property_hingecolour ) == 186 ) { // Hidden
-								$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Hidden' );
+								$hinge_rate = items_get_display_rate( $user_id, $property_material, 'Hidden', $product_id );
 								if ( $hinge_rate ) {
 									echo ' (+' . esc_html( $hinge_rate ) . '%)';
 								}
@@ -1495,7 +1553,7 @@ echo $table_class; ?>">
 						<?php
 						// Hidden Rod with Locking System — triggered by control type 387, not hinge colour.
 						if ( intval( $property_controltype ) == 387 ) {
-							$hrod_rate = items_get_display_rate( $user_id, $property_material, 'Hidden_Rod_with_Locking_System' );
+							$hrod_rate = items_get_display_rate( $user_id, $property_material, 'Hidden_Rod_with_Locking_System', $product_id );
 							if ( $hrod_rate ) {
 								echo '<br>Hidden Rod Locking: <strong>(+' . esc_html( $hrod_rate ) . '%)</strong>';
 							}
@@ -1506,7 +1564,7 @@ echo $table_class; ?>">
 							echo strip_label_surcharge( $atributes[$property_shuttercolour] );
 							$colour_id = intval( $property_shuttercolour );
 							if ( class_exists( 'PricingConfig' ) && in_array( $colour_id, PricingConfig::COLORS_GBP_SURCHARGE ) ) {
-								$colours_rate = items_get_display_rate( $user_id, $property_material, 'Colors' );
+								$colours_rate = items_get_display_rate( $user_id, $property_material, 'Colors', $product_id );
 								if ( $colours_rate ) {
 									echo ' (+' . esc_html( $colours_rate ) . '%)';
 								}
@@ -1534,7 +1592,7 @@ echo $table_class; ?>">
 							<?php
 							echo strip_label_surcharge( $atributes[$property_controltype] ); ?><?php
 							if ($atributes[$property_controltype] == 'Clearview' || $property_controltype == 403) {
-								$concealed_rate = items_get_display_rate( $user_id, $property_material, 'Concealed_Rod' );
+								$concealed_rate = items_get_display_rate( $user_id, $property_material, 'Concealed_Rod', $product_id );
 								echo ' (+' . $concealed_rate . '%)';
 							}
 							?>
@@ -1607,22 +1665,28 @@ echo $table_class; ?>">
 											if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
 												echo 'BPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>';
 												$bbuilout++;
-												if ($bbuilout == 1 && strtolower(
-													get_post_meta($product_id, 'property_b_buildout' . $i, true)) == "yes") {
-													$b_buildout_rate = items_get_display_rate( $user_id, $property_material, 'B_Buildout' );
+												// B_Buildout is charged once, on the first B-post buildout (any angle, any value).
+												if ($bbuilout == 1) {
+													$b_buildout_rate = items_get_display_rate( $user_id, $property_material, 'B_Buildout', $product_id );
 													echo ' (+' . $b_buildout_rate . '%)';
 												}
 												echo '<br>';
 											}
 										} else {
 											$unghi++;
-											if ($unghi == 1 && $bayposttype == 'normal') {
-												$bay_angle_rate = items_get_display_rate( $user_id, $property_material, 'Bay_Angle' );
+											if ($unghi == 1 && in_array($bayposttype, array('normal', 'slim'), true)) {
+												$bay_angle_rate = items_get_display_rate( $user_id, $property_material, 'Bay_Angle', $product_id );
 												echo ' (+' . $bay_angle_rate . '%)';
 											}
 											echo '<br>';
 											if (!empty(get_post_meta($product_id, 'property_b_buildout' . $i, true))) {
-												echo 'BPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong><br>';
+												echo 'BPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_b_buildout' . $i, true) . '</strong>';
+												$bbuilout++;
+												if ($bbuilout == 1) {
+													$b_buildout_rate = items_get_display_rate( $user_id, $property_material, 'B_Buildout', $product_id );
+													echo ' (+' . $b_buildout_rate . '%)';
+												}
+												echo '<br>';
 											}
 										}
 									}
@@ -1635,7 +1699,7 @@ echo $table_class; ?>">
 										echo 'CPost Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_c_buildout' . $i, true) . '</strong>';
 										$cbuilout++;
 										if ($cbuilout == 1) {
-											$c_buildout_rate = items_get_display_rate( $user_id, $property_material, 'C_Buildout' );
+											$c_buildout_rate = items_get_display_rate( $user_id, $property_material, 'C_Buildout', $product_id );
 											echo ' (+' . $c_buildout_rate . '%)';
 										}
 									}
@@ -1648,7 +1712,7 @@ echo $table_class; ?>">
 										echo 'TPosts Buildout' . $i . ': <strong>' . get_post_meta($product_id, 'property_t_buildout' . $i, true) . '</strong>';
 										$tbuilout++;
 										if ($tbuilout == 1) {
-											$t_buildout_rate = items_get_display_rate( $user_id, $property_material, 'T_Buildout' );
+											$t_buildout_rate = items_get_display_rate( $user_id, $property_material, 'T_Buildout', $product_id );
 											echo ' (+' . $t_buildout_rate . '%)';
 										}
 										echo "<br>";
@@ -1674,12 +1738,12 @@ echo $table_class; ?>">
 						if ($bposttype == 0 && $bayposttype) {
 							echo 'B-post Type: <strong>' . $bayposttype;
 							if ($bayposttype == 'flexible') {
-								$b_flex_rate = items_get_display_rate( $user_id, $property_material, 'B_typeFlexible' );
+								$b_flex_rate = items_get_display_rate( $user_id, $property_material, 'B_typeFlexible', $product_id );
 								echo '(+' . $b_flex_rate . '%)';
 							}
 							echo '</strong>';
 							if ( intval( $property_frametype ) == 171 ) {
-								$bpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'bposttype_blackout' );
+								$bpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'bposttype_blackout', $product_id );
 								if ( $bpost_blackout_rate ) {
 									echo ' (+' . esc_html( $bpost_blackout_rate ) . '%)';
 								}
@@ -1690,7 +1754,7 @@ echo $table_class; ?>">
 						if ($tposttype_count == 0 && $tposttype) {
 							echo 'T-Post Style: <strong>' . $tposttype;
 							if ($tposttype == 'adjustable') {
-								$t_adj_rate = items_get_display_rate( $user_id, $property_material, 'T_typeAdjustable' );
+								$t_adj_rate = items_get_display_rate( $user_id, $property_material, 'T_typeAdjustable', $product_id );
 								echo '(+' . $t_adj_rate . '%)';
 							}
 							echo '</strong>';
@@ -1706,7 +1770,7 @@ echo $table_class; ?>">
 									echo $atributes[$property_tposttype]; ?></strong>
 								<?php
 								if ( intval( $property_frametype ) == 171 ) {
-									$tpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'tposttype_blackout' );
+									$tpost_blackout_rate = items_get_display_rate( $user_id, $property_material, 'tposttype_blackout', $product_id );
 									if ( $tpost_blackout_rate ) {
 										echo ' (+' . esc_html( $tpost_blackout_rate ) . '%)';
 									}
@@ -1718,7 +1782,7 @@ echo $table_class; ?>">
 						} ?>
 						<?php
 						if ($property_sparelouvres == 'Yes') {
-							$spare_louvres_rate = items_get_display_rate( $user_id, $property_material, 'Spare_Louvres' );
+							$spare_louvres_rate = items_get_display_rate( $user_id, $property_material, 'Spare_Louvres', $product_id );
 							?> Include 2 x Spare Louvre:
                             <strong>
 								<?php
@@ -1728,7 +1792,7 @@ echo $table_class; ?>">
 						} ?>
 						<?php
 						if ($property_ringpull == 'Yes') {
-							$ringpull_rate   = items_get_display_rate( $user_id, $property_material, 'Ringpull' );
+							$ringpull_rate   = items_get_display_rate( $user_id, $property_material, 'Ringpull', $product_id );
 							$ringpull_volume = ! empty( $property_ringpull_volume ) ? intval( $property_ringpull_volume ) : 1;
 							$ringpull_total  = round( $ringpull_rate * $ringpull_volume, 2 );
 							?> Ring Pull:
@@ -1747,12 +1811,23 @@ echo $table_class; ?>">
 						if ($property_locks == 'Yes' || $property_central_lock == "Yes") {
 							// Determine lock key based on lock position (matches PricingCalculator Phase 10)
 							$lock_key = ( $property_lock_position === 'Top & Bottom Lock' ) ? 'Top_Bottom_Lock' : 'Central_Lock';
+							$lock_tpost_add = ( $property_horizontaltpost == 'Yes' ) ? 2 : 1;
 
-							// Biowood (ID 6) and BiowoodPlus (ID 138) use a fixed lock price (matches PricingConfig::BIOWOOD_LOCK_PRICE)
-							if ( in_array( (int) $property_material, array( 6, 138 ), true ) ) {
-								$lock_display = '(+£58)';
+							if ( $property_locks == 'Yes' && in_array( (int) $property_material, array( 6, 138 ), true ) ) {
+								// Biowood (ID 6) / BiowoodPlus (ID 138): per-material Lock x 2, else fixed 58 (PricingConfig::BIOWOOD_LOCK_PRICE)
+								$biowood_lock_rate = items_get_biowood_lock_rate( $user_id, $property_material, $product_id );
+								$lock_amount = ( $biowood_lock_rate !== '' ) ? floatval( $biowood_lock_rate ) * 2 * $lock_tpost_add : 58 * $lock_tpost_add;
+								$lock_display = '(+£' . round( $lock_amount, 2 ) . ')';
+							} elseif ( $property_locks == 'Yes' && empty( $property_lock_position ) ) {
+								// Default lock: Lock x 2
+								$lock_rate = items_get_display_rate( $user_id, $property_material, 'Lock', $product_id );
+								$lock_display = '(+' . round( floatval( $lock_rate ) * 2 * $lock_tpost_add, 2 ) . '£)';
+							} elseif ( $property_locks == 'Yes' ) {
+								// Lock position set: Central_Lock / Top_Bottom_Lock
+								$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key, $product_id );
+								$lock_display = '(+' . round( floatval( $lock_rate ) * $lock_tpost_add, 2 ) . '£)';
 							} else {
-								$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key );
+								$lock_rate = items_get_display_rate( $user_id, $property_material, $lock_key, $product_id );
 								$lock_display = '(+' . $lock_rate . '£)';
 							}
 							?> Locks:

@@ -373,44 +373,43 @@ class PricingCalculator {
 
 		// Solid styles.
 		if ( in_array( $style, PricingConfig::SOLID_STYLES ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Solid' );
+			$rate = $this->rate( 'Solid' );
 			$this->addSurcharge( 'style', 'Solid', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// Shaped styles.
 		if ( in_array( $style, PricingConfig::SHAPED_STYLES ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Shaped' );
+			$rate = $this->rate( 'Shaped' );
 			$this->addSurcharge( 'style', 'Shaped', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// French Door (flat amount, not percentage).
 		if ( $style == PricingConfig::STYLE_FRENCH_DOOR ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'French_Door' );
+			$rate = $this->rate( 'French_Door' );
 			$this->addSurcharge( 'style', 'French_Door', $rate );
 		}
 
 		// Tracked styles (per-metre: rate * (width / 1000)).
 		if ( in_array( $style, PricingConfig::TRACKED_STYLES ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Tracked' );
+			$rate = $this->rate( 'Tracked' );
 			$this->addSurcharge( 'style', 'Tracked', $rate * ( $this->width_track / 1000 ) );
 		}
 
 		// Tracked bypass styles (per-metre: rate * (width / 1000)).
 		if ( in_array( $style, PricingConfig::TRACKED_BYPASS_STYLES ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'TrackedByPass' );
+			$rate = $this->rate( 'TrackedByPass' );
 			$this->addSurcharge( 'style', 'TrackedByPass', $rate * ( $this->width_track / 1000 ) );
 
 			// Extra tracks (3+): add Tracked rate * (tracksnumber - 2) * (width / 1000).
 			if ( intval( $this->products['property_tracksnumber'] ) >= 3 ) {
 				$extra_tracks = intval( $this->products['property_tracksnumber'] ) - 2;
 
-				// Per-material or user 'Tracked' meta => use rate; else use the tracked fallback rate.
-				$has_tracked = $this->config->hasPerMaterialRate( $this->material_id, 'Tracked' )
-					|| $this->config->hasUserRate( 'Tracked' );
-				if ( $has_tracked ) {
-					$tracked_rate = $this->config->getPerMaterialRate( $this->material_id, 'Tracked' );
+				// 'Tracked' configured at any level (L1-L4) => use rate; else use the tracked fallback rate.
+				if ( $this->config->hasConfiguredPerMaterialRate( $this->material_id, 'Tracked' ) ) {
+					$tracked_rate = $this->rate( 'Tracked' );
 					$this->addSurcharge( 'style', 'Tracked extra tracks x' . $extra_tracks, $tracked_rate * $extra_tracks * ( $this->width_track / 1000 ) );
 				} else {
+					$this->recordRate( 'Tracked', PricingConfig::TRACKED_FALLBACK_RATE );
 					$this->addSurcharge( 'style', 'Tracked extra tracks x' . $extra_tracks, PricingConfig::TRACKED_FALLBACK_RATE * $extra_tracks * ( $this->width_track / 1000 ) );
 				}
 			}
@@ -431,13 +430,13 @@ class PricingCalculator {
 			// but that was commented out.
 			//
 			// Simplified: use config->getPerMaterialRate() which resolves mat > user > global.
-			$arched_rate = $this->config->getPerMaterialRate( $this->material_id, 'Arched' );
+			$arched_rate = $this->rate( 'Arched' );
 			$this->addSurcharge( 'style', 'Arched', ( $arched_rate * $this->basic ) / 100, $arched_rate );
 		}
 
 		// Combi styles.
 		if ( in_array( $style, PricingConfig::COMBI_STYLES ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Combi' );
+			$rate = $this->rate( 'Combi' );
 			$this->addSurcharge( 'style', 'Combi', ( $rate * $this->basic ) / 100, $rate );
 		}
 	}
@@ -459,13 +458,13 @@ class PricingCalculator {
 	private function applyOptionSurcharges() {
 		// Inside fit (measurement type).
 		if ( intval( $this->products['property_fit'] ) == PricingConfig::FIT_INSIDE ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Inside' );
+			$rate = $this->rate( 'Inside' );
 			$this->addSurcharge( 'options', 'inside', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// Concealed Rod control type.
 		if ( intval( $this->products['property_controltype'] ) == PricingConfig::CONTROL_CONCEALED_ROD ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Concealed_Rod' );
+			$rate = $this->rate( 'Concealed_Rod' );
 			$this->addSurcharge( 'options', 'Concealed_Rod', ( $rate * $this->basic ) / 100, $rate );
 		}
 
@@ -474,7 +473,7 @@ class PricingCalculator {
 		if ( intval( $this->products['property_controltype'] ) == PricingConfig::CONTROL_HIDDEN_ROD ) {
 			$has_hrod = $this->config->hasPerMaterialRate( $this->material_id, 'Hidden_Rod_with_Locking_System' )
 				|| $this->config->hasUserRate( 'Hidden_Rod_with_Locking_System' );
-			$hrod_rate = $this->config->getPerMaterialRate( $this->material_id, 'Hidden_Rod_with_Locking_System' );
+			$hrod_rate = $this->rate( 'Hidden_Rod_with_Locking_System' );
 			if ( $has_hrod ) {
 				$this->addSurcharge( 'options', 'Hidden_Rod_with_Locking_System', ( $this->basic * $hrod_rate ) / 100, $hrod_rate );
 			} else {
@@ -484,13 +483,13 @@ class PricingCalculator {
 
 		// Stainless Steel hinge colour.
 		if ( intval( $this->products['property_hingecolour'] ) == PricingConfig::HINGE_STAINLESS_STEEL ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Stainless_Steel' );
+			$rate = $this->rate( 'Stainless_Steel' );
 			$this->addSurcharge( 'options', 'Stainless_Steel', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// Hidden hinge colour.
 		if ( intval( $this->products['property_hingecolour'] ) == PricingConfig::HINGE_HIDDEN ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Hidden' );
+			$rate = $this->rate( 'Hidden' );
 			$this->addSurcharge( 'options', 'Hidden', ( $rate * $this->basic ) / 100, $rate );
 		}
 	}
@@ -514,7 +513,7 @@ class PricingCalculator {
 		// Blackout Blind (frametype 171).
 		if ( $frametype == PricingConfig::FRAMETYPE_BLACKOUT_BLIND ) {
 			// P4028X surcharge.
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'P4028X' );
+			$rate = $this->rate( 'P4028X' );
 			$this->addSurcharge( 'frametype', 'P4028X', ( $rate * $this->basic ) / 100, $rate );
 
 			// Blackout blind colour surcharge (if colour is set and not 390).
@@ -523,38 +522,38 @@ class PricingCalculator {
 				: 0;
 
 			if ( ! empty( $blackout_colour ) && $blackout_colour != PricingConfig::BLACKOUT_DEFAULT_COLOUR ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'blackoutblind' );
+				$rate = $this->rate( 'blackoutblind' );
 				$this->addSurcharge( 'frametype', 'blackoutblind', $rate * $this->sqm_value_blackout );
 			}
 
 			// T-post type blackout surcharge.
 			if ( ! empty( $this->products['property_tposttype'] ) ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'tposttype_blackout' );
+				$rate = $this->rate( 'tposttype_blackout' );
 				$this->addSurcharge( 'frametype', 'tposttype_blackout', ( $rate * $this->basic ) / 100, $rate );
 			}
 
 			// B-post type blackout surcharge.
 			if ( ! empty( $this->products['bay-post-type'] ) ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'bposttype_blackout' );
+				$rate = $this->rate( 'bposttype_blackout' );
 				$this->addSurcharge( 'frametype', 'bposttype_blackout', ( $rate * $this->basic ) / 100, $rate );
 			}
 		}
 
 		// P4008T.
 		if ( $frametype == PricingConfig::FRAMETYPE_P4008T ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'P4008T' );
+			$rate = $this->rate( 'P4008T' );
 			$this->addSurcharge( 'frametype', 'P4008T', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// 4008T.
 		if ( $frametype == PricingConfig::FRAMETYPE_4008T ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, '4008T' );
+			$rate = $this->rate( '4008T' );
 			$this->addSurcharge( 'frametype', '4008T', ( $rate * $this->basic ) / 100, $rate );
 		}
 
 		// P4008W.
 		if ( $frametype == PricingConfig::FRAMETYPE_P4008W ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'P4008W' );
+			$rate = $this->rate( 'P4008W' );
 			$this->addSurcharge( 'frametype', 'P4008W', ( $rate * $this->basic ) / 100, $rate );
 		}
 
@@ -565,7 +564,7 @@ class PricingCalculator {
 		) {
 			if ( intval( $this->products['property_bladesize'] ) == PricingConfig::BLADE_FLAT_LOUVER ) {
 				// Note: original uses get_post_meta(1, ...) only -- no user override.
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'Flat_Louver' );
+				$rate = $this->rate( 'Flat_Louver' );
 				$this->addSurcharge( 'frametype', 'Flat_Louver', ( $rate * $this->basic ) / 100, $rate );
 			}
 		}
@@ -598,7 +597,7 @@ class PricingCalculator {
 			$sum_build_frame = $frdepth + intval( $builtout );
 
 			if ( $sum_build_frame <= PricingConfig::BUILDOUT_DEPTH_THRESHOLD ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'Buildout' );
+				$rate = $this->rate( 'Buildout' );
 				$this->addSurcharge( 'buildout', 'Buildout (standard)', ( $rate * $this->basic ) / 100, $rate );
 			} elseif ( $sum_build_frame > PricingConfig::BUILDOUT_DEPTH_THRESHOLD ) {
 				$this->result->has_deep_buildout = true;
@@ -631,12 +630,12 @@ class PricingCalculator {
 		foreach ( $bayangle_keys as $property_ba ) {
 			if ( ! empty( $property_ba ) ) {
 				$bay_post_type = isset( $this->products['bay-post-type'] ) ? $this->products['bay-post-type'] : '';
-				if ( ! empty( $this->products[ $property_ba ] ) && $bay_post_type == 'normal' ) {
+				if ( ! empty( $this->products[ $property_ba ] ) && in_array( $bay_post_type, [ 'normal', 'slim' ] ) ) {
 					$angle = intval( $this->products[ $property_ba ] );
 					if ( $angle == 90 || $angle == 135 ) {
 						// No surcharge for 90 or 135 degree angles.
 					} else {
-						$rate = $this->config->getPerMaterialRate( $this->material_id, 'Bay_Angle' );
+						$rate = $this->rate( 'Bay_Angle' );
 						$this->addSurcharge( 'posts', 'Bay_Angle', ( $rate * $this->basic ) / 100, $rate );
 						break;
 					}
@@ -648,7 +647,7 @@ class PricingCalculator {
 		$bay_post_type = isset( $this->products['bay-post-type'] ) ? $this->products['bay-post-type'] : '';
 		if ( ! empty( $bay_post_type ) ) {
 			if ( $bay_post_type == 'flexible' ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'B_typeFlexible' );
+				$rate = $this->rate( 'B_typeFlexible' );
 				$this->addSurcharge( 'posts', 'B_typeFlexible', ( $rate * $this->basic ) / 100, $rate );
 			}
 		}
@@ -658,12 +657,12 @@ class PricingCalculator {
 
 		// G-post surcharge.
 		if ( ! empty( $this->products['property_g1'] ) ) {
-			$has_gpost = $this->config->hasPerMaterialRate( $this->material_id, 'G_post' )
-				|| $this->config->hasUserRate( 'G_post' );
-			if ( $has_gpost ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'G_post' );
+			// 'G_post' configured at any level (L1-L4) => use rate; else use the 3% fallback.
+			if ( $this->config->hasConfiguredPerMaterialRate( $this->material_id, 'G_post' ) ) {
+				$rate = $this->rate( 'G_post' );
 				$this->addSurcharge( 'posts', 'G_post', ( $rate * $this->basic ) / 100, $rate );
 			} else {
+				$this->recordRate( 'G_post', PricingConfig::G_POST_FALLBACK_PCT );
 				$this->addSurcharge( 'posts', 'G_post (fallback)', ( PricingConfig::G_POST_FALLBACK_PCT * $this->basic ) / 100, PricingConfig::G_POST_FALLBACK_PCT );
 			}
 		}
@@ -675,7 +674,7 @@ class PricingCalculator {
 		$t_post_type = isset( $this->products['t-post-type'] ) ? $this->products['t-post-type'] : '';
 		if ( ! empty( $t_post_type ) ) {
 			if ( $t_post_type == 'adjustable' ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'T_typeAdjustable' );
+				$rate = $this->rate( 'T_typeAdjustable' );
 				$this->addSurcharge( 'posts', 'T_typeAdjustable', ( $rate * $this->basic ) / 100, $rate );
 			}
 		}
@@ -698,7 +697,7 @@ class PricingCalculator {
 		for ( $i = 1; $i <= 15; $i++ ) {
 			$key = $prefix . $i;
 			if ( ! empty( $this->products[ $key ] ) ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, $rate_key );
+				$rate = $this->rate( $rate_key );
 				$this->addSurcharge( 'posts', $rate_key, ( $rate * $this->basic ) / 100, $rate );
 				break;
 			}
@@ -726,7 +725,7 @@ class PricingCalculator {
 
 		// Colors GBP surcharge (via per-material/user/global meta).
 		if ( in_array( $colour, PricingConfig::COLORS_GBP_SURCHARGE ) ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Colors' );
+			$rate = $this->rate( 'Colors' );
 			$this->addSurcharge( 'colors', 'Colors', ( $rate * $this->basic ) / 100, $rate );
 		}
 
@@ -757,7 +756,7 @@ class PricingCalculator {
 		if ( in_array( $style, PricingConfig::RINGPULL_STYLES ) ) {
 			$ringpull = $this->getProductField( 'property_ringpull' );
 			if ( ! empty( $ringpull ) && $ringpull !== 'No' ) {
-				$rate   = $this->config->getPerMaterialRate( $this->material_id, 'Ringpull' );
+				$rate   = $this->rate( 'Ringpull' );
 				$volume = intval( $this->products['property_ringpull_volume'] );
 				$this->addSurcharge( 'accessories', 'Ringpull x' . $volume, $rate * $volume );
 			}
@@ -781,9 +780,16 @@ class PricingCalculator {
 		if ( $this->getProductField( 'property_locks' ) == 'Yes' ) {
 			$material_id = intval( $this->products['property_material'] );
 
-			// Biowood / BiowoodPlus: hardcoded lock price.
+			// Biowood / BiowoodPlus: per-material lock rate (user, then global 'mat_{id}_Lock'),
+			// charged like the default lock (rate x 2); otherwise the fixed lock price.
 			if ( in_array( $material_id, PricingConfig::BIOWOOD_LOCK_MATERIALS ) ) {
-				$this->addSurcharge( 'accessories', 'Lock (biowood)', PricingConfig::BIOWOOD_LOCK_PRICE * $horizontal_tpost_add );
+				$biowood_lock_rate = $this->config->getBiowoodLockRate( $material_id );
+				if ( null !== $biowood_lock_rate ) {
+					$this->recordRate( 'Lock', $biowood_lock_rate );
+					$this->addSurcharge( 'accessories', 'Lock (biowood per-material)', $biowood_lock_rate * 2 * $horizontal_tpost_add );
+				} else {
+					$this->addSurcharge( 'accessories', 'Lock (biowood)', PricingConfig::BIOWOOD_LOCK_PRICE * $horizontal_tpost_add );
+				}
 			} else {
 				// Lock position handling.
 				$lock_position = isset( $this->products['property_lock_position'] )
@@ -798,7 +804,7 @@ class PricingCalculator {
 						$this->addSurcharge( 'accessories', 'Lock (Top & Bottom)', $this->config->getRate( 'Top_Bottom_Lock' ) * $horizontal_tpost_add );
 					}
 				} else {
-					$rate = $this->config->getPerMaterialRate( $this->material_id, 'Lock' );
+					$rate = $this->rate( 'Lock' );
 					$this->addSurcharge( 'accessories', 'Lock (default)', $rate * 2 * $horizontal_tpost_add );
 				}
 			}
@@ -838,7 +844,7 @@ class PricingCalculator {
 
 		// Spare Louvres.
 		if ( $this->getProductField( 'property_sparelouvres' ) == 'Yes' ) {
-			$rate = $this->config->getPerMaterialRate( $this->material_id, 'Spare_Louvres' );
+			$rate = $this->rate( 'Spare_Louvres' );
 			$panels_lr = intval( $this->products['panels_left_right'] );
 			$this->addSurcharge( 'accessories', 'Spare_Louvres x' . $panels_lr, $panels_lr * $rate );
 		}
@@ -882,7 +888,7 @@ class PricingCalculator {
 
 			// T-buildout per section -- break on first found (only charged once).
 			if ( ! empty( $this->products[ $property_tb ] ) ) {
-				$rate = $this->config->getPerMaterialRate( $this->material_id, 'T_Buildout' );
+				$rate = $this->rate( 'T_Buildout' );
 				$this->addSurcharge( 'sections', 'T_Buildout section ' . $i, ( $rate * $this->basic ) / 100, $rate );
 				break;
 			}
@@ -890,19 +896,18 @@ class PricingCalculator {
 			// T-post type adjustable per section.
 			if ( ! empty( $this->products[ $tposttype ] ) ) {
 				if ( $this->products[ $tposttype ] == 'adjustable' ) {
-					$rate = $this->config->getPerMaterialRate( $this->material_id, 'T_typeAdjustable' );
+					$rate = $this->rate( 'T_typeAdjustable' );
 					$this->addSurcharge( 'sections', 'T_typeAdjustable section ' . $i, ( $rate * $this->basic ) / 100, $rate );
 				}
 			}
 
 			// G-post per section.
 			if ( ! empty( $this->products['property_g1'] ) ) {
-				$has_gpost = $this->config->hasPerMaterialRate( $this->material_id, 'G_post' )
-					|| $this->config->hasUserRate( 'G_post' );
-				if ( $has_gpost ) {
-					$rate = $this->config->getPerMaterialRate( $this->material_id, 'G_post' );
+				if ( $this->config->hasConfiguredPerMaterialRate( $this->material_id, 'G_post' ) ) {
+					$rate = $this->rate( 'G_post' );
 					$this->addSurcharge( 'sections', 'G_post section ' . $i, ( $rate * $this->basic ) / 100, $rate );
 				} else {
+					$this->recordRate( 'G_post', PricingConfig::G_POST_FALLBACK_PCT );
 					$this->addSurcharge( 'sections', 'G_post (fallback) section ' . $i, ( PricingConfig::G_POST_FALLBACK_PCT * $this->basic ) / 100, PricingConfig::G_POST_FALLBACK_PCT );
 				}
 			}
@@ -958,7 +963,10 @@ class PricingCalculator {
 	 * Phase 13: Complete parallel USD calculation.
 	 *
 	 * Uses USD rates (key-dolar suffix) with different style/option scopes
-	 * than GBP. Material-specific color surcharges instead of generic percentages.
+	 * than GBP. Inside and G_post use the per-material USD rate under the GBP
+	 * conditions (0 when nothing is configured). Colors uses the per-material
+	 * USD rate when configured at any level, otherwise the hardcoded
+	 * material-specific rates (USD_COLORS_*).
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -973,7 +981,7 @@ class PricingCalculator {
 		}
 
 		// Base material price (USD).
-		$usd_sum   = $this->sqm_value * $this->config->getPerMaterialUsdRate( $this->material_id, $this->material_key );
+		$usd_sum   = $this->sqm_value * $this->usdRate( $this->material_key );
 		$usd_basic = $usd_sum;
 
 		$this->result->log( 'usd', 'SUM 1 dolar', $usd_sum );
@@ -987,56 +995,56 @@ class PricingCalculator {
 			( $material_id == PricingConfig::MATERIAL_BASSWOODPLUS || $material_id == PricingConfig::MATERIAL_BASSWOOD ) &&
 			intval( $this->products['property_bladesize'] ) == PricingConfig::BLADE_FLAT_LOUVER
 		) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Flat_Louver' );
+			$val = $this->usdRate( 'Flat_Louver' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Flat_Louver dolar', $usd_sum );
 		}
 
 		// Solid styles (USD).
 		if ( in_array( $style, PricingConfig::SOLID_STYLES ) ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Solid' );
+			$val = $this->usdRate( 'Solid' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Solid dolar', $usd_sum );
 		}
 
 		// Shaped styles (USD).
 		if ( in_array( $style, PricingConfig::SHAPED_STYLES ) ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Shaped' );
+			$val = $this->usdRate( 'Shaped' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Shaped dolar', $usd_sum );
 		}
 
 		// French Door (USD -- flat amount).
 		if ( $style == PricingConfig::STYLE_FRENCH_DOOR ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'French_Door' );
+			$val = $this->usdRate( 'French_Door' );
 			$usd_sum += $val;
 			$this->result->log( 'usd', 'SUM French_Door dolar', $usd_sum );
 		}
 
 		// Tracked (USD) -- narrower scope than GBP: only style 35, not all TRACKED_STYLES.
 		if ( $style == 35 ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Tracked' );
+			$val = $this->usdRate( 'Tracked' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Tracked dolar', $usd_sum );
 		}
 
 		// TrackedByPass (USD) -- narrower scope than GBP: only style 37, not all TRACKED_BYPASS_STYLES.
 		if ( $style == 37 ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'TrackedByPass' );
+			$val = $this->usdRate( 'TrackedByPass' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM TrackedByPass dolar', $usd_sum );
 		}
 
 		// Arched (USD).
 		if ( in_array( $style, PricingConfig::ARCHED_STYLES ) ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Arched' );
+			$val = $this->usdRate( 'Arched' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Arched dolar', $usd_sum );
 		}
 
 		// Combi (USD) -- narrower scope than GBP: only styles 229, 233, not all COMBI_STYLES.
 		if ( $style == 229 || $style == 233 ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Combi' );
+			$val = $this->usdRate( 'Combi' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Combi dolar', $usd_sum );
 		}
@@ -1046,18 +1054,18 @@ class PricingCalculator {
 
 		// Blackout Blind (USD).
 		if ( $frametype == PricingConfig::FRAMETYPE_BLACKOUT_BLIND ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'P4028X' );
+			$val = $this->usdRate( 'P4028X' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM P4028X dolar', $usd_sum );
 
-			$blackoutblind = $this->config->getPerMaterialUsdRate( $this->material_id, 'blackoutblind' );
+			$blackoutblind = $this->usdRate( 'blackoutblind' );
 			if ( $blackoutblind > 0 ) {
 				$usd_sum += $blackoutblind * $this->sqm_value_blackout;
 				$this->result->log( 'usd', 'SUM blackoutblind dolar', $usd_sum );
 			}
 
 			if ( ! empty( $this->products['property_tposttype'] ) ) {
-				$tposttype_blackout = $this->config->getPerMaterialUsdRate( $this->material_id, 'tposttype_blackout' );
+				$tposttype_blackout = $this->usdRate( 'tposttype_blackout' );
 				if ( $tposttype_blackout > 0 ) {
 					$usd_sum += ( $tposttype_blackout * $usd_basic ) / 100;
 					$this->result->log( 'usd', 'SUM tposttype_blackout dolar', $usd_sum );
@@ -1065,7 +1073,7 @@ class PricingCalculator {
 			}
 
 			if ( ! empty( $this->products['bay-post-type'] ) ) {
-				$bposttype_blackout = $this->config->getPerMaterialUsdRate( $this->material_id, 'bposttype_blackout' );
+				$bposttype_blackout = $this->usdRate( 'bposttype_blackout' );
 				if ( $bposttype_blackout > 0 ) {
 					$usd_sum += ( $bposttype_blackout * $usd_basic ) / 100;
 					$this->result->log( 'usd', 'SUM bposttype_blackout dolar', $usd_sum );
@@ -1075,21 +1083,21 @@ class PricingCalculator {
 
 		// P4008T (USD).
 		if ( $frametype == PricingConfig::FRAMETYPE_P4008T ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'P4008T' );
+			$val = $this->usdRate( 'P4008T' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM P4008T dolar', $usd_sum );
 		}
 
 		// 4008T (USD).
 		if ( $frametype == PricingConfig::FRAMETYPE_4008T ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, '4008T' );
+			$val = $this->usdRate( '4008T' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM 4008T dolar', $usd_sum );
 		}
 
 		// P4008W (USD).
 		if ( $frametype == PricingConfig::FRAMETYPE_P4008W ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'P4008W' );
+			$val = $this->usdRate( 'P4008W' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM P4008W dolar', $usd_sum );
 		}
@@ -1103,7 +1111,7 @@ class PricingCalculator {
 			$sum_build_frame = $frdepth + intval( $builtout );
 
 			if ( $sum_build_frame <= PricingConfig::BUILDOUT_DEPTH_THRESHOLD ) {
-				$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Buildout' );
+				$val = $this->usdRate( 'Buildout' );
 				if ( $val > 0 ) {
 					$usd_sum += ( $val * $usd_basic ) / 100;
 					$this->result->log( 'usd', 'SUM Buildout dolar', $usd_sum );
@@ -1114,9 +1122,18 @@ class PricingCalculator {
 			}
 		}
 
+		// Inside fit (USD) -- same condition as GBP. 0 when no Inside-dolar rate is set at any level.
+		if ( intval( $this->products['property_fit'] ) == PricingConfig::FIT_INSIDE ) {
+			$val = $this->usdRate( 'Inside' );
+			if ( $val > 0 ) {
+				$usd_sum += ( $val * $usd_basic ) / 100;
+				$this->result->log( 'usd', 'SUM Inside dolar', $usd_sum );
+			}
+		}
+
 		// Concealed Rod (USD) -- both user and global use the same formula.
 		if ( intval( $this->products['property_controltype'] ) == PricingConfig::CONTROL_CONCEALED_ROD ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Concealed_Rod' );
+			$val = $this->usdRate( 'Concealed_Rod' );
 			$usd_sum += ( $usd_basic * $val ) / 100;
 			$this->result->log( 'usd', 'SUM Concealed_Rod dolar', $usd_sum );
 		}
@@ -1126,7 +1143,7 @@ class PricingCalculator {
 		if ( intval( $this->products['property_controltype'] ) == PricingConfig::CONTROL_HIDDEN_ROD ) {
 			$has_hrod_usd = $this->config->hasPerMaterialRate( $this->material_id, 'Hidden_Rod_with_Locking_System-dolar' )
 				|| $this->config->hasUserRate( 'Hidden_Rod_with_Locking_System-dolar' );
-			$hrod_usd_rate = $this->config->getPerMaterialUsdRate( $this->material_id, 'Hidden_Rod_with_Locking_System' );
+			$hrod_usd_rate = $this->usdRate( 'Hidden_Rod_with_Locking_System' );
 			if ( $has_hrod_usd ) {
 				$usd_sum += ( $usd_basic * $hrod_usd_rate ) / 100;
 			} else {
@@ -1137,14 +1154,14 @@ class PricingCalculator {
 
 		// Stainless Steel hinge (USD).
 		if ( intval( $this->products['property_hingecolour'] ) == PricingConfig::HINGE_STAINLESS_STEEL ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Stainless_Steel' );
+			$val = $this->usdRate( 'Stainless_Steel' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Stainless_Steel dolar', $usd_sum );
 		}
 
 		// Hidden hinge (USD).
 		if ( intval( $this->products['property_hingecolour'] ) == PricingConfig::HINGE_HIDDEN ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Hidden' );
+			$val = $this->usdRate( 'Hidden' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM Hidden dolar', $usd_sum );
 		}
@@ -1153,12 +1170,12 @@ class PricingCalculator {
 		for ( $i = 1; $i <= 15; $i++ ) {
 			$property_ba   = 'property_ba' . $i;
 			$bay_post_type = isset( $this->products['bay-post-type'] ) ? $this->products['bay-post-type'] : '';
-			if ( ! empty( $this->products[ $property_ba ] ) && $bay_post_type == 'normal' ) {
+			if ( ! empty( $this->products[ $property_ba ] ) && in_array( $bay_post_type, [ 'normal', 'slim' ] ) ) {
 				$angle = intval( $this->products[ $property_ba ] );
 				if ( $angle == 90 || $angle == 135 ) {
 					// No surcharge.
 				} else {
-					$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Bay_Angle' );
+					$val = $this->usdRate( 'Bay_Angle' );
 					$usd_sum += ( $val * $usd_basic ) / 100;
 					$this->result->log( 'usd', 'SUM Bay_Angle dolar', $usd_sum );
 					break;
@@ -1169,13 +1186,23 @@ class PricingCalculator {
 		// Flexible B-post type (USD).
 		$bay_post_type = isset( $this->products['bay-post-type'] ) ? $this->products['bay-post-type'] : '';
 		if ( ! empty( $bay_post_type ) && $bay_post_type == 'flexible' ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'B_typeFlexible' );
+			$val = $this->usdRate( 'B_typeFlexible' );
 			$usd_sum += ( $val * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM B_typeFlexible dolar', $usd_sum );
 		}
 
 		// B-post buildout (USD).
 		$usd_sum = $this->applyUsdPostBuildout( $usd_sum, $usd_basic, 'property_b_buildout', 'B_Buildout' );
+
+		// G-post (USD) -- same condition as GBP, applied once. No hardcoded fallback in USD:
+		// 0 when no G_post-dolar rate is set at any level.
+		if ( ! empty( $this->products['property_g1'] ) ) {
+			$val = $this->usdRate( 'G_post' );
+			if ( $val > 0 ) {
+				$usd_sum += ( $val * $usd_basic ) / 100;
+				$this->result->log( 'usd', 'SUM G_post dolar', $usd_sum );
+			}
+		}
 
 		// T-post buildout (USD).
 		$usd_sum = $this->applyUsdPostBuildout( $usd_sum, $usd_basic, 'property_t_buildout', 'T_Buildout' );
@@ -1185,7 +1212,7 @@ class PricingCalculator {
 			for ( $i = 1; $i <= 10; $i++ ) {
 				$property_tb = 'property_t_buildout1_' . $i;
 				if ( ! empty( $this->products[ $property_tb ] ) ) {
-					$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'T_Buildout' );
+					$val = $this->usdRate( 'T_Buildout' );
 					$usd_sum += ( $val * $usd_basic ) / 100;
 					$this->result->log( 'usd', 'SUM T_Buildout section dolar', $usd_sum );
 					break;
@@ -1197,51 +1224,68 @@ class PricingCalculator {
 		$usd_sum = $this->applyUsdPostBuildout( $usd_sum, $usd_basic, 'property_c_buildout', 'C_Buildout' );
 
 		// Material-specific color surcharges (USD).
+		// Only a per-material 'mat_{id}_Colors-dolar' (user L1, then global L3) replaces the
+		// hardcoded rate of the block below. The generic 'Colors-dolar' (L2, L4) is ignored here,
+		// so one generic value cannot flatten the three different hardcoded rates.
+		$shutter_colour  = intval( $this->products['property_shuttercolour'] );
+		$usd_colors_rate = $this->config->getPerMaterialOverride( $this->material_id, 'Colors-dolar' );
+
 		// Stained Basswood/BasswoodPlus.
 		if (
 			( $material_id == PricingConfig::MATERIAL_BASSWOODPLUS || $material_id == PricingConfig::MATERIAL_BASSWOOD ) &&
-			in_array( intval( $this->products['property_shuttercolour'] ), PricingConfig::USD_COLORS_BASSWOOD['ids'] )
+			in_array( $shutter_colour, PricingConfig::USD_COLORS_BASSWOOD['ids'] )
 		) {
-			$usd_sum += ( PricingConfig::USD_COLORS_BASSWOOD['rate'] * $usd_basic ) / 100;
+			$colors_rate = ( null !== $usd_colors_rate ) ? $usd_colors_rate : PricingConfig::USD_COLORS_BASSWOOD['rate'];
+			$this->recordRate( 'Colors-dolar', $colors_rate );
+			$usd_sum += ( $colors_rate * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM USD Basswood color', $usd_sum );
-		}
-
-		// Brushed BiowoodPlus.
-		if (
+		} elseif (
+			// Brushed BiowoodPlus.
 			$material_id == PricingConfig::MATERIAL_BIOWOODPLUS &&
-			in_array( intval( $this->products['property_shuttercolour'] ), PricingConfig::USD_COLORS_BIOWOODPLUS['ids'] )
+			in_array( $shutter_colour, PricingConfig::USD_COLORS_BIOWOODPLUS['ids'] )
 		) {
-			$usd_sum += ( PricingConfig::USD_COLORS_BIOWOODPLUS['rate'] * $usd_basic ) / 100;
+			$colors_rate = ( null !== $usd_colors_rate ) ? $usd_colors_rate : PricingConfig::USD_COLORS_BIOWOODPLUS['rate'];
+			$this->recordRate( 'Colors-dolar', $colors_rate );
+			$usd_sum += ( $colors_rate * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM USD BiowoodPlus color', $usd_sum );
-		}
-
-		// Painted Earth.
-		if (
+		} elseif (
+			// Painted Earth.
 			$material_id == PricingConfig::MATERIAL_EARTH &&
-			in_array( intval( $this->products['property_shuttercolour'] ), PricingConfig::USD_COLORS_EARTH['ids'] )
+			in_array( $shutter_colour, PricingConfig::USD_COLORS_EARTH['ids'] )
 		) {
-			$usd_sum += ( PricingConfig::USD_COLORS_EARTH['rate'] * $usd_basic ) / 100;
+			$colors_rate = ( null !== $usd_colors_rate ) ? $usd_colors_rate : PricingConfig::USD_COLORS_EARTH['rate'];
+			$this->recordRate( 'Colors-dolar', $colors_rate );
+			$usd_sum += ( $colors_rate * $usd_basic ) / 100;
 			$this->result->log( 'usd', 'SUM USD Earth color', $usd_sum );
+		} elseif (
+			// Other materials (no hardcoded USD rate): configured rate only, same colours as GBP 'Colors'.
+			null !== $usd_colors_rate &&
+			! in_array( $material_id, array( PricingConfig::MATERIAL_BASSWOODPLUS, PricingConfig::MATERIAL_BASSWOOD, PricingConfig::MATERIAL_BIOWOODPLUS, PricingConfig::MATERIAL_EARTH ) ) &&
+			in_array( $shutter_colour, PricingConfig::COLORS_GBP_SURCHARGE )
+		) {
+			$this->recordRate( 'Colors-dolar', $usd_colors_rate );
+			$usd_sum += ( $usd_colors_rate * $usd_basic ) / 100;
+			$this->result->log( 'usd', 'SUM Colors dolar', $usd_sum );
 		}
 
 		// Ring Pull (USD).
 		$ringpull = $this->getProductField( 'property_ringpull' );
 		if ( ! empty( $ringpull ) && $ringpull !== 'No' ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Ringpull' );
+			$val = $this->usdRate( 'Ringpull' );
 			$usd_sum += $val * intval( $this->products['property_ringpull_volume'] );
 			$this->result->log( 'usd', 'SUM Ringpull dolar', $usd_sum );
 		}
 
 		// Locks (USD -- simplified: rate * 2, no biowood special case).
 		if ( $this->getProductField( 'property_locks' ) == 'Yes' ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Lock' );
+			$val = $this->usdRate( 'Lock' );
 			$usd_sum += $val * 2;
 			$this->result->log( 'usd', 'SUM Lock dolar', $usd_sum );
 		}
 
 		// Spare Louvres (USD).
 		if ( $this->getProductField( 'property_sparelouvres' ) == 'Yes' ) {
-			$val = $this->config->getPerMaterialUsdRate( $this->material_id, 'Spare_Louvres' );
+			$val = $this->usdRate( 'Spare_Louvres' );
 			$panels_lr = intval( $this->products['panels_left_right'] );
 			$usd_sum += $panels_lr * $val;
 			$this->result->log( 'usd', 'SUM Spare_Louvres dolar', $usd_sum );
@@ -1297,7 +1341,7 @@ class PricingCalculator {
 		for ( $i = 1; $i <= 15; $i++ ) {
 			$key = $prefix . $i;
 			if ( ! empty( $this->products[ $key ] ) ) {
-				$val = $this->config->getPerMaterialUsdRate( $this->material_id, $rate_key );
+				$val = $this->usdRate( $rate_key );
 				$usd_sum += ( $val * $usd_basic ) / 100;
 				$this->result->log( 'usd', 'SUM ' . $rate_key . ' dolar', $usd_sum );
 				break;
@@ -1387,6 +1431,7 @@ class PricingCalculator {
 		$total_gbp    = 0.0;
 		$total_usd    = 0.0;
 		$last_result  = null;
+		$rates_used   = array();
 
 		if ( $nr_sections > 0 ) {
 			for ( $sec = 1; $sec <= $nr_sections; $sec++ ) {
@@ -1405,6 +1450,7 @@ class PricingCalculator {
 				$usd_sections[ $sec ] = $result->usd_price;
 				$total_gbp           += $result->gbp_price;
 				$total_usd           += $result->usd_price;
+				$rates_used           = array_merge( $rates_used, $result->rates_used );
 				$last_result          = $result;
 			}
 		} else {
@@ -1412,6 +1458,7 @@ class PricingCalculator {
 			$last_result = $this->calculate( $products, $config );
 			$total_gbp   = $last_result->gbp_price;
 			$total_usd   = $last_result->usd_price;
+			$rates_used  = $last_result->rates_used;
 		}
 
 		// Build aggregated PricingResult.
@@ -1431,6 +1478,7 @@ class PricingCalculator {
 		$aggregated->sections_price          = $gbp_sections;
 		$aggregated->dolar_sections_price    = $usd_sections;
 		$aggregated->individual_counter      = $last_result->individual_counter;
+		$aggregated->rates_used              = $rates_used;
 
 		return $aggregated;
 	}
@@ -1452,6 +1500,50 @@ class PricingCalculator {
 	 */
 	private function getProductField( $field ) {
 		return isset( $this->products[ $field ] ) ? $this->products[ $field ] : '';
+	}
+
+	/**
+	 * Resolve a per-material GBP rate for the current material and record it.
+	 *
+	 * Wraps PricingConfig::getPerMaterialRate() and stores the value in
+	 * PricingResult::$rates_used under the option key.
+	 *
+	 * @since 1.1.1
+	 * @param string $key The option key (e.g. 'Solid').
+	 * @return float The resolved rate.
+	 */
+	private function rate( $key ) {
+		$rate = $this->config->getPerMaterialRate( $this->material_id, $key );
+		$this->recordRate( $key, $rate );
+		return $rate;
+	}
+
+	/**
+	 * Resolve a per-material USD rate for the current material and record it.
+	 *
+	 * Wraps PricingConfig::getPerMaterialUsdRate() and stores the value in
+	 * PricingResult::$rates_used under '{key}-dolar'.
+	 *
+	 * @since 1.1.1
+	 * @param string $key The option key, without the '-dolar' suffix.
+	 * @return float The resolved USD rate.
+	 */
+	private function usdRate( $key ) {
+		$rate = $this->config->getPerMaterialUsdRate( $this->material_id, $key );
+		$this->recordRate( $key . '-dolar', $rate );
+		return $rate;
+	}
+
+	/**
+	 * Record a rate used in this calculation (rate snapshot).
+	 *
+	 * @since 1.1.1
+	 * @param string $key  Snapshot key ('{key}' for GBP, '{key}-dolar' for USD).
+	 * @param float  $rate The rate applied.
+	 * @return void
+	 */
+	private function recordRate( $key, $rate ) {
+		$this->result->rates_used[ $key ] = floatval( $rate );
 	}
 
 	/**

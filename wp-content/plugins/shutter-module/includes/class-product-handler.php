@@ -35,10 +35,12 @@ class ProductHandler {
 	 * @since 1.0.0
 	 * @param array         $products The parsed form data from the configurator.
 	 * @param PricingResult $result   The pricing calculation result.
-	 * @param int           $user_id  The user ID (author of the product).
+	 * @param int           $user_id         The user ID (author of the product).
+	 * @param int           $pricing_user_id Optional. The user whose rates priced the item (order-edit
+	 *                                       create for a customer). Defaults to $user_id.
 	 * @return int The new product post ID.
 	 */
-	public function createProduct( array $products, PricingResult $result, int $user_id ) {
+	public function createProduct( array $products, PricingResult $result, int $user_id, int $pricing_user_id = 0 ) {
 		$atribute = get_post_meta( 1, 'attributes_array', true );
 
 		$post = array(
@@ -83,8 +85,11 @@ class ProductHandler {
 		// Save all product attributes and property meta.
 		$this->saveProductMeta( $post_id, $products, $result, $atribute );
 
-		// Save current material price snapshot.
-		saveCurrentPriceItem( $post_id, $user_id );
+		// Save the surcharge rates used (after the form meta loop, so a form field cannot overwrite it).
+		$this->saveRatesSnapshot( $post_id, $result );
+
+		// Save current material price snapshot (rates of the user the item was priced for).
+		saveCurrentPriceItem( $post_id, $pricing_user_id ? $pricing_user_id : $user_id );
 
 		// Save USD price.
 		update_post_meta( $post_id, 'dolar_price', floatval( $result->usd_price ) );
@@ -113,6 +118,9 @@ class ProductHandler {
 
 		// Save all product attributes and property meta.
 		$this->saveProductMeta( $post_id, $products, $result, $atribute );
+
+		// Save the surcharge rates used (after the form meta loop, so a form field cannot overwrite it).
+		$this->saveRatesSnapshot( $post_id, $result );
 
 		// Save current material price snapshot.
 		saveCurrentPriceItem( $post_id, $user_id );
@@ -279,6 +287,23 @@ class ProductHandler {
 			delete_post_meta( $post_id, 'property_ringpull_volume', '' );
 			delete_post_meta( $post_id, 'property_ringpull', 'YES' );
 		}
+	}
+
+	/**
+	 * Save the snapshot of surcharge rates used by the calculation.
+	 *
+	 * Stores PricingResult::$rates_used as 'price_item_rates' so that order
+	 * displays (storefront-child views/table/items.php) show the rate charged
+	 * when the item was priced, not the dealer's current rate.
+	 *
+	 * @since 1.1.1
+	 * @param int           $post_id The product post ID.
+	 * @param PricingResult $result  The pricing calculation result.
+	 * @return void
+	 */
+	private function saveRatesSnapshot( int $post_id, PricingResult $result ) {
+		$rates = is_array( $result->rates_used ) ? $result->rates_used : array();
+		update_post_meta( $post_id, 'price_item_rates', $rates );
 	}
 
 	/**

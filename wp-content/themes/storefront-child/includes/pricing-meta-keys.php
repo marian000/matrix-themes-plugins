@@ -104,9 +104,8 @@ function matrix_get_tax_meta_keys() {
 /**
  * Returns the list of dolar (USD) price meta keys.
  *
- * Not all base keys have dolar variants. Business settings and some
- * option surcharges (T_typeAdjustable, tposttype_blackout,
- * bposttype_blackout, 4008T) do not have USD equivalents.
+ * Not all base keys have dolar variants. Business settings and
+ * T_typeAdjustable do not have USD equivalents.
  *
  * @since 1.0.0
  * @return array Indexed array of dolar meta key strings.
@@ -114,7 +113,8 @@ function matrix_get_tax_meta_keys() {
 function matrix_get_dolar_meta_keys() {
 	$dolar_keys = array();
 	$base_keys  = matrix_get_price_meta_keys();
-	// These keys do not have dolar variants in the existing codebase
+	// These keys do not have dolar variants in the existing codebase.
+	// T_typeAdjustable: keep in sync with matrix_get_per_material_usd_excludes().
 	$exclude = array(
 		'vat_number_custom',
 		'email_contabil',
@@ -122,9 +122,6 @@ function matrix_get_dolar_meta_keys() {
 		'train_price',
 		'discount_components',
 		'T_typeAdjustable',
-		'tposttype_blackout',
-		'bposttype_blackout',
-		'4008T',
 	);
 	foreach ( $base_keys as $key ) {
 		if ( ! in_array( $key, $exclude, true ) ) {
@@ -228,7 +225,10 @@ function matrix_copy_pricing_meta( $source_user_id, $target_user_id ) {
  * Saves all pricing fields from $_POST to user meta with proper sanitization.
  *
  * Reads the POST field map and saves each field that exists in $_POST.
- * Uses sanitize_email() for email_contabil, sanitize_text_field() for all others.
+ * Uses sanitize_email() for email_contabil and sanitize_text_field() for
+ * vat_number_custom. All other keys are prices and go through
+ * matrix_normalize_price_input(); a rejected value (non-numeric or negative)
+ * leaves the stored meta unchanged.
  *
  * @since 1.0.0
  * @param int $user_id The user to save pricing for.
@@ -240,10 +240,45 @@ function matrix_save_pricing_from_post( $user_id ) {
 		if ( isset( $_POST[ $post_key ] ) ) {
 			if ( $meta_key === 'email_contabil' ) {
 				$value = sanitize_email( wp_unslash( $_POST[ $post_key ] ) );
-			} else {
+			} elseif ( $meta_key === 'vat_number_custom' ) {
 				$value = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
+			} else {
+				$value = matrix_normalize_price_input( wp_unslash( $_POST[ $post_key ] ) );
+				if ( null === $value ) {
+					continue;
+				}
 			}
 			update_user_meta( $user_id, $meta_key, $value );
 		}
 	}
+}
+
+/**
+ * Returns the generic (Level 4) price keys that the Pound and Dolar tabs of the
+ * shutter-module settings page may write on post ID 1.
+ *
+ * Whitelist for ajax/ajax-update-price.php and ajax/ajax-update-price-dolar.php:
+ * matrix_get_price_meta_keys() plus the extra properties listed in $post_meta_props
+ * in shutter-module/views/page-show.php, normalised the way the form submits them
+ * (spaces become underscores). Per-material keys (mat_*) and attributes_array are
+ * deliberately not in this list.
+ *
+ * @since 1.1.0
+ * @return array Indexed array of meta key strings (without the -dolar suffix).
+ */
+function matrix_get_global_price_form_keys() {
+	return array_merge(
+		matrix_get_price_meta_keys(),
+		array(
+			'Security_S/S_Hinge',
+			'Hidden_Tilt_with_Louver_Lock',
+			'Louver_lock',
+			'Central_Lock',
+			'Top_Bottom_Lock',
+			'Light_block',
+			'motor',
+			'remote',
+			'panel_width_price',
+		)
+	);
 }

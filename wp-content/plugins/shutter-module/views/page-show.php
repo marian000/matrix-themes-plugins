@@ -69,6 +69,7 @@ foreach ($post_meta_props as $key => $prop) {
 }
 
 $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
+$matrix_global_price_nonce = wp_create_nonce( 'matrix_global_pricing_nonce' );
 
 ?>
 
@@ -291,41 +292,9 @@ $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
           <?php
           $l3_materials    = matrix_get_material_ids();
           $l3_option_keys  = matrix_get_per_material_option_keys();
-          $l3_no_usd_keys  = array( '4008T', 'T_typeAdjustable', 'tposttype_blackout', 'bposttype_blackout' );
+          $l3_no_usd_keys  = matrix_get_per_material_usd_excludes();
 
-          $l3_option_labels = array(
-              'Solid'              => 'Solid %',
-              'Shaped'             => 'Shaped %',
-              'Arched'             => 'Arched %',
-              'Combi'              => 'Combi %',
-              'French_Door'        => 'French Door +',
-              'Tracked'            => 'Tracked +',
-              'TrackedByPass'      => 'TrackedByPass +',
-              'Inside'             => 'Inside Fit %',
-              'Buildout'           => 'Buildout %',
-              'Bay_Angle'          => 'Bay Angle %',
-              'Colors'             => 'Colors %',
-              'Stainless_Steel'    => 'Stainless Steel %',
-              'Hidden'             => 'Hidden Hinge %',
-              'Concealed_Rod'      => 'Concealed Rod %',
-              'P4028X'             => 'P4028X %',
-              'P4008T'             => 'P4008T %',
-              'P4008W'             => 'P4008W %',
-              '4008T'              => '4008T %',
-              'T_Buildout'         => 'T_Buildout %',
-              'B_Buildout'         => 'B_Buildout %',
-              'C_Buildout'         => 'C_Buildout %',
-              'G_post'             => 'G_post %',
-              'B_typeFlexible'     => 'B_typeFlexible %',
-              'T_typeAdjustable'   => 'T_typeAdjustable %',
-              'Flat_Louver'        => 'Flat Louver %',
-              'Lock'               => 'Lock +',
-              'Ringpull'           => 'Ringpull +',
-              'Spare_Louvres'      => 'Spare Louvres +',
-              'blackoutblind'      => 'Blackout Blind +',
-              'tposttype_blackout' => 'T-Post Blackout %',
-              'bposttype_blackout' => 'B-Post Blackout %',
-          );
+          $l3_option_labels = matrix_get_per_material_option_labels();
           ?>
 
           <style>
@@ -460,6 +429,9 @@ $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
                 //
                 // firstTab.show()
 
+                // Nonce for ajax-update-price.php and ajax-update-price-dolar.php.
+                var globalPriceNonce = '<?php echo esc_js( $matrix_global_price_nonce ); ?>';
+
                 // Set price for normal atributes
                 jQuery("#form-table-attributes").submit(function (event) {
                     event.preventDefault();
@@ -470,17 +442,21 @@ $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
                         method: "POST",
                         url: "/wp-content/plugins/shutter-module/ajax/ajax-update-price.php",
                         data: {
-                            attributes: attributes
+                            attributes: attributes,
+                            nonce: globalPriceNonce
                         }
                     })
                         .done(function (data) {
-                            jQuery('.show-attributes').html(data);
-                            alert("Data Saved: " + data);
+                            jQuery('.show-attributes').text(data);
+                            alert(data);
                             console.log(data);
 
                             setTimeout(function () {
                                 location.reload();
                             }, 500);
+                        })
+                        .fail(function (xhr) {
+                            alert("Prices not saved: " + xhr.status + " " + xhr.statusText);
                         });
                 });
 
@@ -504,7 +480,15 @@ $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
                                 nonce: l3Nonce
                             },
                             success: function(response) {
-                                $status.text('Saved successfully.').css('color', 'green').show();
+                                var rejected = [];
+                                try {
+                                    rejected = (typeof response === 'string' ? JSON.parse(response) : response).rejected || [];
+                                } catch (e) {}
+                                if (rejected.length) {
+                                    $status.text('Saved. Not saved (must be a number of 0 or more): ' + rejected.join(', ')).css('color', 'red').show();
+                                } else {
+                                    $status.text('Saved successfully.').css('color', 'green').show();
+                                }
                             },
                             error: function(xhr) {
                                 $status.text('Error: ' + xhr.status + ' ' + xhr.statusText).css('color', 'red').show();
@@ -526,17 +510,21 @@ $matrix_l3_nonce = wp_create_nonce( 'matrix_l3_pricing_nonce' );
                         method: "POST",
                         url: "/wp-content/plugins/shutter-module/ajax/ajax-update-price-dolar.php",
                         data: {
-                            attributes: attributes
+                            attributes: attributes,
+                            nonce: globalPriceNonce
                         }
                     })
                         .done(function (data) {
-                            jQuery('.show-attributes-dolar').html(data);
-                            alert("Data Saved: " + data);
+                            jQuery('.show-attributes-dolar').text(data);
+                            alert(data);
                             console.log(data);
 
                             setTimeout(function () {
                                 location.reload();
                             }, 500);
+                        })
+                        .fail(function (xhr) {
+                            alert("Prices not saved: " + xhr.status + " " + xhr.statusText);
                         });
                 });
 

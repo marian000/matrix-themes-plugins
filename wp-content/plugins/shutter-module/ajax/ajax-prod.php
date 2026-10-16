@@ -32,19 +32,38 @@ if ( ! is_user_logged_in() ) {
 parse_str($_POST['prod'], $products);
 $products = horeka_sanitize_pricing_input( $products );
 
-// ---- Calculate ----
+// ---- Resolve pricing user ----
+// Order-edit create: price with the customer's rates (same check as ajax-prod-update.php).
+// The product author stays the current user.
 $user_id = get_current_user_id();
 
-$config     = new PricingConfig( $user_id );
+$pricing_user_id = $user_id;
+if ( ! empty( $products['order_edit'] ) && ! empty( $products['edit_customer'] ) ) {
+	$pricing_user_id = isset( $products['customer_id'] ) ? intval( $products['customer_id'] ) : 0;
+	if ( $pricing_user_id && $pricing_user_id !== $user_id ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$customer_dealer     = get_user_meta( $pricing_user_id, 'company_parent', true );
+			$current_user_dealer = get_user_meta( $user_id, 'company_parent', true );
+			if ( intval( $customer_dealer ) !== $user_id && intval( $current_user_dealer ) !== $user_id ) {
+				wp_send_json_error( 'Unauthorized to modify this customer order', 403 );
+			}
+		}
+	} else {
+		$pricing_user_id = $user_id;
+	}
+}
+
+// ---- Calculate ----
+$config     = new PricingConfig( $pricing_user_id );
 $calculator = new PricingCalculator();
 $result     = $calculator->calculate( $products, $config );
 
 // ---- Create Product ----
 $handler = new ProductHandler();
-$post_id = $handler->createProduct( $products, $result, $user_id );
+$post_id = $handler->createProduct( $products, $result, $user_id, $pricing_user_id );
 
 // ---- Pricing Log ----
-PricingLogWriter::write( $result, $products, $user_id, $post_id );
+PricingLogWriter::write( $result, $products, $pricing_user_id, $post_id );
 
 // ---- Cart or Order ----
 $order_handler = new OrderHandler();
@@ -55,7 +74,7 @@ if ( ! empty( $products['order_edit'] ) && ! empty( $products['edit_customer'] )
 
 	$order_handler->addToOrder( $post_id, $products );
 	$order_handler->manageOtherColorProducts( $products['order_edit'], $post_id, $products );
-	$order_handler->recalculateOrder( $products['order_edit'], $user_id );
+	$order_handler->recalculateOrder( $products['order_edit'], $pricing_user_id );
 } else {
 	$handler->addToCart( $post_id, $products );
 	$order_handler->manageOtherColorCart( $post_id, $products );

@@ -4,6 +4,75 @@ All notable changes to the Shutter Module plugin are documented here.
 
 ---
 
+## [2026-10-16]
+
+Per-material pricing, `docs/per-material-pricing-analysis.md` (steps 1-5, 7, 8, 11, 12 and the
+business decisions on G_post/Tracked, USD Inside/G_post/Colors, Biowood Lock, negative rates).
+
+### Security
+
+- **`ajax/ajax-update-price.php` and `ajax/ajax-update-price-dolar.php`** (Pound / Dolar tabs of the
+  global settings page) now require `manage_options` and the `matrix_global_pricing_nonce` nonce, sent
+  from `views/page-show.php`. Before, anyone, logged in or not, could write any post ID 1 meta,
+  including `mat_*` and `attributes_array`. Keys are checked against `matrix_get_global_price_form_keys()`,
+  values against `matrix_normalize_price_input()`. The response is plain text (`Saved N prices.` plus
+  rejected keys) instead of `print_r()`.
+- **`ajax/ajax-update-price-per-material.php`** checks the option key against
+  `matrix_get_per_material_option_keys()` and validates values; the response lists rejected fields.
+
+### Changed
+
+- **G_post and Tracked extra tracks use the configured rate at any level**
+  (`includes/class-pricing-config.php`, `includes/class-pricing-calculator.php`)
+  - New `PricingConfig::hasConfiguredPerMaterialRate()` checks L1-L4. The 3% G_post fallback and the
+    £71/m Tracked extra-tracks fallback now apply only when the key is empty at all four levels.
+    Before, a dealer without L1/L2 got the fallback even when L3 (`mat_{id}_X` on post 1) or L4 was set.
+    Applies to `applyPostSurcharges()`, `calculateSections()` and `applyStyleSurcharges()`.
+    Hidden Rod is unchanged.
+- **USD now charges Inside and G_post** with `getPerMaterialUsdRate()`, under the GBP conditions
+  (fit 56; `property_g1` set, once). Nothing configured in USD gives 0, as before.
+- **USD Colors uses `mat_{id}_Colors-dolar` when set** (user L1, then global L3, through the new
+  `PricingConfig::getPerMaterialOverride()`). The generic `Colors-dolar` (L2/L4) is ignored, so the
+  hardcoded 14.57% (Basswood/BasswoodPlus stained), 35.64% (BiowoodPlus brushed) and 6.87% (Earth painted)
+  stay unless a per-material value is set. Other materials get USD Colors only from a per-material value,
+  for the GBP `Colors` colour list.
+- **USD for `4008T`, `tposttype_blackout`, `bposttype_blackout` can be set** at L1, L2 and L3 and is
+  copied to employees; only `T_typeAdjustable` stays without USD.
+- **Price inputs are validated on save** (`matrix_normalize_price_input()`, theme): comma decimal
+  accepted, rounded to 2 decimals, empty allowed; negative or non-numeric values are rejected and the
+  stored value is kept. Applies to the user profile (L1, L2) and the global settings (L3, L4).
+- **Per-material key lists consolidated** in `storefront-child/includes/material-pricing-keys.php`
+  (`matrix_get_per_material_usd_excludes()`, `matrix_get_per_material_option_labels()`), used by the
+  user profile, the global settings page and the L3 handler.
+- **Biowood / BiowoodPlus GBP lock**: `mat_{id}_Lock` (user, then post 1) charged like the default lock
+  (rate x 2 x horizontal T-post); fixed £58 when neither is set. The generic `Lock` (L2/L4) is not used
+  for these materials. USD lock unchanged. New `PricingConfig::getBiowoodLockRate()`.
+- **Negative per-material rates are treated as 0** in `getPerMaterialRate()` / `getPerMaterialUsdRate()`.
+- **Order-edit create prices with the customer** (`ajax/ajax-prod.php`, `ajax/ajax-prod-individual.php`):
+  when `order_edit` and `edit_customer` are set, `customer_id` is resolved with the same check as
+  `ajax-prod-update.php` and used for `PricingConfig`, the pricing log and `recalculateOrder()`.
+  The product author is still the current user.
+
+### Added
+
+- **Rate snapshot**: `PricingResult::$rates_used` holds every per-material rate used (GBP by key,
+  USD as `{key}-dolar`, fallbacks included); `ProductHandler` saves it as `price_item_rates` on create
+  and update, single and multi-section (`calculateMultiSection()` merges the sections).
+- **`tests/per-material-resolution.php`**: CLI test without database (stubbed meta) for L1-L4 order,
+  G_post, Tracked, USD Inside/G_post/Colors, Biowood Lock, 4008T USD, snapshot, negative rates and the
+  `items.php` display helpers.
+
+### Fixed (theme display, `storefront-child/views/table/items.php`)
+
+- `items_get_display_rate()` takes an optional `$product_id` and reads `price_item_rates` first; older
+  items fall back to the current 4-level resolution (docblock corrected from 3 to 4 levels).
+- Frame type 353 shows the `4008T` rate (was `P4008T`).
+- Bay_Angle shown for `slim` B-posts as well as `normal`.
+- Lock shows the amount charged: `Lock` x 2 (x 2 with horizontal T-post), `Central_Lock` /
+  `Top_Bottom_Lock` when a lock position is set, Biowood per-material rate x 2 or £58.
+- Arched shown for styles 36 and 42, Shaped for 33 and 43.
+- B_Buildout rate shown on the first B-post buildout at any angle, whatever its value.
+
 ## [2026-10-10]
 
 ### Fixed

@@ -28,7 +28,7 @@ $materials      = matrix_get_material_ids();
 $surcharge_keys = matrix_get_per_material_option_keys();
 
 // Keys that have no USD (-dolar) variant.
-$no_usd_keys = array( '4008T', 'T_typeAdjustable', 'tposttype_blackout', 'bposttype_blackout' );
+$no_usd_keys = matrix_get_per_material_usd_excludes();
 
 // Determine if the inputs should be readonly (employees inherit from parent dealer).
 $is_employee = ( in_array( 'employe', $roles, true )
@@ -38,39 +38,7 @@ $is_readonly = $is_employee || ! current_user_can( 'edit_user', $user->ID );
 $readonly_attr = $is_readonly ? ' readonly' : '';
 
 // Human-readable labels for each surcharge option key.
-$option_labels = array(
-	'Solid'              => 'Solid %',
-	'Shaped'             => 'Shaped %',
-	'Arched'             => 'Arched %',
-	'Combi'              => 'Combi %',
-	'French_Door'        => 'French Door +',
-	'Tracked'            => 'Tracked +',
-	'TrackedByPass'      => 'TrackedByPass +',
-	'Inside'             => 'Inside Fit %',
-	'Buildout'           => 'Buildout %',
-	'Bay_Angle'          => 'Bay Angle %',
-	'Colors'             => 'Colors %',
-	'Stainless_Steel'    => 'Stainless Steel %',
-	'Hidden'             => 'Hidden Hinge %',
-	'Concealed_Rod'      => 'Concealed Rod %',
-	'P4028X'             => 'P4028X %',
-	'P4008T'             => 'P4008T %',
-	'P4008W'             => 'P4008W %',
-	'4008T'              => '4008T %',
-	'T_Buildout'         => 'T_Buildout %',
-	'B_Buildout'         => 'B_Buildout %',
-	'C_Buildout'         => 'C_Buildout %',
-	'G_post'             => 'G_post %',
-	'B_typeFlexible'     => 'B_typeFlexible %',
-	'T_typeAdjustable'   => 'T_typeAdjustable %',
-	'Flat_Louver'        => 'Flat Louver %',
-	'Lock'               => 'Lock +',
-	'Ringpull'           => 'Ringpull +',
-	'Spare_Louvres'      => 'Spare Louvres +',
-	'blackoutblind'      => 'Blackout Blind +',
-	'tposttype_blackout' => 'T-Post Blackout %',
-	'bposttype_blackout' => 'B-Post Blackout %',
-);
+$option_labels = matrix_get_per_material_option_labels();
 ?>
 
 <style>
@@ -134,11 +102,28 @@ $option_labels = array(
 				$gbp_value = get_user_meta( $user->ID, $gbp_meta_key, true );
 				$usd_value = get_user_meta( $user->ID, $usd_meta_key, true );
 
-				// Placeholder: general user rate (user meta > global post 1 fallback).
-				$_gbp_ph         = get_user_meta( $user->ID, $option_key, true );
-				$gbp_placeholder = ( $_gbp_ph !== '' ) ? $_gbp_ph : get_post_meta( 1, $option_key, true );
-				$_usd_ph         = get_user_meta( $user->ID, $option_key . '-dolar', true );
-				$usd_placeholder = ( $_usd_ph !== '' ) ? $_usd_ph : get_post_meta( 1, $option_key . '-dolar', true );
+				// Placeholder: the rate that actually applies when this field is left blank.
+				// Mirrors PricingConfig::getPerMaterialRate() fallback order:
+				// Level 2 (user general) > Level 3 (per-material global) > Level 4 (general global).
+				$gbp_placeholder = get_user_meta( $user->ID, $option_key, true );
+				if ( $gbp_placeholder === '' ) {
+					$gbp_placeholder = get_post_meta( 1, $gbp_meta_key, true );
+				}
+				if ( $gbp_placeholder === '' ) {
+					$gbp_placeholder = get_post_meta( 1, $option_key, true );
+				}
+				// G_post without any configured rate (L2, L3, L4) falls back to a hardcoded 3%.
+				if ( $gbp_placeholder === '' && $option_key === 'G_post' ) {
+					$gbp_placeholder = '3';
+				}
+
+				$usd_placeholder = get_user_meta( $user->ID, $option_key . '-dolar', true );
+				if ( $usd_placeholder === '' ) {
+					$usd_placeholder = get_post_meta( 1, $usd_meta_key, true );
+				}
+				if ( $usd_placeholder === '' ) {
+					$usd_placeholder = get_post_meta( 1, $option_key . '-dolar', true );
+				}
 
 				// Display label.
 				$label = isset( $option_labels[ $option_key ] ) ? $option_labels[ $option_key ] : $option_key;

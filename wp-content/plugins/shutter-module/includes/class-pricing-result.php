@@ -176,6 +176,20 @@ class PricingResult {
 	public $nr_remotes = 0;
 
 	/**
+	 * Per-material surcharge rates actually used in this calculation.
+	 *
+	 * Keyed by option key for GBP (e.g. 'Solid', 'G_post') and by
+	 * '{key}-dolar' for USD (e.g. 'Solid-dolar', 'Colors-dolar'). When a
+	 * hardcoded fallback was applied (G_post 3%, Tracked 71, USD colour rates)
+	 * the fallback value is stored. Saved on the product as 'price_item_rates'
+	 * so that order displays can show the rate charged at the time.
+	 *
+	 * @since 1.1.1
+	 * @var array<string, float>
+	 */
+	public $rates_used = array();
+
+	/**
 	 * Debug log entries for tracing calculation steps.
 	 *
 	 * Each entry is an associative array with 'phase', 'label', 'value' keys.

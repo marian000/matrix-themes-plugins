@@ -11,6 +11,12 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= 1.3.3 - 2026-10-16 =
+* Fix: Price inputs on the user profile (generic and per-material) are validated on save: comma decimal accepted, rounded to 2 decimals; negative or non-numeric values are rejected and the stored value is kept (matrix_normalize_price_input())
+* Change: USD for 4008T, T-post blackout and B-post blackout can be set per user and per material and is copied to employees; only T_typeAdjustable stays without USD
+* Change: Per-material key lists consolidated in includes/material-pricing-keys.php (matrix_get_per_material_usd_excludes(), matrix_get_per_material_option_labels()); new matrix_get_global_price_form_keys() whitelist used by the plugin price-update endpoints
+* Fix: Order item table (views/table/items.php) shows the surcharge rates the item was priced with (price_item_rates snapshot, current rates for older items); 4008T, Bay_Angle on slim posts, Lock, Arched/Shaped styles and B-post buildout now match the calculator
+
 = Unreleased =
 * Fix: "Suspended Dealer? (no add orders)" is now saved for employees and salesmen too, so each user is suspended or reactivated separately (before, the field was ignored on employee profiles and an existing "yes" could not be cleared)
 

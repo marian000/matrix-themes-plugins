@@ -183,7 +183,7 @@ class PricingConfig {
 	/** Biowood lock materials: Biowood (6) and BiowoodPlus (138). */
 	const BIOWOOD_LOCK_MATERIALS = array( 6, 138 );
 
-	/** Hardcoded lock price for biowood materials (GBP). */
+	/** Fixed lock price for biowood materials (GBP), used when no 'mat_{id}_Lock' is set (see getBiowoodLockRate()). */
 	const BIOWOOD_LOCK_PRICE = 58;
 
 	/*
@@ -254,10 +254,10 @@ class PricingConfig {
 	|
 	*/
 
-	/** G-post fallback percentage when no user meta 'G_post' is set. */
+	/** G-post fallback percentage when 'G_post' is empty at all 4 levels (see hasConfiguredPerMaterialRate()). */
 	const G_POST_FALLBACK_PCT = 3;
 
-	/** Tracked fallback rate (GBP per metre) when no user meta 'Tracked' is set. */
+	/** Tracked extra-tracks fallback rate (GBP per metre) when 'Tracked' is empty at all 4 levels. */
 	const TRACKED_FALLBACK_RATE = 71;
 
 	/*
@@ -422,10 +422,12 @@ class PricingConfig {
 	 *   Level 3: post_meta( 1, 'mat_{id}_{key}' )          -- per-material global
 	 *   Level 4: post_meta( 1, '{key}' )                    -- general global
 	 *
+	 * A negative stored value is treated as 0 (see sanitizeRate()).
+	 *
 	 * @since 1.0.0
 	 * @param int    $material_id The material term ID (e.g. 137 for Green).
 	 * @param string $key         The option key (e.g. 'Solid', 'Buildout').
-	 * @return float The resolved rate as a float.
+	 * @return float The resolved rate as a float, never negative.
 	 */
 	public function getPerMaterialRate( $material_id, $key ) {
 		$meta_key = 'mat_' . intval( $material_id ) . '_' . $key;
@@ -434,26 +436,26 @@ class PricingConfig {
 			// Level 1: per-material per-user override.
 			$val = get_user_meta( $this->user_id, $meta_key, true );
 			if ( $val !== '' && $val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 2: per-user general override.
 			$user_val = get_user_meta( $this->user_id, $key, true );
 			if ( $user_val !== '' && $user_val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $user_val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $user_val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 3: per-material global default (post ID 1 with mat_ prefix).
 			$global_mat_val = get_post_meta( 1, $meta_key, true );
 			if ( $global_mat_val !== '' && $global_mat_val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $global_mat_val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $global_mat_val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 4: general global default (post ID 1 without prefix).
-			$this->cache[ $meta_key ] = floatval( get_post_meta( 1, $key, true ) );
+			$this->cache[ $meta_key ] = $this->sanitizeRate( get_post_meta( 1, $key, true ) );
 		}
 		return $this->cache[ $meta_key ];
 	}
@@ -467,10 +469,12 @@ class PricingConfig {
 	 *   Level 3: post_meta( 1, 'mat_{id}_{key}-dolar' )          -- per-material global USD
 	 *   Level 4: post_meta( 1, '{key}-dolar' )                    -- general global USD
 	 *
+	 * A negative stored value is treated as 0 (see sanitizeRate()).
+	 *
 	 * @since 1.0.0
 	 * @param int    $material_id The material term ID.
 	 * @param string $key         The option key (without '-dolar' suffix).
-	 * @return float The resolved USD rate as a float.
+	 * @return float The resolved USD rate as a float, never negative.
 	 */
 	public function getPerMaterialUsdRate( $material_id, $key ) {
 		$meta_key = 'mat_' . intval( $material_id ) . '_' . $key . '-dolar';
@@ -479,26 +483,26 @@ class PricingConfig {
 			// Level 1: per-material per-user override (USD).
 			$val = get_user_meta( $this->user_id, $meta_key, true );
 			if ( $val !== '' && $val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 2: per-user general override (USD).
 			$user_val = get_user_meta( $this->user_id, $key . '-dolar', true );
 			if ( $user_val !== '' && $user_val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $user_val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $user_val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 3: per-material global default, USD (post ID 1 with mat_ prefix and -dolar suffix).
 			$global_mat_val = get_post_meta( 1, $meta_key, true );
 			if ( $global_mat_val !== '' && $global_mat_val !== false ) {
-				$this->cache[ $meta_key ] = floatval( $global_mat_val );
+				$this->cache[ $meta_key ] = $this->sanitizeRate( $global_mat_val );
 				return $this->cache[ $meta_key ];
 			}
 
 			// Level 4: general global default, USD.
-			$this->cache[ $meta_key ] = floatval( get_post_meta( 1, $key . '-dolar', true ) );
+			$this->cache[ $meta_key ] = $this->sanitizeRate( get_post_meta( 1, $key . '-dolar', true ) );
 		}
 		return $this->cache[ $meta_key ];
 	}
@@ -518,6 +522,103 @@ class PricingConfig {
 		$meta_key = 'mat_' . intval( $material_id ) . '_' . $key;
 		$val      = get_user_meta( $this->user_id, $meta_key, true );
 		return ( $val !== '' && $val !== false );
+	}
+
+	/**
+	 * Check whether a per-material rate is configured at any of the 4 levels.
+	 *
+	 * Returns true when getPerMaterialRate() would resolve from a stored value
+	 * (L1 user per-material, L2 user generic, L3 global per-material or
+	 * L4 global generic) rather than from an empty meta. Callers use it to
+	 * decide between the configured rate and a hardcoded fallback
+	 * (G_POST_FALLBACK_PCT, TRACKED_FALLBACK_RATE).
+	 *
+	 * @since 1.1.1
+	 * @param int    $material_id The material term ID.
+	 * @param string $key         The option key (e.g. 'G_post', 'Tracked').
+	 * @return bool True if a non-empty value exists at any level.
+	 */
+	public function hasConfiguredPerMaterialRate( $material_id, $key ) {
+		$meta_key = 'mat_' . intval( $material_id ) . '_' . $key;
+
+		return $this->isFilled( get_user_meta( $this->user_id, $meta_key, true ) )
+			|| $this->isFilled( get_user_meta( $this->user_id, $key, true ) )
+			|| $this->isFilled( get_post_meta( 1, $meta_key, true ) )
+			|| $this->isFilled( get_post_meta( 1, $key, true ) );
+	}
+
+	/**
+	 * Get a per-material override, reading only the per-material levels.
+	 *
+	 * Reads user 'mat_{id}_{key}' (L1), then global 'mat_{id}_{key}' on post
+	 * ID 1 (L3). The generic keys (L2, L4) are skipped on purpose: they are used
+	 * where a hardcoded per-material price must only be replaced by a value set
+	 * for that material (Biowood lock, hardcoded USD colour rates).
+	 *
+	 * @since 1.1.1
+	 * @param int    $material_id The material term ID.
+	 * @param string $key         The option key, with '-dolar' suffix for USD (e.g. 'Lock', 'Colors-dolar').
+	 * @return float|null The rate (never negative), or null if neither level is set.
+	 */
+	public function getPerMaterialOverride( $material_id, $key ) {
+		$meta_key = 'mat_' . intval( $material_id ) . '_' . $key;
+
+		$val = get_user_meta( $this->user_id, $meta_key, true );
+		if ( $this->isFilled( $val ) ) {
+			return $this->sanitizeRate( $val );
+		}
+
+		$val = get_post_meta( 1, $meta_key, true );
+		if ( $this->isFilled( $val ) ) {
+			return $this->sanitizeRate( $val );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get the per-material GBP lock rate for Biowood / BiowoodPlus.
+	 *
+	 * Only the per-material levels are read (see getPerMaterialOverride()), so
+	 * that a dealer's generic lock price does not replace the fixed Biowood
+	 * price. Returns null when neither level is set, in which case the caller
+	 * applies BIOWOOD_LOCK_PRICE.
+	 *
+	 * @since 1.1.1
+	 * @param int $material_id The material term ID (6 or 138).
+	 * @return float|null The per-lock rate (never negative), or null if not configured.
+	 */
+	public function getBiowoodLockRate( $material_id ) {
+		return $this->getPerMaterialOverride( $material_id, 'Lock' );
+	}
+
+	/**
+	 * Check whether a raw meta value counts as set.
+	 *
+	 * Matches the existing resolution rule: '' and false mean "not set",
+	 * any other value (including '0') is a configured value.
+	 *
+	 * @since 1.1.1
+	 * @param mixed $val Raw value from get_user_meta() / get_post_meta().
+	 * @return bool True if the value is set.
+	 */
+	private function isFilled( $val ) {
+		return ( $val !== '' && $val !== false );
+	}
+
+	/**
+	 * Convert a raw per-material meta value to a non-negative float.
+	 *
+	 * Negative values are treated as 0 so that a mistyped surcharge can never
+	 * turn into a discount. Save-time validation is handled separately.
+	 *
+	 * @since 1.1.1
+	 * @param mixed $val Raw meta value.
+	 * @return float The rate, 0.0 or greater.
+	 */
+	private function sanitizeRate( $val ) {
+		$rate = floatval( $val );
+		return ( $rate < 0 ) ? 0.0 : $rate;
 	}
 
 	/*

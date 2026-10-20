@@ -35,8 +35,6 @@
 			$addresses = maybe_unserialize($addresses);
 		}
 
-		$addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
-
 		/*
 				 * Create Group
 				 * Delete Group

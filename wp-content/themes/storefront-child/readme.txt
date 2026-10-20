@@ -11,6 +11,16 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 
 == Changelog ==
 
+= Unreleased =
+* Fix: "Suspended Dealer? (no add orders)" is now saved for employees and salesmen too, so each user is suspended or reactivated separately (before, the field was ignored on employee profiles and an existing "yes" could not be cleared)
+
+= 1.3.2 - 2026-10-11 =
+* Fix: Failed logins now show the Profile Builder error message instead of silently returning to the login page
+* Fix: Logged-out redirect to /login is a 302 with no-cache headers (a cached 301 kept sending users back to the login page)
+* Feature: Limit of 100 unfinished orders (multi-carts) per user, with a message when the limit is reached (includes/multicart-limit.php). Counts only the orders shown on My Orders
+* Change: The cart list is read through matrix_multicart_session() in 13 templates instead of direct SQL on the _woocom_multisession user meta (prepares table storage in the bmc_woocom_multisession plugin)
+* Fix: My Orders no longer rewrites the cart list user meta on every page view
+
 = 1.3.1 - 2026-02-26 (~3h) =
 * Feature: Admin metabox "Send Repair Email" on order_repair for manual resend of notification emails
 * Feature: Email send history log with date/time, result, and user who sent

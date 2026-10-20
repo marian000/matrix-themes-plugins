@@ -59,12 +59,14 @@
         $pdf_content .= '<body>
                <table width="100%">
                     <tr>
-                        <td width="50%"><p><strong>Lifetime Shutters</strong></p>
-                                        <p>7 Lichfield Terrace Sheen Road Richmond SR TW9 1AS</p>
+                        <td width="50%"><p><strong>Lifetime Shutters LTD</strong></p>
+                                        <p>Unit 1 Mill Farm Business Park, Millfield Road, Hounslow, TW4 5PY</p>
                                         <p>Phone: 02089401418</p>
                                         <p>Email: accounts@lifetimeshutters.com</p>
                                         <p>VAT Registration No.: 986 2325 89</p>
                                         <p>Company Registration No. 07113670</p>
+                                        <p>Sort Code: 20-46-73</p>
+                                        <p>Account Number: 13074145</p>
                         </td>
                         <td width="50%" style="text-align: right;"><img class="logo-img site-logo-img" style="text-align: center; margin: 0 auto;" src="https://dematrix.richmond-shutters.co.uk/wp-content/uploads/2019/11/lifetime-shutters-logo-e1575042261657.png" alt="Plantation Shutters &amp; Windows" title=""></td>
                     </tr>

@@ -218,12 +218,6 @@ function get_user_ids_by_billing_company($company_name)
         $meta_key = 'wc_multiple_shipping_addresses';
 
         global $wpdb;
-        $addresses = $wpdb->get_results($wpdb->prepare(
-            "SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
-            $user_id,
-            '_woocom_multisession'
-        ));
-
         /*
 				 * Create Group
 				 * Delete Group

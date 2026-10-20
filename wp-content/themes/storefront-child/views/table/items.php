@@ -744,7 +744,15 @@ echo $table_class; ?>">
 							if (!in_array($property_style, [38, 39])) {
 								?> Louvre size:<strong>
 									<?php
-									echo $atributes[$property_bladesize]; ?></strong>
+									echo $atributes[$property_bladesize];
+									// Flat Louver surcharge for Basswood (147) / BasswoodPlus (139).
+									if ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
+										$flat_louver_rate = items_get_display_rate( $user_id, $property_material, 'Flat_Louver' );
+										if ( $flat_louver_rate ) {
+											echo ' (+' . esc_html( $flat_louver_rate ) . '%)';
+										}
+									}
+									?></strong>
                                 <br>
 								<?php
 							}
@@ -791,7 +799,7 @@ echo $table_class; ?>">
                         <td>Frame type:<strong>
 								<?php
 								echo strip_label_surcharge( $atributes[$property_frametype] );
-								// Frame type surcharges (P4028X, P4008T, 4008T, P4008W, Flat Louver).
+								// Frame type surcharges (P4028X, P4008T, 4008T, P4008W).
 								$frame_surcharge_key = null;
 								if ( intval( $property_frametype ) == 171 ) { // Blackout Blind => P4028X
 									$frame_surcharge_key = 'P4028X';
@@ -801,9 +809,6 @@ echo $table_class; ?>">
 									$frame_surcharge_key = 'P4008T';
 								} elseif ( intval( $property_frametype ) == 319 ) { // P4008W
 									$frame_surcharge_key = 'P4008W';
-								} elseif ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
-									// Flat Louver for Basswood (147) / BasswoodPlus (139)
-									$frame_surcharge_key = 'Flat_Louver';
 								}
 								if ( $frame_surcharge_key ) {
 									$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key );
@@ -1159,6 +1164,7 @@ echo $table_class; ?>">
 							<?php
 							if (!current_user_can('china_admin') && $view_price || current_user_can('administrator')) {
 								$sum = number_format($sections_price[$sec], 2);
+								$calculated_subtotal += floatval($sections_price[$sec]);
 								echo '£' . number_format($sum, 2);
 								// echo '<br>' . $product->get_price();
 							}
@@ -1381,7 +1387,15 @@ echo $table_class; ?>">
 						if (!in_array($property_style, [38, 39])) {
 							?> Louvre size:<strong>
 								<?php
-								echo $atributes[$property_bladesize]; ?></strong>
+								echo $atributes[$property_bladesize];
+								// Flat Louver surcharge for Basswood (147) / BasswoodPlus (139).
+								if ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
+									$flat_louver_rate = items_get_display_rate( $user_id, $property_material, 'Flat_Louver' );
+									if ( $flat_louver_rate ) {
+										echo ' (+' . esc_html( $flat_louver_rate ) . '%)';
+									}
+								}
+								?></strong>
                             <br>
 							<?php
 						}
@@ -1430,7 +1444,7 @@ echo $table_class; ?>">
                     <td>Frame type:<strong>
 							<?php
 							echo strip_label_surcharge( $atributes[$property_frametype] );
-							// Frame type surcharges (P4028X, P4008T, 4008T, P4008W, Flat Louver).
+							// Frame type surcharges (P4028X, P4008T, 4008T, P4008W).
 							$frame_surcharge_key = null;
 							if ( intval( $property_frametype ) == 171 ) { // Blackout Blind => P4028X
 								$frame_surcharge_key = 'P4028X';
@@ -1440,9 +1454,6 @@ echo $table_class; ?>">
 								$frame_surcharge_key = 'P4008T';
 							} elseif ( intval( $property_frametype ) == 319 ) { // P4008W
 								$frame_surcharge_key = 'P4008W';
-							} elseif ( in_array( intval( $property_material ), array( 147, 139 ) ) && intval( $property_bladesize ) == 52 ) {
-								// Flat Louver for Basswood (147) / BasswoodPlus (139)
-								$frame_surcharge_key = 'Flat_Louver';
 							}
 							if ( $frame_surcharge_key ) {
 								$frame_rate = items_get_display_rate( $user_id, $property_material, $frame_surcharge_key );
@@ -2085,7 +2096,8 @@ echo $table_class; ?>">
                     <td></td>
                     <td class="quantity"></td>
                     <td class="amount">£<?php
-						echo number_format($order_data['total_tax'], 2); ?></td>
+						$actual_vat = $order->get_total() - $calculated_subtotal - $total_prods_delivery - floatval($order_data['shipping_total']);
+						echo number_format($actual_vat, 2); ?></td>
 					<?php
 					if ($admin == 'true' || $template_order_edit_customer) {
 						echo '<td></td>';

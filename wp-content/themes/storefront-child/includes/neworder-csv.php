@@ -26,10 +26,9 @@ if ( $addresses = $wpdb->get_var($wpdb->prepare("SELECT meta_value FROM {$wpdb->
     $addresses = maybe_unserialize($addresses);
 }
 
-$addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
+$userialize_data = matrix_multicart_session($user_id);
 
 
-$userialize_data = unserialize($addresses[0]->meta_value);
 $session_key = $userialize_data['customer_id'];
 
 

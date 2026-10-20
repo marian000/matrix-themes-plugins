@@ -85,8 +85,7 @@ function my_custom_checkout_field($checkout)
 
 	global $wpdb;
 	$user_id = get_current_user_id();
-	$addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
-	$userialize_data = unserialize($addresses[0]->meta_value);
+	$userialize_data = matrix_multicart_session($user_id);
 	//print_r($userialize_data);
 	//echo '<br>'.$userialize_data['customer_id'];
 	$id_cart = $userialize_data['customer_id'];

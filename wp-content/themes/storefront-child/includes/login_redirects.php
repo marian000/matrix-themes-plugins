@@ -6,7 +6,9 @@ function redirect_to_specific_page()
 	//if (!isset($_GET['id'])) {
 	if (!is_page('Login') && !is_user_logged_in()) {
 
-		wp_redirect('/login', 301);
+		// 302 + no-cache: a cached 301 sends users back to /login even after they log in
+		nocache_headers();
+		wp_redirect(home_url('/login/'), 302);
 		exit;
 	}
 	// }
@@ -41,6 +43,11 @@ add_filter('body_class', 'my_body_classes');
 add_action('login_redirect', 'wpse_290317_redirect_user_to_page', 999, 3);
 function wpse_290317_redirect_user_to_page($redirect_to, $request, $user)
 {
+	// failed login: keep the redirect built by Profile Builder (/login/?loginerror=...)
+	if (is_wp_error($user) || !($user instanceof WP_User)) {
+		return $redirect_to;
+	}
+
 	$role = $user->roles[0];
 	if ($role == 'no_access') {
 		wp_logout();

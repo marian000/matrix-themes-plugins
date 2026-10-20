@@ -32,7 +32,7 @@
         //            $addresses = maybe_unserialize($addresses);
         //        }
 
-        $addresses = $wpdb->get_results("SELECT meta_value FROM `wp_usermeta` WHERE user_id = $user_id AND meta_key = '_woocom_multisession'");
+        $userialize_data = matrix_multicart_session($user_id);
 
         ?>
         <h2>Reports</h2>
@@ -363,8 +363,6 @@
                 //print_r($new2);
 
                 //echo '<pre>';
-                //print_r($addresses[0]->meta_value);
-                $userialize_data = unserialize($addresses[0]->meta_value);
                 //print_r($userialize_data);
                 //print_r($userialize_session['cart']);
                 $unserialize_cart = $userialize_session['cart'];

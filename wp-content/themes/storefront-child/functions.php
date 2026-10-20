@@ -102,6 +102,7 @@ include_once(get_stylesheet_directory() . '/includes/custom-posts-functions.php'
 include_once(get_stylesheet_directory() . '/includes/filters-dashboard-lists.php');
 include_once(get_stylesheet_directory() . '/includes/woocommerce-functions.php');
 include_once(get_stylesheet_directory() . '/includes/login_redirects.php');
+include_once(get_stylesheet_directory() . '/includes/multicart-limit.php');
 include_once(get_stylesheet_directory() . '/includes/add-meta-boxes.php');
 include_once(get_stylesheet_directory() . '/includes/material-pricing-keys.php');
 include_once(get_stylesheet_directory() . '/includes/pricing-meta-keys.php');

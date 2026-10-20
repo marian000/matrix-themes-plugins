@@ -568,7 +568,7 @@ function render_pagination($customer_orders, $current_page)
 			<?php
 			// Get multi-cart data
 			global $wpdb;
-			$addresses = $wpdb->get_results($wpdb->prepare("SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s", $user_id, '_woocom_multisession'));
+			$userialize_data = matrix_multicart_session($user_id);
 			?>
 
             <div class="row">
@@ -600,16 +600,12 @@ function render_pagination($customer_orders, $current_page)
                                 </thead>
                                 <tbody>
 								<?php
-								if (!empty($addresses)) {
-									$userialize_data = unserialize($addresses[0]->meta_value);
+								if (!empty($userialize_data['carts'])) {
 									$carts_sort = $userialize_data['carts'];
 									ksort($carts_sort);
 									$total_elements = count($carts_sort) + 1;
 
 									echo render_cart_table($carts_sort, $userialize_data, $total_elements);
-
-									// Update multi carts array
-									update_user_meta($user_id, '_woocom_multisession', $userialize_data);
 								}
 								?>
                                 </tbody>

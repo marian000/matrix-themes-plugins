@@ -134,11 +134,24 @@ $option_labels = array(
 				$gbp_value = get_user_meta( $user->ID, $gbp_meta_key, true );
 				$usd_value = get_user_meta( $user->ID, $usd_meta_key, true );
 
-				// Placeholder: general user rate (user meta > global post 1 fallback).
-				$_gbp_ph         = get_user_meta( $user->ID, $option_key, true );
-				$gbp_placeholder = ( $_gbp_ph !== '' ) ? $_gbp_ph : get_post_meta( 1, $option_key, true );
-				$_usd_ph         = get_user_meta( $user->ID, $option_key . '-dolar', true );
-				$usd_placeholder = ( $_usd_ph !== '' ) ? $_usd_ph : get_post_meta( 1, $option_key . '-dolar', true );
+				// Placeholder: the rate that actually applies when this field is left blank.
+				// Mirrors PricingConfig::getPerMaterialRate() fallback order:
+				// Level 2 (user general) > Level 3 (per-material global) > Level 4 (general global).
+				$gbp_placeholder = get_user_meta( $user->ID, $option_key, true );
+				if ( $gbp_placeholder === '' ) {
+					$gbp_placeholder = get_post_meta( 1, $gbp_meta_key, true );
+				}
+				if ( $gbp_placeholder === '' ) {
+					$gbp_placeholder = get_post_meta( 1, $option_key, true );
+				}
+
+				$usd_placeholder = get_user_meta( $user->ID, $option_key . '-dolar', true );
+				if ( $usd_placeholder === '' ) {
+					$usd_placeholder = get_post_meta( 1, $usd_meta_key, true );
+				}
+				if ( $usd_placeholder === '' ) {
+					$usd_placeholder = get_post_meta( 1, $option_key . '-dolar', true );
+				}
 
 				// Display label.
 				$label = isset( $option_labels[ $option_key ] ) ? $option_labels[ $option_key ] : $option_key;

@@ -47,8 +47,9 @@ if (empty($order_finish) || $order_finish == 0) {
     $name = get_post_meta($order_id, 'cart_name', true);
 
     $single_email = 'marian93nes@gmail.com';
-    $multiple_recipients = array(
-        'kevin@anyhooshutter.com', 'july@anyhooshutter.com', 'tudor@lifetimeshutters.com'
+    $multiple_recipients = array_merge(
+        matrix_get_anyhoo_recipients(), // kevin@, han@
+        array('july@anyhooshutter.com', 'tudor@lifetimeshutters.com')
     );
 
     $subject = 'ON-HOLD Order LF0' . $order->get_order_number() . ' - ' . $name . ' - for REVISION';
@@ -188,4 +189,4 @@ function createResponseTicket($order_id)
             }
         }
     }
-}
+}

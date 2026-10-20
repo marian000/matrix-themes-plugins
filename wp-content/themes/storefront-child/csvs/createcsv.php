@@ -226,7 +226,7 @@ if (empty($mail_send)) {
 		//   - mike@lifetimeshutters.com
 		//
 		// Anyhoo (doar daca favorite_user = 'yes' pe contul dealerului):
-		//   - kevin@anyhooshutter.com
+		//   - matrix_get_anyhoo_recipients() (kevin@, han@)
 		//   - july@anyhooshutter.com
 		//   Anyhoo primesc CSV impreuna cu order@ si accounts@
 		// -------------------------------------------------------------------------
@@ -256,14 +256,15 @@ if (empty($mail_send)) {
 		wp_mail($mike, $subject, $body, $headers, $attach_pdf_images);
 
 		if ($favorite == 'yes') {
-			// Email 2 (favorite=yes): CSV + imagini merge la order@, accounts@, kevin@, july@
+			// Email 2 (favorite=yes): CSV + imagini merge la order@, accounts@, kevin@, han@, july@
 			// Anyhoo sunt inclusi in acelasi email cu intern ca sa vada toti ca au primit
-			$anyhoo_recipients = array(
-				'kevin@anyhooshutter.com', 'july@anyhooshutter.com'
+			$anyhoo_recipients = array_merge(
+				matrix_get_anyhoo_recipients(), // kevin@, han@
+				array('july@anyhooshutter.com')
 			);
 			$manager_recipients = array_merge(
 				$multiple_recipients,  // order@, accounts@
-				$anyhoo_recipients     // kevin@, july@
+				$anyhoo_recipients     // kevin@, han@, july@
 			);
 			wp_mail($manager_recipients, $subject, $body, $headers, $attach_csv_images);
 		} else {

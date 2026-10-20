@@ -124,3 +124,25 @@ if (!function_exists('get_matrix_recipients')) {
         return $production_recipients;
     }
 }
+
+/**
+ * Destinatarii Anyhoo pentru mail-urile de comenzi și tickete
+ * (CANCELLED, ON-HOLD, CSV comandă pentru dealerii favoriți, Reply pe ticket).
+ * Kevin a preluat locul Carolinei; Han primește aceleași mail-uri.
+ * July NU intră aici, rămâne listată explicit la apelanți.
+ *
+ * @return array Lista de email-uri
+ */
+if (!function_exists('matrix_get_anyhoo_recipients')) {
+    function matrix_get_anyhoo_recipients() {
+        $recipients = array(
+            'kevin@anyhooshutter.com',
+            'han@anyhooshutter.com',
+        );
+
+        return array_values(array_unique(array_filter(
+            array_map('trim', (array) apply_filters('matrix_anyhoo_recipients', $recipients)),
+            'is_email'
+        )));
+    }
+}

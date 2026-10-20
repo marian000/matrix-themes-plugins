@@ -197,10 +197,12 @@ function status_changed_processsing($order_id, $checkout = null)
 
 	if ($order->status == 'cancelled') {
 		$single_email = 'marian93nes@gmail.com';
-		$multiple_recipients = array(
-			'kevin@anyhooshutter.com',
-			'july@anyhooshutter.com',
-			'tudor@lifetimeshutters.com',
+		$multiple_recipients = array_merge(
+			matrix_get_anyhoo_recipients(), // kevin@, han@
+			array(
+				'july@anyhooshutter.com',
+				'tudor@lifetimeshutters.com',
+			)
 		);
 		$name = get_post_meta($order_id, 'cart_name', true);
 		$subject = 'CANCELLED: Order LF0' . $order->get_order_number() . ' - ' . $name . '';

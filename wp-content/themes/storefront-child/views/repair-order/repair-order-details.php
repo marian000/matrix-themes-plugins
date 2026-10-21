@@ -226,14 +226,14 @@ $rep_order_date = get_the_date('', $repair_id);
                             <br>
                             Material:
                             <strong>
-                                <?php echo $atributes[$property_material]; ?></strong>
+                                <?php echo ($atributes[$property_material] ?? ''); ?></strong>
 
                         </td>
                         <td></td>
                         <td>
                             Shutter
                             Colour:<strong>
-                                <?php echo $atributes[$property_shuttercolour]; ?></strong>
+                                <?php echo ($atributes[$property_shuttercolour] ?? ''); ?></strong>
                             <br>
                             Notes:<strong>
                                 <?php echo $comments_customer; ?></strong>
@@ -241,7 +241,7 @@ $rep_order_date = get_the_date('', $repair_id);
                         <td></td>
                         <td>
                             <strong>
-                                <?php echo number_format((double)$property_volume, 5); ?>
+                                <?php echo number_format((float)$property_volume, 5); ?>
                                 q/m </strong>
                             <br>
                             <?php echo 'Qty:  <strong>' . $batten_qnt; ?></strong>
@@ -272,12 +272,12 @@ $rep_order_date = get_the_date('', $repair_id);
                             ?>
                             <a
                             class="nameshutter"
-                            href="/product-admin/?id=<?php echo $product_id * 1498765 * 33; ?>&cust_id=<?php echo $user_id_customer; ?>&item_id=<?php echo $item_id; ?>"><?php echo $atributes[$property_material]; ?></a><?php
+                            href="/product-admin/?id=<?php echo $product_id * 1498765 * 33; ?>&cust_id=<?php echo $user_id_customer; ?>&item_id=<?php echo $item_id; ?>"><?php echo ($atributes[$property_material] ?? ''); ?></a><?php
                         } elseif ($property_category === 'Shutter & Blackout Blind') {
                             ?>
                             <a
                             class="nameshutter"
-                            href="/product3-admin/?id=<?php echo $product_id * 1498765 * 33; ?>&cust_id=<?php echo $user_id_customer; ?>&item_id=<?php echo $item_id; ?>"><?php echo $atributes[$property_material] . ' (' . $property_category . ')'; ?></a><?php
+                            href="/product3-admin/?id=<?php echo $product_id * 1498765 * 33; ?>&cust_id=<?php echo $user_id_customer; ?>&item_id=<?php echo $item_id; ?>"><?php echo ($atributes[$property_material] ?? '') . ' (' . $property_category . ')'; ?></a><?php
                         } elseif ($property_category === 'Batten') {
                             ?>
                             <a
@@ -291,7 +291,7 @@ $rep_order_date = get_the_date('', $repair_id);
                         <br>
                         Installation
                         style:<strong>
-                            <?php echo $atributes[$property_style];
+                            <?php echo ($atributes[$property_style] ?? '');
                             if ($property_style == 34) {
                                 echo ' (+£125)';
                             }
@@ -338,7 +338,7 @@ $rep_order_date = get_the_date('', $repair_id);
                             <?php
 
                             if (!empty($atributes[$property_midrailpositioncritical])) {
-                                echo $atributes[$property_midrailpositioncritical];
+                                echo ($atributes[$property_midrailpositioncritical] ?? '');
                             } else {
                                 echo 'No';
                             }
@@ -358,36 +358,36 @@ $rep_order_date = get_the_date('', $repair_id);
                         ?>
                         Louvre
                         size:<strong>
-                            <?php echo $atributes[$property_bladesize]; ?></strong>
+                            <?php echo ($atributes[$property_bladesize] ?? ''); ?></strong>
                         <br>
                         <?php
-                        echo 'Fit: <strong>' . $atributes[$property_fit];
+                        echo 'Fit: <strong>' . ($atributes[$property_fit] ?? '');
                         ?></strong>
                     </td>
                     <td>
                         Frame
                         type:<strong>
-                            <?php echo $atributes[$property_frametype]; ?></strong>
+                            <?php echo ($atributes[$property_frametype] ?? ''); ?></strong>
                         <br>
                         Stile
                         type:<strong>
-                            <?php echo $atributes[$property_stile]; ?></strong>
+                            <?php echo ($atributes[$property_stile] ?? ''); ?></strong>
                         <br>
                         Frame
                         Left:<strong>
-                            <?php echo $atributes[$property_frameleft]; ?></strong>
+                            <?php echo ($atributes[$property_frameleft] ?? ''); ?></strong>
                         <br>
                         Frame
                         Right:<strong>
-                            <?php echo $atributes[$property_frameright]; ?></strong>
+                            <?php echo ($atributes[$property_frameright] ?? ''); ?></strong>
                         <br>
                         Frame
                         Top:<strong>
-                            <?php echo $atributes[$property_frametop]; ?></strong>
+                            <?php echo ($atributes[$property_frametop] ?? ''); ?></strong>
                         <br>
                         Frame
                         Bottom:<strong>
-                            <?php echo $atributes[$property_framebottom]; ?></strong>
+                            <?php echo ($atributes[$property_framebottom] ?? ''); ?></strong>
                         <br>
                         <?php
                         if (!empty($property_builtout)) {
@@ -399,7 +399,7 @@ $rep_order_date = get_the_date('', $repair_id);
                         Hinge
                         Colour:<strong>
                             <?php
-                            echo $atributes[$property_hingecolour];
+                            echo ($atributes[$property_hingecolour] ?? '');
                             ?></strong>
                         <?php if ($property_hingecolour == 93) {
                             echo ' (+' . $global_stainless_steel . '%)';
@@ -407,7 +407,7 @@ $rep_order_date = get_the_date('', $repair_id);
                         <br>
                         Shutter
                         Colour:<strong>
-                            <?php echo $atributes[$property_shuttercolour]; ?></strong>
+                            <?php echo ($atributes[$property_shuttercolour] ?? ''); ?></strong>
                         <br>
                         <?php
                         if (!empty($property_shuttercolour_other)) {
@@ -415,11 +415,11 @@ $rep_order_date = get_the_date('', $repair_id);
                         }
 
 
-                        if ($atributes[$property_blackoutblindcolour]) {
+                        if (($atributes[$property_blackoutblindcolour] ?? '')) {
                             ?>
                             Blackout Blind Colour:
                             <strong>
-                                <?php echo $atributes[$property_blackoutblindcolour]; ?></strong>
+                                <?php echo ($atributes[$property_blackoutblindcolour] ?? ''); ?></strong>
                             <br>
                             <?php
                         }
@@ -427,8 +427,8 @@ $rep_order_date = get_the_date('', $repair_id);
 
                         Control
                         Type:<strong>
-                            <?php echo $atributes[$property_controltype]; ?></strong> <?php
-                        if ($atributes[$property_controltype] == 'Concealed rod') {
+                            <?php echo ($atributes[$property_controltype] ?? ''); ?></strong> <?php
+                        if (($atributes[$property_controltype] ?? '') == 'Concealed rod') {
                             echo ' (+10%)';
                         }
                         ?>
@@ -436,7 +436,7 @@ $rep_order_date = get_the_date('', $repair_id);
         <?php if (!empty($atributes[$property_controlsplitheight])) { ?>
             <br> Control Split Height:
             <strong>
-            <?php echo $atributes[$property_controlsplitheight]; ?></strong><?php } ?>
+            <?php echo ($atributes[$property_controlsplitheight] ?? ''); ?></strong><?php } ?>
         <br>
         Layout
         code:<strong
@@ -514,7 +514,7 @@ $rep_order_date = get_the_date('', $repair_id);
         if (!empty($property_t1)) {
             if ($property_tposttype) { ?> T-Post Type:
                 <strong>
-                    <?php echo $atributes[$property_tposttype]; ?></strong>
+                    <?php echo ($atributes[$property_tposttype] ?? ''); ?></strong>
                 <br>
             <?php }
         } ?>
@@ -547,7 +547,7 @@ $rep_order_date = get_the_date('', $repair_id);
         <td></td>
         <td>
             <strong>
-                <?php echo number_format((double)$property_total, 2); ?>
+                <?php echo number_format((float)$property_total, 2); ?>
                 sq/m </strong>
             <br>
             <?php echo 'Qty:  <strong>' . $item_data['quantity']; ?></strong>

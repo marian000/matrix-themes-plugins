@@ -85,7 +85,7 @@ if ($container_orders) {
       foreach ($order->get_items() as $prod => $item_data) {
         $i++;
         $product = $item_data->get_product();
-        $product_id = $product->id;
+        $product_id = $item_data->get_product_id();
 
         $nr_g = get_post_meta($product_id, 'counter_g', true);
         $nr_t = get_post_meta($product_id, 'counter_t', true);
@@ -122,7 +122,7 @@ if ($container_orders) {
       $item_index = 0;
       $index_items_orders = array();
       // get index of items from csv to show
-      foreach ($csv_orders_array[$order->get_id()] as $csv_index => $csv_item) {
+      foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_index => $csv_item) {
         $index_items_orders[] = $csv_index;
       }
 
@@ -131,7 +131,7 @@ if ($container_orders) {
         $item_index++;
 
         $product = $item_data->get_product();
-        $product_id = $product->id;
+        $product_id = $item_data->get_product_id();
         // Get an instance of corresponding the WC_Product object
         $product_name = $product->get_name(); // Get the product name
 
@@ -222,7 +222,7 @@ if ($container_orders) {
               $order_sum = $total_order;
 
               $total_order_csv = 0;
-              foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+              foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                 $total_order_csv = 0 + $total_order_csv;
               }
             } else {
@@ -235,7 +235,7 @@ if ($container_orders) {
               $order_sum = $total_order;
 
               $total_order_csv = 0;
-              foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+              foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                 $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
               }
             }
@@ -251,9 +251,9 @@ if ($container_orders) {
               $diff_class_sum = 'neutral';
             }
 
-            $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()]['batten-' . $b]);
+            $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()]['batten-' . $b] ?? 0);
 
-//                echo $diff_amount. ' = ' . floatval($dolar_price) * $item_quantity . ' - ' . floatval($csv_orders_array[$order->get_id()]['batten-' . $b]) . '<br>';
+//                echo $diff_amount. ' = ' . floatval($dolar_price) * $item_quantity . ' - ' . floatval($csv_orders_array[$order->get_id()]['batten-' . $b] ?? 0) . '<br>';
             $diff_class = '';
             if ($diff_amount < 0) {
               $diff_class = 'negative';
@@ -273,7 +273,7 @@ if ($container_orders) {
             //$email_body .= '<td>LF0' . $order->get_order_number() . ' - ' . get_post_meta($order->get_id(), 'cart_name', true) . '</td>;
             $email_body .= '<td>' . $a . '</td>
                             <td>';
-            if ($term_list[0]->slug == 'pos') {
+            if (!empty($term_list[0]) && $term_list[0]->slug == 'pos') {
               $email_body .= '' . get_the_title($product_id) . '';
             } else {
               $email_body .= '' . $atributes[$property_material] . '';
@@ -294,7 +294,7 @@ if ($container_orders) {
                             <td>';
             } else {
               $email_body .= '<td>$' . round($dolar_price, 2) * $item_quantity . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()]['batten-' . $b] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()]['batten-' . $b] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
             }
@@ -332,10 +332,10 @@ if ($container_orders) {
                 $dolar_price = 0;
 
                 $total_order = $total_order + 0;
-                $order_sum = number_format($total_order, 2, ',', '');
+                $order_sum = $total_order;
 
                 $total_order_csv = 0;
-                foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+                foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                   $total_order_csv = 0 + $total_order_csv;
                 }
 
@@ -355,7 +355,7 @@ if ($container_orders) {
                 $order_sum = $total_order;
 
                 $total_order_csv = 0;
-                foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+                foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                   $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
                 }
               }
@@ -401,7 +401,7 @@ if ($container_orders) {
                   $frames[] = $atributes[$property_style];
                 }
                 if (strlen($property_builtout) > 0 && !empty($property_builtout)) {
-                  $frdepth = $framesType[$property_frametype];
+                  $frdepth = ($framesType[$property_frametype] ?? 0);
                   $sum_build_frame = $frdepth + $property_frametype;
                   if ($sum_build_frame < 100) {
                     if (!empty(get_user_meta($user_id, 'Buildout-dolar', true)) || (get_user_meta($user_id, 'Buildout-dolar', true) > 0)) {
@@ -484,7 +484,7 @@ if ($container_orders) {
 								--------------------------   END - Calcul Suma Dolari --------------------------
 								**********************************************************************  */
 
-                $indiv_amount_csv = $indiv_amount_csv + $csv_orders_array[$order->get_id()][$k];
+                $indiv_amount_csv = $indiv_amount_csv + floatval($csv_orders_array[$order->get_id()][$k] ?? 0);
 
                 $diff_sum = floatval($order_sum) - floatval($total_order_csv);
                 if ($diff_sum < 0) {
@@ -519,7 +519,7 @@ if ($container_orders) {
 
                 $email_body .= '<td>' . $a . '</td>
                             <td>';
-                if ($term_list[0]->slug == 'pos') {
+                if (!empty($term_list[0]) && $term_list[0]->slug == 'pos') {
                   $email_body .= '' . get_the_title($product_id) . '';
                 } else {
                   $email_body .= '' . $atributes[$property_material] . ' Idv' . $sec;
@@ -545,7 +545,7 @@ if ($container_orders) {
                     $repair_price = 0;
                   }
                   $email_body .= '<td> $' . $repair_price . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()][$k] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()][$k] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
                 } else {
@@ -661,7 +661,7 @@ if ($container_orders) {
                 $frames[] = $atributes[$property_style];
               }
               if (strlen($property_builtout) > 0 && !empty($property_builtout)) {
-                $frdepth = $framesType[$property_frametype];
+                $frdepth = ($framesType[$property_frametype] ?? 0);
                 $sum_build_frame = $frdepth + $property_frametype;
                 if ($sum_build_frame < 100) {
                   if (!empty(get_user_meta($user_id, 'Buildout-dolar', true)) || (get_user_meta($user_id, 'Buildout-dolar', true) > 0)) {
@@ -832,10 +832,10 @@ if ($container_orders) {
                 $dolar_price = 0;
 
                 $total_order = $total_order + 0;
-                $order_sum = number_format($total_order, 2, ',', '');
+                $order_sum = $total_order;
 
                 $total_order_csv = 0;
-                foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+                foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                   $total_order_csv = 0 + $total_order_csv;
                 }
 
@@ -855,7 +855,7 @@ if ($container_orders) {
                 $order_sum = $total_order;
 
                 $total_order_csv = 0;
-                foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+                foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
                   $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
                 }
               }
@@ -870,7 +870,7 @@ if ($container_orders) {
                 $diff_class_sum = 'neutral';
               }
 
-              $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k]);
+              $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k] ?? 0);
               $diff_class = '';
               if ($diff_amount < 0) {
                 $diff_class = 'negative';
@@ -889,7 +889,7 @@ if ($container_orders) {
 
               $email_body .= '<td>' . $a . '</td>
                             <td>';
-              if ($term_list[0]->slug == 'pos') {
+              if (!empty($term_list[0]) && $term_list[0]->slug == 'pos') {
                 $email_body .= '' . get_the_title($product_id) . '';
               } else {
                 $email_body .= '' . $atributes[$property_material] . '';
@@ -914,12 +914,12 @@ if ($container_orders) {
                   $repair_price = 0;
                 }
                 $email_body .= '<td> $' . $repair_price . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()][$k] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()][$k] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
               } else {
                 $email_body .= '<td>$' . round($dolar_price, 2) * $item_quantity . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()][$k] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()][$k] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
               }
@@ -1026,7 +1026,7 @@ if ($container_orders) {
     foreach ($order->get_items() as $prod => $item_data) {
       $i++;
       $product = $item_data->get_product();
-      $product_id = $product->id;
+      $product_id = $item_data->get_product_id();
 
       $nr_g = get_post_meta($product_id, 'counter_g', true);
       $nr_t = get_post_meta($product_id, 'counter_t', true);
@@ -1064,7 +1064,7 @@ if ($container_orders) {
       $i++;
 
       $product = $item_data->get_product();
-      $product_id = $product->id;
+      $product_id = $item_data->get_product_id();
       // Get an instance of corresponding the WC_Product object
       $product_name = $product->get_name(); // Get the product name
 
@@ -1153,7 +1153,7 @@ if ($container_orders) {
           $order_sum = $total_order;
 
           $total_order_csv = 0;
-          foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+          foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
             $total_order_csv = 0 + $total_order_csv;
           }
 
@@ -1168,7 +1168,7 @@ if ($container_orders) {
           $order_sum = $total_order;
 
           $total_order_csv = 0;
-          foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+          foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
             $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
           }
 
@@ -1183,7 +1183,7 @@ if ($container_orders) {
         if ($a != $size) {
           $diff_class_sum = 'neutral';
         }
-        $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()]['batten-' . $b]);
+        $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()]['batten-' . $b] ?? 0);
         $diff_class = '';
         if ($diff_amount < 0) {
           $diff_class = 'negative';
@@ -1203,7 +1203,7 @@ if ($container_orders) {
         //$email_body .= '<td>LF0' . $order->get_order_number() . ' - ' . get_post_meta($order->get_id(), 'cart_name', true) . '</td>;
         $email_body .= '<td>' . $a . '</td>
                             <td>';
-        if ($term_list[0]->slug == 'pos') {
+        if (!empty($term_list[0]) && $term_list[0]->slug == 'pos') {
           $email_body .= '' . get_the_title($product_id) . '';
         } else {
           $email_body .= '' . $atributes[$property_material] . '';
@@ -1223,7 +1223,7 @@ if ($container_orders) {
                             <td>';
         } else {
           $email_body .= '<td>$' . round($dolar_price, 2) * $item_quantity . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()]['batten-' . $b] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()]['batten-' . $b] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
         }
@@ -1329,7 +1329,7 @@ if ($container_orders) {
           $frames[] = $atributes[$property_style];
         }
         if (strlen($property_builtout) > 0 && !empty($property_builtout)) {
-          $frdepth = $framesType[$property_frametype];
+          $frdepth = ($framesType[$property_frametype] ?? 0);
           $sum_build_frame = $frdepth + $property_frametype;
           if ($sum_build_frame < 100) {
             if (!empty(get_user_meta($user_id, 'Buildout-dolar', true)) || (get_user_meta($user_id, 'Buildout-dolar', true) > 0)) {
@@ -1492,7 +1492,7 @@ if ($container_orders) {
           $order_sum = $total_order;
 
           $total_order_csv = 0;
-          foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+          foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
             $total_order_csv = 0 + $total_order_csv;
           }
 
@@ -1506,7 +1506,7 @@ if ($container_orders) {
           $order_sum = $total_order;
 
           $total_order_csv = 0;
-          foreach ($csv_orders_array[$order->get_id()] as $csv_item) {
+          foreach (($csv_orders_array[$order->get_id()] ?? array()) as $csv_item) {
             $total_order_csv = floatval($csv_item) + floatval($total_order_csv);
           }
 
@@ -1522,7 +1522,7 @@ if ($container_orders) {
           $diff_class_sum = 'neutral';
         }
 
-        $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k]);
+        $diff_amount = (floatval($dolar_price) * $item_quantity) - floatval($csv_orders_array[$order->get_id()][$k] ?? 0);
 
         $diff_class = '';
         if ($diff_amount < 0) {
@@ -1542,7 +1542,7 @@ if ($container_orders) {
 
         $email_body .= '<td>' . $a . '</td>
                             <td>';
-        if ($term_list[0]->slug == 'pos') {
+        if (!empty($term_list[0]) && $term_list[0]->slug == 'pos') {
           $email_body .= '' . get_the_title($product_id) . '';
         } else {
           $email_body .= '' . $atributes[$property_material] . '';
@@ -1562,7 +1562,7 @@ if ($container_orders) {
                             <td>';
         } else {
           $email_body .= '<td>$' . round($dolar_price, 2) * $item_quantity . '</td>
-                            <td class="csv-amount">$' . $csv_orders_array[$order->get_id()][$k] . '</td>
+                            <td class="csv-amount">$' . ($csv_orders_array[$order->get_id()][$k] ?? '') . '</td>
                             <td class="csv-diff ' . $diff_class . '">$' . number_format($diff_amount, 2, ',', '') . '</td>
                             <td>';
         }

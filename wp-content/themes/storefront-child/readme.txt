@@ -18,6 +18,7 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 * Fix: Order item table (views/table/items.php) shows the surcharge rates the item was priced with (price_item_rates snapshot, current rates for older items); 4008T, Bay_Angle on slim posts, Lock, Arched/Shaped styles and B-post buildout now match the calculator
 
 = Unreleased =
+* Fix: PHP notices in the Container Orders Prices meta box: product ID read through the order item; items with no product category, frame types missing from the local depth map (171, 303) and items missing from the CSV invoice no longer raise notices; the repair order total is kept as a number (it was formatted with a comma decimal and then summed)
 * Fix: "Undefined index" notices on the Groups Portfolio admin page (sqm for the first order of each company; material and awning columns for companies with no orders of that kind)
 * Fix: Order, page and product edit screens loaded in ~22s because the core Custom Fields box ran SELECT DISTINCT meta_key over all of wp_postmeta; its key dropdown now lists only the keys already on the post (matrix_postmeta_form_keys() in includes/add-meta-boxes.php)
 * Fix: Order CSV table (views/table/csv.php) no longer prints PHP notices in the order edit meta box: product ID read with get_id(), missing attribute IDs show empty, motor/remote counts set for Individual Bay sections

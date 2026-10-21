@@ -68,7 +68,7 @@
                                 ?>
                                 <tr>
                                     <td>
-                                        <?php echo $UserData['shipping_company'][0]; ?>
+                                        <?php echo esc_html($UserData['shipping_company'][0] ?? ''); ?>
                                     </td>
                                     <td>
                                         <?php echo $user->shipping_first_name . ' ' . $user->shipping_last_name; ?>
@@ -80,14 +80,14 @@
                                     </td>
                                     <td>
                                         <ul>
-                                            <li><?php echo $UserData['shipping_address_1'][0]; ?></li>
-                                            <li><?php echo $UserData['shipping_address_2'][0]; ?></li>
-                                            <li><?php echo $UserData['shipping_city'][0]; ?></li>
-                                            <li><?php echo $UserData['shipping_postcode'][0]; ?></li>
+                                            <li><?php echo esc_html($UserData['shipping_address_1'][0] ?? ''); ?></li>
+                                            <li><?php echo esc_html($UserData['shipping_address_2'][0] ?? ''); ?></li>
+                                            <li><?php echo esc_html($UserData['shipping_city'][0] ?? ''); ?></li>
+                                            <li><?php echo esc_html($UserData['shipping_postcode'][0] ?? ''); ?></li>
                                         </ul>
                                     </td>
                                     <td>
-                                        <?php echo $UserData['billing_phone'][0]; ?>
+                                        <?php echo esc_html($UserData['billing_phone'][0] ?? ''); ?>
                                     </td>
                                 </tr>
                                 <?php

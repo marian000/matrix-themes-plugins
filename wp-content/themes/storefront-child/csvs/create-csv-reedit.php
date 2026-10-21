@@ -77,7 +77,6 @@ if (empty($mail_send)) {
 
     // MAKE PDF ORDER
 
-    require_once($_SERVER['DOCUMENT_ROOT'] . '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php');
     // exit($content);
 
 //

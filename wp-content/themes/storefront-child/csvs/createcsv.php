@@ -99,7 +99,6 @@ if (empty($mail_send)) {
 	//MAKE PDF ORDER
 
 	//OLD VERSION
-	require_once($_SERVER['DOCUMENT_ROOT'] . '/wp-content/themes/storefront-child/html2fpdf/html2fpdf.php');
 //        exit($content);
 //        $pdf = new HTML2FPDF('P', 'mm', 'Letter');
 //        $pdf->AddPage();

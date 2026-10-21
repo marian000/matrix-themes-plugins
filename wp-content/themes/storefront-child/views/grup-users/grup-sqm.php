@@ -232,7 +232,7 @@ $data_arrays = array(
 foreach ($orders as $order_id) {
     $order = wc_get_order($order_id);
     $order_data = $order->get_data();
-    $custom_data = $custom_order_data[$order_id];
+    $custom_data = $custom_order_data[$order_id] ?? array('sqm' => 0, 'usd_price' => 0);
     $user_id_customer = get_post_meta($order_id, '_customer_user', true);
 
     // Extract year and month
@@ -376,13 +376,13 @@ foreach ($luni as $luna) {
                             <td style="text-align:right">' . number_format($total_order_shipping[$year][$luna], 2) . '</td>
                             <td style="text-align:right">' . number_format($sum_total_train[$year][$luna], 2) . '</td>
                             <td style="text-align:right">' . number_format($sum_total[$year][$luna], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['Earth'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['Ecowood'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['EcowoodPlus'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['Biowood'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['BiowoodPlus'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['BasswoodPlus'], 2) . '</td>
-                            <td style="text-align:right">' . number_format($total_materials_sqm[$year][$luna]['Basswood'], 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['Earth'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['Ecowood'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['EcowoodPlus'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['Biowood'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['BiowoodPlus'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['BasswoodPlus'] ?? 0), 2) . '</td>
+                            <td style="text-align:right">' . number_format((float)($total_materials_sqm[$year][$luna]['Basswood'] ?? 0), 2) . '</td>
                         </tr>';
                             $sum_tot_sqm = $sum_tot_sqm + $total[$year][$luna];
                             $sum_tot_dolar = $sum_tot_dolar + $total_dolar[$year][$luna];
@@ -390,13 +390,13 @@ foreach ($luni as $luna) {
                             $sum_tot_prices = $sum_tot_prices + $sum_ty[$luna];
                             $sum_shipping = $sum_shipping + $total_order_shipping[$year][$luna];
                             $sum_tot_train = $sum_tot_train + $sum_total_train[$year][$luna];
-                            $sum_tot_earth = $sum_tot_earth + $total_materials_sqm[$year][$luna]['Earth'];
-                            $sum_tot_ecowood = $sum_tot_ecowood + $total_materials_sqm[$year][$luna]['Ecowood'];
-                            $sum_tot_ecowoodPlus = $sum_tot_ecowoodPlus + $total_materials_sqm[$year][$luna]['EcowoodPlus'];
-                            $sum_tot_biowood = $sum_tot_biowood + $total_materials_sqm[$year][$luna]['Biowood'];
-                            $sum_tot_biowoodPlus = $sum_tot_biowoodPlus + $total_materials_sqm[$year][$luna]['BiowoodPlus'];
-                            $sum_tot_basswoodPlus = $sum_tot_basswoodPlus + $total_materials_sqm[$year][$luna]['BasswoodPlus'];
-                            $sum_tot_basswood = $sum_tot_basswood + $total_materials_sqm[$year][$luna]['Basswood'];
+                            $sum_tot_earth = $sum_tot_earth + ($total_materials_sqm[$year][$luna]['Earth'] ?? 0);
+                            $sum_tot_ecowood = $sum_tot_ecowood + ($total_materials_sqm[$year][$luna]['Ecowood'] ?? 0);
+                            $sum_tot_ecowoodPlus = $sum_tot_ecowoodPlus + ($total_materials_sqm[$year][$luna]['EcowoodPlus'] ?? 0);
+                            $sum_tot_biowood = $sum_tot_biowood + ($total_materials_sqm[$year][$luna]['Biowood'] ?? 0);
+                            $sum_tot_biowoodPlus = $sum_tot_biowoodPlus + ($total_materials_sqm[$year][$luna]['BiowoodPlus'] ?? 0);
+                            $sum_tot_basswoodPlus = $sum_tot_basswoodPlus + ($total_materials_sqm[$year][$luna]['BasswoodPlus'] ?? 0);
+                            $sum_tot_basswood = $sum_tot_basswood + ($total_materials_sqm[$year][$luna]['Basswood'] ?? 0);
                         } else {
                             echo '<tr class="grup-row-empty">
                             <td>' . $year . '</td>

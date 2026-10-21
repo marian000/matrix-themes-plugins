@@ -29,7 +29,7 @@ function order_items_materials_sqm($order_id)
 		$product_id = $item['product_id'];
 		$material_id = get_post_meta($product_id, 'property_material', true);
 		$property_frametype = get_post_meta($product_id, 'property_frametype', true);
-		$material = $materials[$material_id];
+		$material = $materials[$material_id] ?? '';
 		$sqm = get_post_meta($product_id, 'property_total', true);
 		// do something with the material value
 		if (array_key_exists($material, $order_material_sqm)) {

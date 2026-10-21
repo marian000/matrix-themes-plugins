@@ -39,7 +39,7 @@ function order_items_materials_sqm_perfect($order_id)
 		$sqm = get_post_meta($product_id, 'property_total', true);
 
 		// Get material name
-		$material = $materials[$material_id];
+		$material = $materials[$material_id] ?? '';
 
 		// Handle Green specific cases
 		if ($material_id == 137) {
@@ -138,15 +138,15 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
             <td>
 							<?php echo number_format($users_sqm[$user]['sqm'], 2); ?> SQM
             </td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Earth'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Ecowood'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['EcowoodPlus'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['EcowoodPlusF'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['EcowoodPlusP'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Biowood'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['BiowoodPlus'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['BasswoodPlus'], 2); ?></td>
-            <td style="text-align:right"><?php echo number_format($users_sqm[$user]['Basswood'], 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['Earth'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['Ecowood'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['EcowoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['EcowoodPlusF'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['EcowoodPlusP'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['Biowood'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['BiowoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['BasswoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right"><?php echo number_format((float)($users_sqm[$user]['Basswood'] ?? 0), 2); ?></td>
           </tr>
 				<?php } ?>
         </tbody>

@@ -100,25 +100,25 @@ $months = array('01' => 'January', '02' => 'February', '03' => 'March', '04' => 
 					$i++;
 					$user_info = get_userdata($user);
 					$total_sqm = $total_sqm + $users_sqm[$user]['sqm'];
-					$total_sqm_earth = $total_sqm_earth + $users_sqm[$user]['Earth'];
-					$total_sqm_ecowood = $total_sqm_ecowood + $users_sqm[$user]['Ecowood'];
-					$total_sqm_ecowoodPlus = $total_sqm_ecowoodPlus + $users_sqm[$user]['EcowoodPlus'];
-					$total_sqm_biowood = $total_sqm_biowood + $users_sqm[$user]['Biowood'];
-					$total_sqm_biowoodPlus = $total_sqm_biowoodPlus + $users_sqm[$user]['BiowoodPlus'];
-					$total_sqm_basswoodPlus = $total_sqm_basswoodPlus + $users_sqm[$user]['BasswoodPlus'];
-					$total_sqm_basswood = $total_sqm_basswood + $users_sqm[$user]['Basswood'];
+					$total_sqm_earth = $total_sqm_earth + (float)($users_sqm[$user]['Earth'] ?? 0);
+					$total_sqm_ecowood = $total_sqm_ecowood + (float)($users_sqm[$user]['Ecowood'] ?? 0);
+					$total_sqm_ecowoodPlus = $total_sqm_ecowoodPlus + (float)($users_sqm[$user]['EcowoodPlus'] ?? 0);
+					$total_sqm_biowood = $total_sqm_biowood + (float)($users_sqm[$user]['Biowood'] ?? 0);
+					$total_sqm_biowoodPlus = $total_sqm_biowoodPlus + (float)($users_sqm[$user]['BiowoodPlus'] ?? 0);
+					$total_sqm_basswoodPlus = $total_sqm_basswoodPlus + (float)($users_sqm[$user]['BasswoodPlus'] ?? 0);
+					$total_sqm_basswood = $total_sqm_basswood + (float)($users_sqm[$user]['Basswood'] ?? 0);
 					?>
           <tr>
             <td><?php echo $i; ?></td>
             <td><?php echo $user_info->display_name . " - " . $user_info->first_name . " " . $user_info->last_name; ?></td>
             <td data-order="<?php echo $users_sqm[$user]['sqm']; ?>"><?php echo number_format($users_sqm[$user]['sqm'], 2); ?> SQM</td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Earth'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Ecowood'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['EcowoodPlus'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Biowood'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['BiowoodPlus'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['BasswoodPlus'], 2); ?></td>
-            <td style="text-align:right">  <?php echo number_format($users_sqm[$user]['Basswood'], 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['Earth'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['Ecowood'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['EcowoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['Biowood'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['BiowoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['BasswoodPlus'] ?? 0), 2); ?></td>
+            <td style="text-align:right">  <?php echo number_format((float)($users_sqm[$user]['Basswood'] ?? 0), 2); ?></td>
           </tr>
 				<?php } ?>
         </tbody>

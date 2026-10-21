@@ -18,6 +18,7 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 * Fix: Order item table (views/table/items.php) shows the surcharge rates the item was priced with (price_item_rates snapshot, current rates for older items); 4008T, Bay_Angle on slim posts, Lock, Arched/Shaped styles and B-post buildout now match the calculator
 
 = Unreleased =
+* Fix: PHP notices on the group pages (SQM, month, perfect): items with no material (POS, battens), orders with no wp_custom_orders row and months or users with no orders of a material (Earth, Ecowood, ...) no longer raise notices; totals are unchanged
 * Fix: PHP notices on the Users Graphics page: orders with no wp_custom_orders row count as 0 SQM / 0 USD in Total Users SQM, WP_User->ID is used instead of the deprecated ->id, and an unused read of an undefined cart variable is removed; monthly SQM is no longer summed through number_format()
 * Fix: "Undefined index" notices in the Repair Order Details meta box when an option (blackout blind colour, control type, ...) is empty or unknown
 * Fix: "Undefined offset" notices for repair orders (repairs list Warranty column, repairs page, repair meta box, order save) when the original order has items that are not part of the repair

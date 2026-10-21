@@ -64,6 +64,40 @@ function matrix_all_meta_boxes()
 
 add_action('add_meta_boxes', 'matrix_all_meta_boxes');
 
+
+/**
+ * Skip the slow key lookup of the core Custom Fields meta box.
+ *
+ * meta_form() fills the "Name" dropdown with SELECT DISTINCT meta_key over the
+ * whole wp_postmeta table, which took ~22s on every edit screen that shows the
+ * box (orders, pages). Offer only the keys already on this post; a new key can
+ * still be typed with "Enter new".
+ *
+ * @param array|null $keys Keys to offer, null to run the default query.
+ * @param WP_Post    $post Post being edited.
+ * @return array
+ */
+function matrix_postmeta_form_keys($keys, $post)
+{
+	if (null !== $keys) {
+		return $keys;
+	}
+
+	$post_keys = $post ? get_post_custom_keys($post->ID) : array();
+	if (empty($post_keys)) {
+		return array();
+	}
+
+	$post_keys = array_filter($post_keys, function ($key) {
+		return !is_protected_meta($key, 'post');
+	});
+	sort($post_keys);
+
+	return array_slice(array_values($post_keys), 0, 30);
+}
+
+add_filter('postmeta_form_keys', 'matrix_postmeta_form_keys', 10, 2);
+
 /**
  * @param WP_Post $post Current post object.
  */

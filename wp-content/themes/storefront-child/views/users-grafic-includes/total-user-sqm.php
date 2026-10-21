@@ -40,7 +40,7 @@ $custom_order_data = fetch_custom_order_data($orders);
 foreach ($orders as $order_id) {
 	$order = wc_get_order($order_id);
 	$order_data = $order->get_data();
-	$custom_data = $custom_order_data[$order_id];
+	$custom_data = $custom_order_data[$order_id] ?? array('sqm' => 0, 'usd_price' => 0);
 
 	// Extract year and month
 	$order_date = $order_data['date_created']->date('Y-m');
@@ -67,7 +67,7 @@ foreach ($orders as $order_id) {
 	$total_dolar[$year][$month] += $custom_data['usd_price'];
 	$total_gbp[$year][$month] += $order->get_subtotal() - $train_price;
 	$total_gbp_train[$year][$month] += $order->get_subtotal();
-	$total[$year][$month] += number_format($property_total, 2);
+	$total[$year][$month] += round((float)$property_total, 2);
 
 	// Calculate transport costs
 	$average_train = (float)get_post_meta($order_id, 'average_train', true) ?: 0;

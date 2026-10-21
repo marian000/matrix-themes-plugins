@@ -33,7 +33,7 @@
 $users_total_batten = array();
 foreach ($customers as $user) {
     $args = array(
-        'customer_id' => $user->id,
+        'customer_id' => $user->ID,
         'post_status' => array('wc-on-hold', 'wc-completed', 'wc-pending', 'wc-processing', 'wc-inproduction', 'wc-paid', 'wc-waiting', 'wc-revised', 'wc-inrevision'),
         'date_query' => array(
             'after' => date('Y-m-d', strtotime($from2)),
@@ -70,7 +70,7 @@ foreach ($customers as $user) {
     }
 
 
-    $user_info = get_userdata($user->id);
+    $user_info = get_userdata($user->ID);
     $user_name = $user_info->first_name . ' ' . $user_info->last_name;
 //    echo '<h2>User: ' . $user_name . ' have Battens price: ' . $total_price_battens . 'GBP between ' . $from2 . ' - ' . $to2 . '<h2>';
 

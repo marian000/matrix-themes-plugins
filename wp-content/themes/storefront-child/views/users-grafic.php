@@ -69,7 +69,7 @@
                                 $customers = get_users(['role__in' => ['administrator', 'subscriber']]);
                                 // Array of WP_User objects.
                                 foreach ($customers as $user) {
-                                    echo '<option value="' . $user->id . '">' . $user->display_name . '</option>';
+                                    echo '<option value="' . $user->ID . '">' . $user->display_name . '</option>';
                                 } ?>
                             </select>
 
@@ -166,7 +166,7 @@
                     } else {
 
                         $user = get_user_by('email', $_POST['customer_search']);
-                        echo 'Customer ID: ' . $user_id = $user->id;
+                        echo 'Customer ID: ' . $user_id = $user->ID;
 
                     }
 
@@ -365,8 +365,6 @@
                 //echo '<pre>';
                 //print_r($userialize_data);
                 //print_r($userialize_session['cart']);
-                $unserialize_cart = $userialize_session['cart'];
-                $cart_uns = unserialize($unserialize_cart);
                 //print_r($cart_uns);
                 $products_ids = array();
                 // foreach($cart_uns as $key => $data){

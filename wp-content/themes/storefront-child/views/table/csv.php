@@ -42,7 +42,7 @@ $nr_code_prod = array();
 foreach ($order->get_items() as $prod => $item_data) {
 	$i++;
 	$product = $item_data->get_product();
-	$product_id = $product->id;
+	$product_id = $product->get_id();
 
 	$nr_g = get_post_meta($product_id, 'counter_g', true);
 	$nr_t = get_post_meta($product_id, 'counter_t', true);
@@ -218,7 +218,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 	$i++;
 	$k++;
 	$product = $item_data->get_product();
-	$product_id = $product->id;
+	$product_id = $product->get_id();
 
 	$property_room_other = get_post_meta($product_id, 'property_room_other', true);
 	$property_style = get_post_meta($product_id, 'property_style', true);
@@ -353,7 +353,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 		$batten_qnt = get_post_meta($product_id, 'quantity', true);
 		$email_body .= '<tr>
                     <td>' . $k . '</td>
-                    <td>' . $atributes[$property_material] . '</td>
+                    <td>' . ($atributes[$property_material] ?? '') . '</td>
                     <td>' . $property_room_other . '</td>
                     <td>Batten</td>
                     <td>';
@@ -370,7 +370,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 		}
 		$email_body .= '</td>
                     <td>' . $batten_qnt . '</td>
-                    <td>' . number_format((double)$property_total, 5) * number_format((double)$batten_qnt, 2) . '</td>
+                    <td>' . number_format((float)$property_total, 5) * number_format((float)$batten_qnt, 2) . '</td>
                     <td>' . $property_width . '</td>
                     <td>' . $property_height . '</td>
                     <td>' . $property_depth . '</td>
@@ -382,14 +382,14 @@ foreach ($order->get_items() as $prod => $item_data) {
                     <td>' . $property_totheight . '</td>
                     <td>' . $property_horizontaltpost . '</td>
                     <td>' . $property_doubleClosingLouvres . '</td>
-                    <td>' . $atributes[$property_bladesize] . '</td>
+                    <td>' . ($atributes[$property_bladesize] ?? '') . '</td>
                     <td>' . $property_trackedtype . '</td>
                     <td>' . $property_freefolding . '</td>
                     <td>' . $property_bypasstype . '</td>
                     <td>' . $property_lightblocks . '</td>
-                    <td>' . $atributes[$property_fit] . '</td>
-                    <td>' . $atributes[$property_frametype] . '</td>
-                    <td>' . $atributes[$property_stile] . '</td>
+                    <td>' . ($atributes[$property_fit] ?? '') . '</td>
+                    <td>' . ($atributes[$property_frametype] ?? '') . '</td>
+                    <td>' . ($atributes[$property_stile] ?? '') . '</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -397,11 +397,11 @@ foreach ($order->get_items() as $prod => $item_data) {
                     <td></td>
                     <td></td>
                     <td>' . $property_builtout . '</td>
-                    <td>' . $atributes[$property_hingecolour] . '</td>
-                    <td>' . $atributes[$property_shuttercolour] . '</td>
+                    <td>' . ($atributes[$property_hingecolour] ?? '') . '</td>
+                    <td>' . ($atributes[$property_shuttercolour] ?? '') . '</td>
                     <td>' . $property_shuttercolour_other . '</td>
-                    <td>' . $atributes[$property_blackoutblindcolour] . '</td>
-                    <td>' . $atributes[$property_controltype] . '</td><td></td>';
+                    <td>' . ($atributes[$property_blackoutblindcolour] ?? '') . '</td>
+                    <td>' . ($atributes[$property_controltype] ?? '') . '</td><td></td>';
 
 		if ($property_style == 37) {
 			if ($property_tracksnumber) {
@@ -445,7 +445,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 
 		$email_body .= '<td>';
 		if (!empty(get_post_meta($product_id, 'property_t1', true))) {
-			$email_body .= $atributes[$property_tposttype];
+			$email_body .= ($atributes[$property_tposttype] ?? '');
 		} else {
 			$email_body .= ' ';
 		}
@@ -484,9 +484,9 @@ foreach ($order->get_items() as $prod => $item_data) {
 
 				$email_body .= '<tr>
                             <td>' . $k . '</td>
-                            <td>' . $atributes[$property_material] . '</td>
+                            <td>' . ($atributes[$property_material] ?? '') . '</td>
                             <td>' . $property_room_other . ' - Section' . $sec . '</td>
-                            <td>' . 'Individual Bay Window - ' . $atributes[$property_style];
+                            <td>' . 'Individual Bay Window - ' . ($atributes[$property_style] ?? '');
 				$email_body .= '</td>
                             <td>';
 				if (!empty($attachment)) {
@@ -503,7 +503,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 				$property_total_section = get_post_meta($product_id, 'property_total_section' . $sec, true);
 				$email_body .= '</td>
                             <td>' . $item_quantity . '</td>
-                            <td>' . number_format((double)$property_total_section, 2) * number_format((double)$item_quantity, 2) . '</td>
+                            <td>' . number_format((float)$property_total_section, 2) * number_format((float)$item_quantity, 2) . '</td>
                             <td>' . get_post_meta($product_id, 'property_width' . $sec, true) . '</td>
                             <td>' . $property_height . '</td>
                             <td></td>
@@ -516,7 +516,7 @@ foreach ($order->get_items() as $prod => $item_data) {
                             <td>';
 
 				if (!empty($atributes[$property_midrailpositioncritical])) {
-					$email_body .= '' . $atributes[$property_midrailpositioncritical] . '';
+					$email_body .= '' . ($atributes[$property_midrailpositioncritical] ?? '') . '';
 				} else {
 					$email_body .= 'No';
 				}
@@ -524,24 +524,24 @@ foreach ($order->get_items() as $prod => $item_data) {
                             <td>' . $property_totheight . '</td>
                             <td>' . $property_horizontaltpost . '</td>
                             <td>' . $property_doubleClosingLouvres . '</td>
-                            <td>' . $atributes[$property_bladesize] . '</td>
+                            <td>' . ($atributes[$property_bladesize] ?? '') . '</td>
                             <td>' . $property_trackedtype . '</td>
                             <td>' . $property_freefolding . '</td>
                             <td>' . $property_bypasstype . '</td>
                             <td>' . $property_lightblocks . '</td>
-                            <td>' . $atributes[$property_fit] . '</td>
-                            <td>' . $atributes[$property_frametype] . '</td>
-                            <td>' . $atributes[$property_stile] . '</td>
-                            <td>' . $atributes[$property_frameleft] . '</td>
-                            <td>' . $atributes[$property_frameright] . '</td>
-                            <td>' . $atributes[$property_frametop] . '</td>
-                            <td>' . $atributes[$property_framebottom] . '</td>
+                            <td>' . ($atributes[$property_fit] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frametype] ?? '') . '</td>
+                            <td>' . ($atributes[$property_stile] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frameleft] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frameright] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frametop] ?? '') . '</td>
+                            <td>' . ($atributes[$property_framebottom] ?? '') . '</td>
                             <td>' . $property_builtout . '</td>
-                            <td>' . $atributes[$property_hingecolour] . '</td>
-                            <td>' . $atributes[$property_shuttercolour] . '</td>
+                            <td>' . ($atributes[$property_hingecolour] ?? '') . '</td>
+                            <td>' . ($atributes[$property_shuttercolour] ?? '') . '</td>
                             <td>' . $property_shuttercolour_other . '</td>
-                            <td>' . $atributes[$property_blackoutblindcolour] . '</td>
-                            <td>' . $atributes[$property_controltype] . '</td>';
+                            <td>' . ($atributes[$property_blackoutblindcolour] ?? '') . '</td>
+                            <td>' . ($atributes[$property_controltype] ?? '') . '</td>';
 				if ($property_style == 37) {
 					if ($property_tracksnumber) {
 						$email_body .= ' <td>' . $property_tracksnumber . '</td>';
@@ -549,6 +549,8 @@ foreach ($order->get_items() as $prod => $item_data) {
 				} else {
 					$email_body .= ' <td></td>';
 				}
+				$motorizedNR = $property_motorized == 'Yes' ? $property_nrMotors : ' ';
+				$remotesNR = $property_motorized == 'Yes' ? $property_nrRemotes : ' ';
 
 				$email_body .= '<td style="text-transform: uppercase;">' . strtoupper(get_post_meta($product_id, 'property_layoutcode' . $sec, true)) . '</td>';
 				$email_body .= '<td style="text-transform: uppercase;">' . $property_motorized . '</td>';
@@ -577,7 +579,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 				$email_body .= '<td>' . $tposttypeSec . '</td>';
 				$email_body .= '<td>';
 				if (!empty(get_post_meta($product_id, 'property_t1' . '_' . $sec, true))) {
-					$email_body .= $atributes[$property_tposttype];
+					$email_body .= ($atributes[$property_tposttype] ?? '');
 				} else {
 					$email_body .= ' ';
 				}
@@ -613,9 +615,9 @@ foreach ($order->get_items() as $prod => $item_data) {
 		} else {
 			$email_body .= '<tr>
                             <td>' . $k . '</td>
-                            <td>' . $atributes[$property_material] . '</td>
+                            <td>' . ($atributes[$property_material] ?? '') . '</td>
                             <td>' . $property_room_other . '</td>
-                            <td>' . $atributes[$property_style];
+                            <td>' . ($atributes[$property_style] ?? '');
 			$email_body .= '</td>
                             <td>';
 			if (!empty($attachment)) {
@@ -631,7 +633,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 			}
 			$email_body .= '</td>
                             <td>' . $item_quantity . '</td>
-                            <td>' . number_format((double)$property_total, 2) * number_format((double)$item_quantity, 2) . '</td>
+                            <td>' . number_format((float)$property_total, 2) * number_format((float)$item_quantity, 2) . '</td>
                             <td>' . $property_width . '</td>
                             <td>' . $property_height . '</td>
                             <td></td>
@@ -644,7 +646,7 @@ foreach ($order->get_items() as $prod => $item_data) {
                             <td>';
 
 			if (!empty($atributes[$property_midrailpositioncritical])) {
-				$email_body .= '' . $atributes[$property_midrailpositioncritical] . '';
+				$email_body .= '' . ($atributes[$property_midrailpositioncritical] ?? '') . '';
 			} else {
 				$email_body .= 'No';
 			}
@@ -652,24 +654,24 @@ foreach ($order->get_items() as $prod => $item_data) {
                             <td>' . $property_totheight . '</td>
                             <td>' . $property_horizontaltpost . '</td>
                             <td>' . $property_doubleClosingLouvres . '</td>
-                            <td>' . $atributes[$property_bladesize] . '</td>
+                            <td>' . ($atributes[$property_bladesize] ?? '') . '</td>
                             <td>' . $property_trackedtype . '</td>
                             <td>' . $property_freefolding . '</td>
                             <td>' . $property_bypasstype . '</td>
                             <td>' . $property_lightblocks . '</td>
-                            <td>' . $atributes[$property_fit] . '</td>
-                            <td>' . $atributes[$property_frametype] . '</td>
-                            <td>' . $atributes[$property_stile] . '</td>
-                            <td>' . $atributes[$property_frameleft] . '</td>
-                            <td>' . $atributes[$property_frameright] . '</td>
-                            <td>' . $atributes[$property_frametop] . '</td>
-                            <td>' . $atributes[$property_framebottom] . '</td>
+                            <td>' . ($atributes[$property_fit] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frametype] ?? '') . '</td>
+                            <td>' . ($atributes[$property_stile] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frameleft] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frameright] ?? '') . '</td>
+                            <td>' . ($atributes[$property_frametop] ?? '') . '</td>
+                            <td>' . ($atributes[$property_framebottom] ?? '') . '</td>
                             <td>' . $property_builtout . '</td>
-                            <td>' . $atributes[$property_hingecolour] . '</td>
-                            <td>' . $atributes[$property_shuttercolour] . '</td>
+                            <td>' . ($atributes[$property_hingecolour] ?? '') . '</td>
+                            <td>' . ($atributes[$property_shuttercolour] ?? '') . '</td>
                             <td>' . $property_shuttercolour_other . '</td>
                             <td>' . ($atributes[$property_blackoutblindcolour] ?? '') . '</td>
-                            <td>' . $atributes[$property_controltype] . '</td>';
+                            <td>' . ($atributes[$property_controltype] ?? '') . '</td>';
 			if ($property_style == 37) {
 				if ($property_tracksnumber) {
 					$email_body .= ' <td>' . $property_tracksnumber . '</td>';
@@ -708,7 +710,7 @@ foreach ($order->get_items() as $prod => $item_data) {
 
 			$email_body .= '<td>';
 			if (!empty(get_post_meta($product_id, 'property_t1', true))) {
-				$email_body .= $atributes[$property_tposttype];
+				$email_body .= ($atributes[$property_tposttype] ?? '');
 			} else {
 				$email_body .= ' ';
 			}

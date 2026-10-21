@@ -18,6 +18,7 @@ Custom child theme for The Matrix UK B2B shutter ordering system.
 * Fix: Order item table (views/table/items.php) shows the surcharge rates the item was priced with (price_item_rates snapshot, current rates for older items); 4008T, Bay_Angle on slim posts, Lock, Arched/Shaped styles and B-post buildout now match the calculator
 
 = Unreleased =
+* Fix: Order CSV table (views/table/csv.php) no longer prints PHP notices in the order edit meta box: product ID read with get_id(), missing attribute IDs show empty, motor/remote counts set for Individual Bay sections
 * Remove: Unused HTML2FPDF library (Html2Fpdf/, html2fpdf-1/) and csvs/createcsv_OLD.php; order PDFs are made with mpdf. The leftover require_once in createcsv.php and create-csv-reedit.php is removed (the library does not parse on PHP 8)
 * Change: Anyhoo order emails (CANCELLED, ON-HOLD on edit, order CSV for favourite dealers) and ticket Reply emails go to kevin@ and han@anyhooshutter.com instead of caroline@, through matrix_get_anyhoo_recipients() in includes/email-settings-helper.php (filter matrix_anyhoo_recipients)
 * Fix: "Suspended Dealer? (no add orders)" is now saved for employees and salesmen too, so each user is suspended or reactivated separately (before, the field was ignored on employee profiles and an existing "yes" could not be cleared)

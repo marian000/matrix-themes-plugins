@@ -476,7 +476,7 @@ function custom_order_repair_column($column, $post_id)
 			$order = new WC_Order($order_id);
 			$items = $order->get_items();
 			foreach ($items as $item_id => $item_data) {
-				if ($warranty[$item_id] == 'No') {
+				if (isset($warranty[$item_id]) && $warranty[$item_id] == 'No') {
 					$no_warranty = true;
 				}
 			}

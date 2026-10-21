@@ -883,7 +883,7 @@ function order_repair_save_meta($post_id)
 			$cost = 0;
 			if ($type_cost == 'sqm') {
 				foreach ($items as $item_id => $item_data) {
-					if ($warranty[$item_id] == 'No') {
+					if (isset($warranty[$item_id]) && $warranty[$item_id] == 'No') {
 						$item_cost_w = 10;
 						$product_id = $item_data['product_id'];
 						$property_total = get_post_meta($product_id, 'property_total', true);

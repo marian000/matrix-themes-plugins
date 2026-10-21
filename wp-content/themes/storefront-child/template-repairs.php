@@ -366,7 +366,7 @@ get_header(); ?>
 							$no_warranty = false;
 							$items = $order->get_items();
 							foreach ($items as $item_id => $item_data) {
-								if ($warranty[$item_id] == 'No') {
+								if (isset($warranty[$item_id]) && $warranty[$item_id] == 'No') {
 									$no_warranty = true;
 								}
 							}

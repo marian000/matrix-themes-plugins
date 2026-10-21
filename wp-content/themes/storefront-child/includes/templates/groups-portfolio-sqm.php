@@ -505,7 +505,7 @@ function get_user_ids_by_billing_company_sqm($company_name)
             if (!empty($user_id)) {
                 $group_companies[$company]['user_id'] = $user_id;
             }
-            if (array_key_exists($company, $group_companies)) {
+            if (isset($group_companies[$company]['sqm'])) {
                 $group_companies[$company]['sqm'] += $property_total;
             } else {
                 $group_companies[$company]['sqm'] = $property_total;

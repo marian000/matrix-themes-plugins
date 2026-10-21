@@ -482,7 +482,7 @@ function get_user_ids_by_billing_company($company_name)
             if (!empty($user_id)) {
                 $group_companies[$company]['user_id'] = $user_id;
             }
-            if (array_key_exists($company, $group_companies)) {
+            if (isset($group_companies[$company]['sqm'])) {
                 $group_companies[$company]['sqm'] += $property_total;
             } else {
                 $group_companies[$company]['sqm'] = $property_total;
@@ -717,23 +717,23 @@ function get_user_ids_by_billing_company($company_name)
                                     </td>
                                     <td data-order="<?php echo $group_companies[$company]['sqm']; ?>"><?php echo number_format($group_companies[$company]['sqm'], 2); ?> SQM</td>
                                     <td><?php echo esc_html($ecowood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Ecowood'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['Ecowood'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($ecowoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['EcowoodPlus'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['EcowoodPlus'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($biowood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Biowood'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['Biowood'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($biowoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['BiowoodPlus'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['BiowoodPlus'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($basswoodPlus); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['BasswoodPlus'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['BasswoodPlus'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($basswood); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Basswood'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['Basswood'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($earth); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['Earth'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['Earth'] ?? 0), 2); ?></td>
                                     <td><?php echo esc_html($green); ?></td>
                                     <td><?php echo number_format((float)($group_companies[$company]['Green'] ?? 0), 2); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['awning_subtotal'], 2); ?></td>
-                                    <td><?php echo number_format($group_companies[$company]['awning_items'], 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['awning_subtotal'] ?? 0), 2); ?></td>
+                                    <td><?php echo number_format((float)($group_companies[$company]['awning_items'] ?? 0), 2); ?></td>
                                     </tr>
                                 <?php
                                 $i++;

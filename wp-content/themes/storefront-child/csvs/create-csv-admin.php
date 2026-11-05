@@ -26,7 +26,7 @@ $order_id = $_POST['id_ord_original'];
 $mail_send = get_post_meta($order_id, 'mail_send', true);
 $customer_id = get_post_meta($order_id, '_customer_user', true);
 
-// favorite_user = 'yes' inseamna client Anyhoo (kevin@, july@)
+// favorite_user = 'yes' inseamna client Anyhoo (han@, july@)
 // In aceasta versiune admin, trimiterea catre Anyhoo este dezactivata (vezi mai jos)
 $favorite = get_user_meta($customer_id, 'favorite_user', true);
 
@@ -222,7 +222,7 @@ if (!empty($_POST['china']) && $_POST['table']) {
 		'tudor@fiqs.ro', 'tudor@lifetimeshutters.com',
 	);
 	$subject = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Matrix Order Attached - Resent';
-	$body = 'Hi July, Kevin<br><br>New order. See Order Attached <br>';
+	$body = 'Hi July, Han<br><br>New order. See Order Attached <br>';
 	foreach ($items as $item_id => $item_data) {
 
 		$product_id = $item_data['product_id'];

@@ -198,7 +198,7 @@ function status_changed_processsing($order_id, $checkout = null)
 	if ($order->status == 'cancelled') {
 		$single_email = 'marian93nes@gmail.com';
 		$multiple_recipients = array_merge(
-			matrix_get_anyhoo_recipients(), // kevin@, han@
+			matrix_get_anyhoo_recipients(), // han@
 			array(
 				'july@anyhooshutter.com',
 				'tudor@lifetimeshutters.com',
@@ -209,7 +209,7 @@ function status_changed_processsing($order_id, $checkout = null)
 		$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
 		$mess = '
-        Hi July, Kevin <br />
+        Hi July, Han <br />
         <br />
        Please CANCEL this order as requested by dealer.<br />
         <br />

@@ -6,7 +6,7 @@
  * Genereaza CSV si PDF pentru o comanda si trimite emailuri catre:
  *   - Intern (order@, accounts@)
  *   - Manager (mike@) — primeste intotdeauna PDF + imagini
- *   - Anyhoo (kevin@, july@) — doar daca clientul/dealerul are favorite_user = 'yes'
+ *   - Anyhoo (han@, july@) — doar daca clientul/dealerul are favorite_user = 'yes'
  *   - Dealer/client — primeste PDF (Order Summary - Proforma Invoice)
  *
  * Protectie anti-spam: mail_send meta pe order — emailul se trimite o singura data.
@@ -30,7 +30,7 @@ $customer_id = $wc_order ? $wc_order->get_customer_id() : '';
 // Daca userul este sub-dealer (view_price=no), folosim ID-ul parintelui (dealerul principal)
 $dealer_id = get_user_meta($customer_id, 'company_parent', true);
 
-// favorite_user = 'yes' inseamna ca Anyhoo (kevin@, july@) trebuie sa primeasca comanda
+// favorite_user = 'yes' inseamna ca Anyhoo (han@, july@) trebuie sa primeasca comanda
 $favorite = get_user_meta(!empty($dealer_id) ? $dealer_id : $customer_id, 'favorite_user', true);
 error_log('[FAVORITE DEBUG] order_id=' . $order_id . ' customer_id=' . $customer_id . ' dealer_id=' . $dealer_id . ' favorite=' . $favorite . ' mail_send=' . $mail_send);
 
@@ -195,7 +195,7 @@ if (empty($mail_send)) {
 			'tudor@fiqs.ro', 'tudor@lifetimeshutters.com',
 		);
 		$subject = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Matrix Order Attached';
-		$body = 'Hi July, Kevin<br><br>New order. See Order Attached <br>';
+		$body = 'Hi July, Han<br><br>New order. See Order Attached <br>';
 		foreach ($items as $item_id => $item_data) {
 
 			$product_id = $item_data['product_id'];
@@ -225,7 +225,7 @@ if (empty($mail_send)) {
 		//   - mike@lifetimeshutters.com
 		//
 		// Anyhoo (doar daca favorite_user = 'yes' pe contul dealerului):
-		//   - matrix_get_anyhoo_recipients() (kevin@, han@)
+		//   - matrix_get_anyhoo_recipients() (han@)
 		//   - july@anyhooshutter.com
 		//   Anyhoo primesc CSV impreuna cu order@ si accounts@
 		// -------------------------------------------------------------------------
@@ -235,7 +235,7 @@ if (empty($mail_send)) {
 		);
 
 		$subject = 'LF0' . $_POST['id'] . ' - ' . $name . ' - Matrix Order Attached';
-		$body = 'Hi July, Kevin<br><br>New order. See Order Attached <br>';
+		$body = 'Hi July, Han<br><br>New order. See Order Attached <br>';
 		foreach ($items as $item_id => $item_data) {
 
 			$product_id = $item_data['product_id'];
@@ -255,15 +255,15 @@ if (empty($mail_send)) {
 		wp_mail($mike, $subject, $body, $headers, $attach_pdf_images);
 
 		if ($favorite == 'yes') {
-			// Email 2 (favorite=yes): CSV + imagini merge la order@, accounts@, kevin@, han@, july@
+			// Email 2 (favorite=yes): CSV + imagini merge la order@, accounts@, han@, july@
 			// Anyhoo sunt inclusi in acelasi email cu intern ca sa vada toti ca au primit
 			$anyhoo_recipients = array_merge(
-				matrix_get_anyhoo_recipients(), // kevin@, han@
+				matrix_get_anyhoo_recipients(), // han@
 				array('july@anyhooshutter.com')
 			);
 			$manager_recipients = array_merge(
 				$multiple_recipients,  // order@, accounts@
-				$anyhoo_recipients     // kevin@, han@, july@
+				$anyhoo_recipients     // han@, july@
 			);
 			wp_mail($manager_recipients, $subject, $body, $headers, $attach_csv_images);
 		} else {

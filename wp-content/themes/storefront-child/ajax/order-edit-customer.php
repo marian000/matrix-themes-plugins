@@ -48,7 +48,7 @@ if (empty($order_finish) || $order_finish == 0) {
 
     $single_email = 'marian93nes@gmail.com';
     $multiple_recipients = array_merge(
-        matrix_get_anyhoo_recipients(), // kevin@, han@
+        matrix_get_anyhoo_recipients(), // han@
         array('july@anyhooshutter.com', 'tudor@lifetimeshutters.com')
     );
 
@@ -56,7 +56,7 @@ if (empty($order_finish) || $order_finish == 0) {
     $headers = array('Content-Type: text/html; charset=UTF-8', 'From: Matrix-LifetimeShutters <order@lifetimeshutters.com>');
 
     $mess = '
-        Hi July, Kevin <br />
+        Hi July, Han <br />
         <br />
        Please put this order ON-HOLD until revised by dealer.<br />
 The revised order will be sent to you when ready.<br />

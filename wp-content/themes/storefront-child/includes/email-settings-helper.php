@@ -128,7 +128,7 @@ if (!function_exists('get_matrix_recipients')) {
 /**
  * Destinatarii Anyhoo pentru mail-urile de comenzi și tickete
  * (CANCELLED, ON-HOLD, CSV comandă pentru dealerii favoriți, Reply pe ticket).
- * Kevin a preluat locul Carolinei; Han primește aceleași mail-uri.
+ * Han a preluat locul lui Kevin (din 2026-11-05), care preluase locul Carolinei.
  * July NU intră aici, rămâne listată explicit la apelanți.
  *
  * @return array Lista de email-uri
@@ -136,7 +136,6 @@ if (!function_exists('get_matrix_recipients')) {
 if (!function_exists('matrix_get_anyhoo_recipients')) {
     function matrix_get_anyhoo_recipients() {
         $recipients = array(
-            'kevin@anyhooshutter.com',
             'han@anyhooshutter.com',
         );
 

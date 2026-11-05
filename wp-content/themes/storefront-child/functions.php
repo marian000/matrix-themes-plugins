@@ -412,7 +412,7 @@ function save_order_post($post_id)
 			$headers = array('Content-Type: text/html; charset=UTF-8', 'From: ' . get_matrix_from_address('order'));
 
 			$mess = '
-        Hi July, Kevin <br />
+        Hi July, Han <br />
         <br />
        Please put this order ON-HOLD until revised by dealer.<br />
 The revised order will be sent to you when ready.<br />
